@@ -1,21 +1,24 @@
-//
-//  ContentView.swift
-//  rangofileconverter
-//
-//  Created by Sardor Islomov on 20/02/26.
-//
-
 import SwiftUI
 
 struct ContentView: View {
     var body: some View {
-        VStack {
-            Image(systemName: "globe")
-                .imageScale(.large)
-                .foregroundStyle(.tint)
-            Text("Hello, world!")
+        TabView {
+            Tab("Image", systemImage: "photo") {
+                ImageConverterView()
+            }
+
+            Tab("Video", systemImage: "video") {
+                VideoConverterView()
+            }
+
+            Tab("Audio", systemImage: "music.note") {
+                AudioConverterView()
+            }
+
+            Tab("Document", systemImage: "doc.text") {
+                DocumentConverterView()
+            }
         }
-        .padding()
     }
 }
 

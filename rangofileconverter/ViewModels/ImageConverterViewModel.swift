@@ -19,6 +19,22 @@ final class ImageConverterViewModel {
         showConversionDetail = true
     }
 
+    func addHistoryRecord(fileName: String, thumbnail: UIImage?, outputURL: URL) {
+        let ext = fileName.components(separatedBy: ".").last ?? "png"
+        let format = FormatRegistry.format(forExtension: ext)
+            ?? FormatRegistry.imageFormats[2] // PNG fallback
+
+        let record = ConversionRecord(
+            sourceFileName: fileName,
+            sourceFormat: ext.uppercased(),
+            targetFormat: format,
+            thumbnail: thumbnail?.preparingThumbnail(of: CGSize(width: 80, height: 80)),
+            status: .converted,
+            outputURL: outputURL
+        )
+        history.insert(record, at: 0)
+    }
+
     func convert(to format: FormatDefinition) async {
         guard let inputURL = selectedFileURL else { return }
 

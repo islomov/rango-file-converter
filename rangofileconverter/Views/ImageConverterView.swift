@@ -1,18 +1,52 @@
 import SwiftUI
-import PhotosUI
-import UniformTypeIdentifiers
+
+private enum ImageTab: String, CaseIterable {
+    case tools = "Tools"
+    case history = "History"
+}
+
+private struct ImageTool: Identifiable, Hashable {
+    let id: String
+    let title: String
+    let icon: String
+    let isAvailable: Bool
+}
+
+private let imageTools: [ImageTool] = [
+    ImageTool(id: "convert", title: "Convert", icon: "arrow.triangle.2.circlepath", isAvailable: true),
+    ImageTool(id: "compress", title: "Compress", icon: "arrow.down.right.and.arrow.up.left", isAvailable: false),
+    ImageTool(id: "rotate", title: "Rotate", icon: "rotate.right", isAvailable: false),
+    ImageTool(id: "resize", title: "Resize", icon: "arrow.up.left.and.arrow.down.right", isAvailable: false),
+    ImageTool(id: "crop", title: "Crop", icon: "crop", isAvailable: false),
+    ImageTool(id: "stitch", title: "Stitch", icon: "rectangle.grid.2x2", isAvailable: false),
+    ImageTool(id: "gif", title: "Make GIF", icon: "photo.stack", isAvailable: false),
+]
 
 struct ImageConverterView: View {
     @State private var viewModel = ImageConverterViewModel()
+    @State private var selectedTab: ImageTab = .tools
+    @State private var showComingSoon = false
+    @State private var showAssetPicker = false
 
     var body: some View {
         NavigationStack {
             VStack(spacing: 0) {
                 header
-                pickSection
-                historySection
+                tabPicker
+
+                switch selectedTab {
+                case .tools:
+                    toolsSection
+                case .history:
+                    historySection
+                }
             }
             .navigationBarHidden(true)
+            .navigationDestination(isPresented: $showAssetPicker) {
+                AssetPickerView { image, fileName, url in
+                    viewModel.selectImage(image, fileName: fileName, fileURL: url)
+                }
+            }
             .navigationDestination(isPresented: $viewModel.showConversionDetail) {
                 if let image = viewModel.selectedImage {
                     ImageDetailView(
@@ -23,19 +57,10 @@ struct ImageConverterView: View {
                     }
                 }
             }
-            .fileImporter(
-                isPresented: $viewModel.showFilePicker,
-                allowedContentTypes: [UTType.image],
-                allowsMultipleSelection: false
-            ) { result in
-                switch result {
-                case .success(let urls):
-                    if let url = urls.first {
-                        viewModel.handleFileImport(result: .success(url))
-                    }
-                case .failure(let error):
-                    viewModel.handleFileImport(result: .failure(error))
-                }
+            .alert("Coming Soon", isPresented: $showComingSoon) {
+                Button("OK", role: .cancel) { }
+            } message: {
+                Text("This tool is not available yet. Stay tuned!")
             }
         }
     }
@@ -57,36 +82,62 @@ struct ImageConverterView: View {
         .padding(.vertical, 12)
     }
 
-    private var pickSection: some View {
-        HStack(spacing: 12) {
-            PhotosPicker(
-                selection: $viewModel.selectedPhotoItem,
-                matching: .images
-            ) {
-                pickButton(title: "Photo Library", icon: "photo.on.rectangle")
-            }
-
-            Button {
-                viewModel.showFilePicker = true
-            } label: {
-                pickButton(title: "Files", icon: "folder")
+    private var tabPicker: some View {
+        Picker("", selection: $selectedTab) {
+            ForEach(ImageTab.allCases, id: \.self) { tab in
+                Text(tab.rawValue).tag(tab)
             }
         }
+        .pickerStyle(.segmented)
         .padding(.horizontal, 16)
         .padding(.bottom, 16)
     }
 
-    private func pickButton(title: String, icon: String) -> some View {
-        VStack(spacing: 8) {
-            Image(systemName: icon)
+    private var toolsSection: some View {
+        ScrollView {
+            LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 12) {
+                ForEach(imageTools) { tool in
+                    Button {
+                        handleToolTap(tool)
+                    } label: {
+                        toolCard(tool)
+                    }
+                }
+            }
+            .padding(.horizontal, 16)
+        }
+    }
+
+    private func toolCard(_ tool: ImageTool) -> some View {
+        VStack(spacing: 10) {
+            Image(systemName: tool.icon)
                 .font(.title2)
-            Text(title)
+            Text(tool.title)
                 .font(.subheadline.weight(.medium))
         }
-        .foregroundStyle(.primary)
+        .foregroundStyle(tool.isAvailable ? .primary : .secondary)
         .frame(maxWidth: .infinity)
-        .padding(.vertical, 20)
+        .padding(.vertical, 24)
         .background(.quaternary, in: RoundedRectangle(cornerRadius: 12))
+        .overlay(alignment: .topTrailing) {
+            if !tool.isAvailable {
+                Text("Soon")
+                    .font(.caption2.weight(.semibold))
+                    .foregroundStyle(.white)
+                    .padding(.horizontal, 6)
+                    .padding(.vertical, 2)
+                    .background(.secondary, in: Capsule())
+                    .padding(8)
+            }
+        }
+    }
+
+    private func handleToolTap(_ tool: ImageTool) {
+        if tool.isAvailable {
+            showAssetPicker = true
+        } else {
+            showComingSoon = true
+        }
     }
 
     @ViewBuilder

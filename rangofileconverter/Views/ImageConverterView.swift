@@ -18,7 +18,7 @@ private let imageTools: [ImageTool] = [
     ImageTool(id: "compress", title: "Compress", icon: "arrow.down.right.and.arrow.up.left", isAvailable: false),
     ImageTool(id: "rotate", title: "Rotate", icon: "rotate.right", isAvailable: true),
     ImageTool(id: "resize", title: "Resize", icon: "arrow.up.left.and.arrow.down.right", isAvailable: false),
-    ImageTool(id: "crop", title: "Crop", icon: "crop", isAvailable: false),
+    ImageTool(id: "crop", title: "Crop", icon: "crop", isAvailable: true),
     ImageTool(id: "stitch", title: "Stitch", icon: "rectangle.grid.2x2", isAvailable: false),
     ImageTool(id: "gif", title: "Make GIF", icon: "photo.stack", isAvailable: false),
 ]
@@ -35,6 +35,12 @@ struct ImageConverterView: View {
     @State private var rotateImage: UIImage?
     @State private var rotateFileName: String = ""
     @State private var rotateFileURL: URL?
+
+    // Crop tool state
+    @State private var showCropView = false
+    @State private var cropImage: UIImage?
+    @State private var cropFileName: String = ""
+    @State private var cropFileURL: URL?
 
     @Environment(\.modelContext) private var modelContext
     @Query(sort: \ConversionRecord.date, order: .reverse) private var history: [ConversionRecord]
@@ -94,6 +100,27 @@ struct ImageConverterView: View {
                     }
                 }
             }
+            .navigationDestination(isPresented: $showCropView) {
+                if let image = cropImage {
+                    ImageCropView(
+                        image: image,
+                        fileName: cropFileName
+                    ) { croppedImage, outputURL in
+                        viewModel.addHistoryRecord(
+                            fileName: cropFileName,
+                            thumbnail: croppedImage,
+                            outputURL: outputURL,
+                            toolType: "Crop",
+                            context: modelContext
+                        )
+                        DispatchQueue.main.async {
+                            showCropView = false
+                            showAssetPicker = false
+                            selectedTab = .history
+                        }
+                    }
+                }
+            }
             .alert("Coming Soon", isPresented: $showComingSoon) {
                 Button("OK", role: .cancel) { }
             } message: {
@@ -111,6 +138,11 @@ struct ImageConverterView: View {
             rotateFileName = fileName
             rotateFileURL = url
             showRotateView = true
+        case "crop":
+            cropImage = image
+            cropFileName = fileName
+            cropFileURL = url
+            showCropView = true
         default:
             break
         }

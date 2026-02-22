@@ -59,4 +59,28 @@ final class VideoConverterViewModel {
         selectedFileName = ""
         selectedVideoURL = nil
     }
+
+    func addHistoryRecord(fileName: String, thumbnail: UIImage?, outputURL: URL, toolType: String, context: ModelContext) {
+        let ext = fileName.components(separatedBy: ".").last ?? "mp4"
+
+        let outputPath = ConversionRecord.persistOutput(from: outputURL)
+
+        let thumbnailData = thumbnail?
+            .preparingThumbnail(of: CGSize(width: 80, height: 80))?
+            .jpegData(compressionQuality: 0.8)
+
+        let record = ConversionRecord(
+            sourceFileName: fileName,
+            sourceFormat: ext.uppercased(),
+            targetFormatID: ext.lowercased(),
+            thumbnailData: thumbnailData,
+            status: .converted,
+            outputPath: outputPath,
+            toolType: toolType,
+            mediaCategory: "video"
+        )
+
+        context.insert(record)
+        try? context.save()
+    }
 }

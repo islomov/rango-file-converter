@@ -1,6 +1,5 @@
 import SwiftUI
 import AVFoundation
-import AVKit
 
 private enum SpeedPreset: Double, CaseIterable {
     case quarter = 0.25
@@ -32,11 +31,11 @@ struct VideoSpeedView: View {
 
     @State private var selectedSpeed: SpeedPreset = .double
     @State private var isApplying = false
+    @State private var isPlaying = false
     @State private var originalDuration: Double = 0
     @State private var player: AVPlayer?
+    @State private var timeObserver: Any?
     @State private var videoAspectRatio: CGFloat?
-    @State private var isLoaded = false
-    @State private var loadTask: Task<Void, Never>?
 
     var body: some View {
         ZStack {
@@ -71,11 +70,11 @@ struct VideoSpeedView: View {
                 .disabled(isApplying)
             }
         }
-        .onAppear {
-            startLoading()
+        .task {
+            await setupPlayer()
         }
         .onDisappear {
-            tearDownPlayer()
+            cleanupPlayer()
         }
         .onChange(of: selectedSpeed) {
             restartWithSpeed()
@@ -87,27 +86,37 @@ struct VideoSpeedView: View {
     private var preview: some View {
         VStack(spacing: 16) {
             ZStack {
-                // Always show thumbnail as base layer to prevent flicker
-                Image(uiImage: thumbnail)
-                    .resizable()
-                    .aspectRatio(contentMode: .fit)
-                    .frame(maxHeight: 300)
-                    .clipShape(RoundedRectangle(cornerRadius: 8))
-
-                if let player, isLoaded {
-                    VideoPlayer(player: player)
+                if let player {
+                    PlayerView(player: player)
                         .aspectRatio(videoAspectRatio ?? (thumbnail.size.width / thumbnail.size.height), contentMode: .fit)
-                        .frame(maxHeight: 300)
                         .clipShape(RoundedRectangle(cornerRadius: 8))
-                        .transition(.opacity)
-                }
-
-                if !isLoaded {
-                    ProgressView()
-                        .scaleEffect(1.2)
-                        .tint(.white)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 8)
+                                .stroke(.quaternary, lineWidth: 1)
+                        )
+                        .contentShape(Rectangle())
+                        .onTapGesture { togglePlayback() }
+                        .overlay {
+                            Image(systemName: isPlaying ? "pause.fill" : "play.fill")
+                                .font(.title)
+                                .foregroundStyle(.white)
+                                .padding(16)
+                                .background(.black.opacity(0.4), in: Circle())
+                                .opacity(isPlaying ? 0 : 1)
+                                .animation(.easeInOut(duration: 0.2), value: isPlaying)
+                        }
+                } else {
+                    Image(uiImage: thumbnail)
+                        .resizable()
+                        .aspectRatio(contentMode: .fit)
+                        .clipShape(RoundedRectangle(cornerRadius: 8))
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 8)
+                                .stroke(.quaternary, lineWidth: 1)
+                        )
                 }
             }
+            .frame(maxHeight: 400)
             .overlay(alignment: .topTrailing) {
                 Text(selectedSpeed.label)
                     .font(.subheadline.weight(.bold).monospacedDigit())
@@ -153,9 +162,44 @@ struct VideoSpeedView: View {
                 speedPicker
             }
 
+            // Playback controls
+            HStack(spacing: 24) {
+                Button {
+                    player?.pause()
+                    isPlaying = false
+                    player?.seek(to: .zero, toleranceBefore: .zero, toleranceAfter: .zero)
+                } label: {
+                    Image(systemName: "backward.end.fill")
+                        .font(.title3)
+                }
+
+                Button {
+                    togglePlayback()
+                } label: {
+                    Image(systemName: isPlaying ? "pause.circle.fill" : "play.circle.fill")
+                        .font(.largeTitle)
+                }
+
+                Button {
+                    player?.pause()
+                    isPlaying = false
+                    if let duration = player?.currentItem?.duration {
+                        let end = CMTimeGetSeconds(duration)
+                        if end.isFinite {
+                            player?.seek(to: CMTime(seconds: max(0, end - 0.5), preferredTimescale: 600), toleranceBefore: .zero, toleranceAfter: .zero)
+                        }
+                    }
+                } label: {
+                    Image(systemName: "forward.end.fill")
+                        .font(.title3)
+                }
+            }
+            .foregroundStyle(.primary)
+
             Button {
                 isApplying = true
                 player?.pause()
+                isPlaying = false
                 Task {
                     if let outputURL = await applySpeedChange() {
                         await onApply(thumbnail, outputURL)
@@ -176,7 +220,7 @@ struct VideoSpeedView: View {
             }
             .buttonStyle(.borderedProminent)
             .tint(.orange)
-            .disabled(isApplying || !isLoaded)
+            .disabled(isApplying || player == nil)
         }
         .padding(20)
         .background(.bar)
@@ -204,80 +248,95 @@ struct VideoSpeedView: View {
         }
     }
 
-    // MARK: - Player Lifecycle
+    // MARK: - Player
 
-    private func startLoading() {
-        // Cancel any previous load if view re-appears
-        loadTask?.cancel()
-        tearDownPlayer()
-
-        // Delay to let the navigation animation finish (~0.4s)
-        loadTask = Task { @MainActor in
-            try? await Task.sleep(for: .milliseconds(400))
-            guard !Task.isCancelled else { return }
-
-            await loadVideoMetadata()
-            guard !Task.isCancelled else { return }
-
-            let item = AVPlayerItem(url: fileURL)
-            let avPlayer = AVPlayer(playerItem: item)
-            avPlayer.actionAtItemEnd = .pause
-            player = avPlayer
-
-            withAnimation(.easeIn(duration: 0.2)) {
-                isLoaded = true
-            }
-
-            restartWithSpeed()
-        }
-    }
-
-    private func tearDownPlayer() {
-        loadTask?.cancel()
-        loadTask = nil
-
-        if let player {
-            player.pause()
-            player.replaceCurrentItem(with: nil)
-        }
-        player = nil
-        isLoaded = false
-        originalDuration = 0
-        videoAspectRatio = nil
-    }
-
-    private func loadVideoMetadata() async {
-        let asset = AVURLAsset(url: fileURL)
-
-        async let durationLoad = asset.load(.duration)
-        async let tracksLoad = asset.loadTracks(withMediaType: .video)
-
-        if let duration = try? await durationLoad {
-            let seconds = CMTimeGetSeconds(duration)
-            await MainActor.run {
+    private func setupPlayer() async {
+        let asset = AVAsset(url: fileURL)
+        do {
+            let cmDuration = try await asset.load(.duration)
+            let seconds = CMTimeGetSeconds(cmDuration)
+            if seconds.isFinite && seconds > 0 {
                 originalDuration = seconds
             }
-        }
 
-        if let track = try? await tracksLoad.first,
-           let size = try? await track.load(.naturalSize),
-           let transform = try? await track.load(.preferredTransform) {
-            let transformed = size.applying(transform)
-            let w = abs(transformed.width)
-            let h = abs(transformed.height)
-            if w > 0 && h > 0 {
-                await MainActor.run {
+            let tracks = try await asset.loadTracks(withMediaType: .video)
+            if let track = tracks.first {
+                let size = try await track.load(.naturalSize)
+                let transform = try await track.load(.preferredTransform)
+                let transformedSize = size.applying(transform)
+                let w = abs(transformedSize.width)
+                let h = abs(transformedSize.height)
+                if w > 0 && h > 0 {
                     videoAspectRatio = w / h
                 }
+            }
+        } catch {
+            return
+        }
+
+        let playerItem = AVPlayerItem(url: fileURL)
+        let avPlayer = AVPlayer(playerItem: playerItem)
+        avPlayer.actionAtItemEnd = .pause
+
+        let observer = avPlayer.addPeriodicTimeObserver(
+            forInterval: CMTime(seconds: 0.1, preferredTimescale: 600),
+            queue: .main
+        ) { [weak avPlayer] time in
+            guard let avPlayer else { return }
+            // Detect when playback reaches the end
+            if isPlaying && avPlayer.currentItem?.duration.seconds ?? 0 > 0 {
+                let current = CMTimeGetSeconds(time)
+                let total = avPlayer.currentItem?.duration.seconds ?? 0
+                if current.isFinite && total.isFinite && current >= total - 0.1 {
+                    isPlaying = false
+                }
+            }
+        }
+
+        timeObserver = observer
+        player = avPlayer
+    }
+
+    private func togglePlayback() {
+        guard let player else { return }
+
+        if isPlaying {
+            player.pause()
+            isPlaying = false
+        } else {
+            // If at end, seek to beginning first
+            let current = CMTimeGetSeconds(player.currentTime())
+            let total = player.currentItem?.duration.seconds ?? 0
+            if current.isFinite && total.isFinite && current >= total - 0.2 {
+                player.seek(to: .zero, toleranceBefore: .zero, toleranceAfter: .zero) { _ in
+                    player.rate = Float(selectedSpeed.rawValue)
+                    isPlaying = true
+                }
+            } else {
+                player.rate = Float(selectedSpeed.rawValue)
+                isPlaying = true
             }
         }
     }
 
     private func restartWithSpeed() {
-        guard let player, isLoaded else { return }
+        guard let player else { return }
         player.pause()
-        player.seek(to: .zero)
-        player.rate = Float(selectedSpeed.rawValue)
+        isPlaying = false
+        player.seek(to: .zero, toleranceBefore: .zero, toleranceAfter: .zero) { _ in
+            player.rate = Float(selectedSpeed.rawValue)
+            isPlaying = true
+        }
+    }
+
+    private func cleanupPlayer() {
+        player?.pause()
+        isPlaying = false
+        if let observer = timeObserver {
+            player?.removeTimeObserver(observer)
+            timeObserver = nil
+        }
+        player = nil
     }
 
     // MARK: - Processing
@@ -306,7 +365,6 @@ struct VideoSpeedView: View {
             )
             return outputURL
         } catch {
-            print("[VideoSpeed] FFmpeg error: \(error)")
             return nil
         }
     }

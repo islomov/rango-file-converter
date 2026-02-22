@@ -1,5 +1,4 @@
 import SwiftUI
-import PhotosUI
 
 @Observable
 final class ImageConverterViewModel {
@@ -9,52 +8,14 @@ final class ImageConverterViewModel {
     var history: [ConversionRecord] = []
     var isConverting = false
 
-    var showFilePicker = false
     var showConversionDetail = false
-
-    var selectedPhotoItem: PhotosPickerItem? {
-        didSet {
-            if let item = selectedPhotoItem {
-                Task {
-                    await loadPhoto(from: item)
-                }
-            }
-        }
-    }
 
     private let coordinator = ConversionCoordinator()
 
-    private func loadPhoto(from item: PhotosPickerItem) async {
-        guard let data = try? await item.loadTransferable(type: Data.self),
-              let image = UIImage(data: data) else { return }
-
-        // Write to temp file so FFmpeg can access it
-        let fileName = "photo_\(UUID().uuidString.prefix(8)).jpg"
-        let tempURL = FileManager.default.temporaryDirectory.appendingPathComponent(fileName)
-        try? data.write(to: tempURL)
-
+    func selectImage(_ image: UIImage, fileName: String, fileURL: URL) {
         selectedImage = image
         selectedFileName = fileName
-        selectedFileURL = tempURL
-        showConversionDetail = true
-    }
-
-    func handleFileImport(result: Result<URL, Error>) {
-        guard case .success(let url) = result else { return }
-        guard url.startAccessingSecurityScopedResource() else { return }
-        defer { url.stopAccessingSecurityScopedResource() }
-
-        // Copy to temp directory so FFmpeg can access it after the security scope closes
-        let tempURL = FileManager.default.temporaryDirectory
-            .appendingPathComponent(url.lastPathComponent)
-        try? FileManager.default.removeItem(at: tempURL)
-        guard (try? FileManager.default.copyItem(at: url, to: tempURL)) != nil else { return }
-
-        guard let data = try? Data(contentsOf: tempURL),
-              let image = UIImage(data: data) else { return }
-        selectedImage = image
-        selectedFileName = url.lastPathComponent
-        selectedFileURL = tempURL
+        selectedFileURL = fileURL
         showConversionDetail = true
     }
 

@@ -26,9 +26,18 @@ struct HistoryRowView: View {
                     .font(.subheadline.weight(.medium))
                     .lineLimit(1)
 
-                Text("\(record.sourceFormat) → \(record.targetFormat.displayName)")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
+                HStack(spacing: 6) {
+                    Text(record.toolType)
+                        .font(.caption2.weight(.semibold))
+                        .foregroundStyle(.white)
+                        .padding(.horizontal, 6)
+                        .padding(.vertical, 2)
+                        .background(toolColor, in: Capsule())
+
+                    Text("\(record.sourceFormat) → \(record.targetFormat.displayName)")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
             }
 
             Spacer()
@@ -41,14 +50,30 @@ struct HistoryRowView: View {
                         Label("Share", systemImage: "square.and.arrow.up")
                             .font(.caption2)
                     }
-                } else {
-                    Text(record.date, style: .relative)
-                        .font(.caption2)
-                        .foregroundStyle(.tertiary)
                 }
+
+                Text(formattedDate)
+                    .font(.caption2)
+                    .foregroundStyle(.tertiary)
             }
         }
         .padding(.vertical, 4)
+    }
+
+    private var toolColor: Color {
+        switch record.toolType {
+        case "Rotate": return .blue
+        case "Compress": return .purple
+        case "Resize": return .orange
+        case "Crop": return .teal
+        default: return .green
+        }
+    }
+
+    private var formattedDate: String {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "d MMM, HH:mm"
+        return formatter.string(from: record.date)
     }
 
     @ViewBuilder

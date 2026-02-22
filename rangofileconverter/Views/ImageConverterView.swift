@@ -1,4 +1,5 @@
 import SwiftUI
+import SwiftData
 
 private enum ImageTab: String, CaseIterable {
     case tools = "Tools"
@@ -35,6 +36,9 @@ struct ImageConverterView: View {
     @State private var rotateFileName: String = ""
     @State private var rotateFileURL: URL?
 
+    @Environment(\.modelContext) private var modelContext
+    @Query(sort: \ConversionRecord.date, order: .reverse) private var history: [ConversionRecord]
+
     var body: some View {
         NavigationStack {
             VStack(spacing: 0) {
@@ -60,7 +64,8 @@ struct ImageConverterView: View {
                         image: image,
                         fileName: viewModel.selectedFileName
                     ) { format in
-                        await viewModel.convert(to: format)
+                        await viewModel.convert(to: format, context: modelContext)
+                        selectedTab = .history
                     }
                 }
             }
@@ -70,15 +75,21 @@ struct ImageConverterView: View {
                         image: image,
                         fileName: rotateFileName
                     ) { rotatedImage, outputURL in
+                        print("[ImageConverterView] onApply closure called")
+                        print("[ImageConverterView] rotateFileName: \(rotateFileName)")
+                        print("[ImageConverterView] modelContext: \(modelContext)")
                         viewModel.addHistoryRecord(
                             fileName: rotateFileName,
                             thumbnail: rotatedImage,
-                            outputURL: outputURL
+                            outputURL: outputURL,
+                            toolType: "Rotate",
+                            context: modelContext
                         )
-                        // Pop back to root on next runloop tick so addHistoryRecord completes first
+                        print("[ImageConverterView] addHistoryRecord returned, popping navigation")
                         DispatchQueue.main.async {
                             showRotateView = false
                             showAssetPicker = false
+                            selectedTab = .history
                         }
                     }
                 }
@@ -183,7 +194,8 @@ struct ImageConverterView: View {
 
     @ViewBuilder
     private var historySection: some View {
-        if viewModel.history.isEmpty {
+        let _ = print("[HistorySection] history.count = \(history.count)")
+        if history.isEmpty {
             Spacer()
             VStack(spacing: 12) {
                 Image(systemName: "clock.arrow.circlepath")
@@ -196,7 +208,7 @@ struct ImageConverterView: View {
             Spacer()
         } else {
             List {
-                ForEach(viewModel.history) { record in
+                ForEach(history) { record in
                     HistoryRowView(record: record)
                 }
             }
@@ -207,4 +219,5 @@ struct ImageConverterView: View {
 
 #Preview {
     ImageConverterView()
+        .modelContainer(for: ConversionRecord.self, inMemory: true)
 }

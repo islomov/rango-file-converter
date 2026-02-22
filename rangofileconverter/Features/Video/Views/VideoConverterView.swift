@@ -37,7 +37,6 @@ struct VideoConverterView: View {
     @State private var timeClipFileName: String = ""
 
     // Speed tool state
-    @State private var showSpeedPicker = false
     @State private var showSpeedView = false
     @State private var speedThumbnail: UIImage?
     @State private var speedFileName: String = ""
@@ -73,47 +72,36 @@ struct VideoConverterView: View {
                         timeClipFileName = fileName
                         timeClipVideoURL = url
                         showTimeClipView = true
+                    } else if activeTool == "speed" {
+                        speedThumbnail = thumbnail
+                        speedFileName = fileName
+                        speedVideoURL = url
+                        showSpeedView = true
                     } else {
                         viewModel.selectVideo(thumbnail: thumbnail, fileName: fileName, fileURL: url)
                     }
                 }
             }
-            .navigationDestination(isPresented: $showSpeedPicker) {
-                VideoPickerView { thumbnail, fileName, url in
-                    speedThumbnail = thumbnail
-                    speedFileName = fileName
-                    speedVideoURL = url
-                    showSpeedView = true
-                }
-                .navigationDestination(isPresented: $showSpeedView) {
-                    if let thumbnail = speedThumbnail, let url = speedVideoURL {
-                        VideoSpeedView(
-                            thumbnail: thumbnail,
+            .navigationDestination(isPresented: $showSpeedView) {
+                if let thumbnail = speedThumbnail, let url = speedVideoURL {
+                    VideoSpeedView(
+                        thumbnail: thumbnail,
+                        fileName: speedFileName,
+                        fileURL: url
+                    ) { outputThumbnail, outputURL in
+                        viewModel.addHistoryRecord(
                             fileName: speedFileName,
-                            fileURL: url
-                        ) { outputThumbnail, outputURL in
-                            viewModel.addHistoryRecord(
-                                fileName: speedFileName,
-                                thumbnail: outputThumbnail,
-                                outputURL: outputURL,
-                                toolType: "Speed",
-                                context: modelContext
-                            )
-                            DispatchQueue.main.async {
-                                showSpeedView = false
-                                showSpeedPicker = false
-                                selectedTab = .history
-                            }
+                            thumbnail: outputThumbnail,
+                            outputURL: outputURL,
+                            toolType: "Speed",
+                            context: modelContext
+                        )
+                        DispatchQueue.main.async {
+                            showSpeedView = false
+                            showVideoPicker = false
+                            selectedTab = .history
                         }
                     }
-                }
-            }
-            .onChange(of: showSpeedPicker) {
-                if !showSpeedPicker {
-                    speedThumbnail = nil
-                    speedFileName = ""
-                    speedVideoURL = nil
-                    showSpeedView = false
                 }
             }
             .navigationDestination(isPresented: $viewModel.showConversionDetail) {
@@ -230,10 +218,8 @@ struct VideoConverterView: View {
         if tool.isAvailable {
             activeTool = tool.id
             switch tool.id {
-            case "convert", "time_clip":
+            case "convert", "time_clip", "speed":
                 showVideoPicker = true
-            case "speed":
-                showSpeedPicker = true
             default:
                 break
             }

@@ -78,8 +78,14 @@ struct ImageRotateView: View {
             Button {
                 isApplying = true
                 Task {
+                    print("[Rotate] renderRotatedImage starting...")
                     if let (rotatedImage, url) = renderRotatedImage() {
+                        print("[Rotate] render succeeded, url: \(url)")
+                        print("[Rotate] calling onApply...")
                         await onApply(rotatedImage, url)
+                        print("[Rotate] onApply returned")
+                    } else {
+                        print("[Rotate] renderRotatedImage returned nil!")
                     }
                     isApplying = false
                 }
@@ -136,15 +142,16 @@ struct ImageRotateView: View {
         let newWidth = abs(rotatedRect.width)
         let newHeight = abs(rotatedRect.height)
 
-        guard let colorSpace = cgImage.colorSpace,
-              let context = CGContext(
+        let colorSpace = CGColorSpaceCreateDeviceRGB()
+        let bitmapInfo = CGImageAlphaInfo.premultipliedLast.rawValue
+        guard let context = CGContext(
                   data: nil,
                   width: Int(newWidth),
                   height: Int(newHeight),
-                  bitsPerComponent: cgImage.bitsPerComponent,
+                  bitsPerComponent: 8,
                   bytesPerRow: 0,
                   space: colorSpace,
-                  bitmapInfo: cgImage.bitmapInfo.rawValue
+                  bitmapInfo: bitmapInfo
               ) else { return nil }
 
         context.translateBy(x: newWidth / 2, y: newHeight / 2)

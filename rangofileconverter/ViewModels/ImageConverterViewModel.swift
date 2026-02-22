@@ -1,11 +1,11 @@
 import SwiftUI
+import SwiftData
 
 @Observable
 final class ImageConverterViewModel {
     var selectedImage: UIImage?
     var selectedFileName: String = ""
     var selectedFileURL: URL?
-    var history: [ConversionRecord] = []
     var isConverting = false
 
     var showConversionDetail = false
@@ -19,49 +19,84 @@ final class ImageConverterViewModel {
         showConversionDetail = true
     }
 
-    func addHistoryRecord(fileName: String, thumbnail: UIImage?, outputURL: URL) {
+    func addHistoryRecord(fileName: String, thumbnail: UIImage?, outputURL: URL, toolType: String = "Convert", context: ModelContext) {
+        print("[History] addHistoryRecord called — fileName: \(fileName), toolType: \(toolType)")
+        print("[History] outputURL: \(outputURL)")
+
         let ext = fileName.components(separatedBy: ".").last ?? "png"
-        let format = FormatRegistry.format(forExtension: ext)
-            ?? FormatRegistry.imageFormats[2] // PNG fallback
+        let formatDef = FormatRegistry.format(forExtension: ext)
+
+        let outputPath = ConversionRecord.persistOutput(from: outputURL)
+        print("[History] persistOutput returned: \(String(describing: outputPath))")
+
+        let thumbnailData = thumbnail?
+            .preparingThumbnail(of: CGSize(width: 80, height: 80))?
+            .jpegData(compressionQuality: 0.8)
+        print("[History] thumbnailData size: \(thumbnailData?.count ?? 0)")
 
         let record = ConversionRecord(
             sourceFileName: fileName,
             sourceFormat: ext.uppercased(),
-            targetFormat: format,
-            thumbnail: thumbnail?.preparingThumbnail(of: CGSize(width: 80, height: 80)),
+            targetFormatID: formatDef?.id ?? ext.lowercased(),
+            thumbnailData: thumbnailData,
             status: .converted,
-            outputURL: outputURL
+            outputPath: outputPath,
+            toolType: toolType
         )
-        history.insert(record, at: 0)
+
+        context.insert(record)
+        print("[History] record inserted into context")
+
+        do {
+            try context.save()
+            print("[History] context.save() succeeded")
+
+            // Verify: fetch all records to confirm it's queryable
+            let descriptor = FetchDescriptor<ConversionRecord>()
+            let allRecords = try context.fetch(descriptor)
+            print("[History] Total records in store after save: \(allRecords.count)")
+            for r in allRecords {
+                print("[History]   - \(r.sourceFileName) | \(r.toolType) | \(r.statusRaw)")
+            }
+        } catch {
+            print("[History] context.save() FAILED: \(error)")
+        }
     }
 
-    func convert(to format: FormatDefinition) async {
+    func convert(to format: FormatDefinition, context: ModelContext) async {
         guard let inputURL = selectedFileURL else { return }
 
         isConverting = true
 
         let sourceExt = selectedFileName.components(separatedBy: ".").last?.uppercased() ?? "UNKNOWN"
-        let thumbnail = selectedImage?.preparingThumbnail(of: CGSize(width: 80, height: 80))
+        let thumbnailData = selectedImage?
+            .preparingThumbnail(of: CGSize(width: 80, height: 80))?
+            .jpegData(compressionQuality: 0.8)
 
         let record = ConversionRecord(
             sourceFileName: selectedFileName,
             sourceFormat: sourceExt,
-            targetFormat: format,
-            thumbnail: thumbnail,
+            targetFormatID: format.id,
+            thumbnailData: thumbnailData,
             status: .converting
         )
-        history.insert(record, at: 0)
+
+        context.insert(record)
+        try? context.save()
 
         do {
             let job = ConversionJob(inputURL: inputURL, outputFormat: format)
             let result = try await coordinator.convert(job: job)
 
-            history[0].status = .converted
-            history[0].outputURL = result.outputURL
+            let outputPath = ConversionRecord.persistOutput(from: result.outputURL)
+            record.status = .converted
+            record.outputPath = outputPath
         } catch {
-            history[0].status = .failed
-            history[0].errorMessage = error.localizedDescription
+            record.status = .failed
+            record.errorMessage = error.localizedDescription
         }
+
+        try? context.save()
 
         isConverting = false
         selectedImage = nil

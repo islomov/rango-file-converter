@@ -15,7 +15,7 @@ private struct ImageTool: Identifiable, Hashable {
 
 private let imageTools: [ImageTool] = [
     ImageTool(id: "convert", title: "Convert", icon: "arrow.triangle.2.circlepath", isAvailable: true),
-    ImageTool(id: "compress", title: "Compress", icon: "arrow.down.right.and.arrow.up.left", isAvailable: false),
+    ImageTool(id: "compress", title: "Compress", icon: "arrow.down.right.and.arrow.up.left", isAvailable: true),
     ImageTool(id: "rotate", title: "Rotate", icon: "rotate.right", isAvailable: true),
     ImageTool(id: "resize", title: "Resize", icon: "arrow.up.left.and.arrow.down.right", isAvailable: false),
     ImageTool(id: "crop", title: "Crop", icon: "crop", isAvailable: true),
@@ -41,6 +41,12 @@ struct ImageConverterView: View {
     @State private var cropImage: UIImage?
     @State private var cropFileName: String = ""
     @State private var cropFileURL: URL?
+
+    // Compress tool state
+    @State private var showCompressView = false
+    @State private var compressImage: UIImage?
+    @State private var compressFileName: String = ""
+    @State private var compressFileURL: URL?
 
     // GIF tool state
     @State private var showGifPicker = false
@@ -132,6 +138,28 @@ struct ImageConverterView: View {
                     }
                 }
             }
+            .navigationDestination(isPresented: $showCompressView) {
+                if let image = compressImage, let url = compressFileURL {
+                    ImageCompressView(
+                        image: image,
+                        fileName: compressFileName,
+                        fileURL: url
+                    ) { compressedImage, outputURL in
+                        viewModel.addHistoryRecord(
+                            fileName: outputURL.lastPathComponent,
+                            thumbnail: compressedImage,
+                            outputURL: outputURL,
+                            toolType: "Compress",
+                            context: modelContext
+                        )
+                        DispatchQueue.main.async {
+                            showCompressView = false
+                            showAssetPicker = false
+                            selectedTab = .history
+                        }
+                    }
+                }
+            }
             .navigationDestination(isPresented: $showGifView) {
                 if !gifImages.isEmpty {
                     MakeGifView(
@@ -170,6 +198,11 @@ struct ImageConverterView: View {
             rotateFileName = fileName
             rotateFileURL = url
             showRotateView = true
+        case "compress":
+            compressImage = image
+            compressFileName = fileName
+            compressFileURL = url
+            showCompressView = true
         case "crop":
             cropImage = image
             cropFileName = fileName

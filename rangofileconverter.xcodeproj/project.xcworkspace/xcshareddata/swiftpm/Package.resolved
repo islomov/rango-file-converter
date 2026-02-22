@@ -1,0 +1,42 @@
+{
+  "originHash" : "33c74dbfa653044f6bca600f6b083cc33e0bf7d8a121c6c1f34d11df3b8d8646",
+  "pins" : [
+    {
+      "identity" : "ffmpeg-ios",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/kewlbear/FFmpeg-iOS.git",
+      "state" : {
+        "revision" : "59c01fbba5a85005d4b624f77f6ad32d43a4d922",
+        "version" : "0.0.5"
+      }
+    },
+    {
+      "identity" : "libwebp-ios",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/awxkee/libwebp-ios.git",
+      "state" : {
+        "revision" : "09ab26afc64c55a49332c396c4b465c278fcb05f",
+        "version" : "1.1.1"
+      }
+    },
+    {
+      "identity" : "swift-argument-parser",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/apple/swift-argument-parser",
+      "state" : {
+        "revision" : "6b2aa2748a7881eebb9f84fb10c01293e15b52ca",
+        "version" : "0.5.0"
+      }
+    },
+    {
+      "identity" : "webp.swift",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/awxkee/webp.swift.git",
+      "state" : {
+        "revision" : "10562e79e338de46e70f0f5c67b24cb90e02adb2",
+        "version" : "1.1.2"
+      }
+    }
+  ],
+  "version" : 3
+}

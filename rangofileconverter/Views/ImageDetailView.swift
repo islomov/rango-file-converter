@@ -3,10 +3,10 @@ import SwiftUI
 struct ImageDetailView: View {
     let image: UIImage
     let fileName: String
-    let onConvert: (ImageFormat) -> Void
+    let onConvert: (FormatDefinition) async -> Void
 
-    @State private var targetFormat: ImageFormat = .jpeg
-    @State private var showComingSoon = false
+    @State private var targetFormat: FormatDefinition = FormatRegistry.imageFormats[1] // JPEG
+    @State private var isConverting = false
     @Environment(\.dismiss) private var dismiss
 
     var body: some View {
@@ -33,36 +33,43 @@ struct ImageDetailView: View {
                         .font(.subheadline)
                         .foregroundStyle(.secondary)
 
-                    Picker("Format", selection: $targetFormat) {
-                        ForEach(ImageFormat.allCases) { format in
-                            Text(format.rawValue).tag(format)
+                    LazyVGrid(columns: [GridItem(.adaptive(minimum: 70))], spacing: 8) {
+                        ForEach(FormatRegistry.imageFormats) { format in
+                            Button(format.displayName) {
+                                targetFormat = format
+                            }
+                            .buttonStyle(.bordered)
+                            .tint(targetFormat.id == format.id ? .accentColor : .secondary)
                         }
                     }
-                    .pickerStyle(.segmented)
                 }
 
                 Button {
-                    showComingSoon = true
+                    isConverting = true
+                    Task {
+                        await onConvert(targetFormat)
+                        isConverting = false
+                        dismiss()
+                    }
                 } label: {
-                    Text("Convert")
-                        .font(.headline)
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, 14)
+                    if isConverting {
+                        ProgressView()
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 14)
+                    } else {
+                        Text("Convert")
+                            .font(.headline)
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 14)
+                    }
                 }
                 .buttonStyle(.borderedProminent)
+                .disabled(isConverting)
             }
             .padding(20)
         }
         .navigationTitle("Convert Image")
         .navigationBarTitleDisplayMode(.inline)
-        .alert("Coming Soon", isPresented: $showComingSoon) {
-            Button("OK") {
-                onConvert(targetFormat)
-                dismiss()
-            }
-        } message: {
-            Text("Image conversion is not yet available. This will be added in a future update.")
-        }
     }
 
     private var formattedFileSize: String {

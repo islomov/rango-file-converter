@@ -19,7 +19,7 @@ struct ImageConverterView: View {
                         image: image,
                         fileName: viewModel.selectedFileName
                     ) { format in
-                        viewModel.addToHistory(targetFormat: format)
+                        await viewModel.convert(to: format)
                     }
                 }
             }

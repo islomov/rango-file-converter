@@ -22,7 +22,7 @@ private let videoTools: [VideoTool] = [
     VideoTool(id: "ratio", title: "Video Ratio", icon: "aspectratio", isAvailable: false),
     VideoTool(id: "clip", title: "Video Clipping", icon: "scissors", isAvailable: false),
     VideoTool(id: "gif", title: "Convert GIF", icon: "photo.stack", isAvailable: false),
-    VideoTool(id: "time_clip", title: "Video Time Clip", icon: "timeline.selection", isAvailable: false),
+    VideoTool(id: "time_clip", title: "Video Time Clip", icon: "timeline.selection", isAvailable: true),
 ]
 
 struct VideoConverterView: View {
@@ -30,9 +30,13 @@ struct VideoConverterView: View {
     @State private var selectedTab: VideoTab = .tools
     @State private var showComingSoon = false
     @State private var showVideoPicker = false
+    @State private var activeTool: String = "convert"
+    @State private var showTimeClipView = false
+    @State private var timeClipVideoURL: URL?
+    @State private var timeClipThumbnail: UIImage?
+    @State private var timeClipFileName: String = ""
 
     // Speed tool state
-    @State private var showSpeedPicker = false
     @State private var showSpeedView = false
     @State private var speedThumbnail: UIImage?
     @State private var speedFileName: String = ""
@@ -63,45 +67,41 @@ struct VideoConverterView: View {
             .navigationBarHidden(true)
             .navigationDestination(isPresented: $showVideoPicker) {
                 VideoPickerView { thumbnail, fileName, url in
-                    viewModel.selectVideo(thumbnail: thumbnail, fileName: fileName, fileURL: url)
-                }
-            }
-            .navigationDestination(isPresented: $showSpeedPicker) {
-                VideoPickerView { thumbnail, fileName, url in
-                    speedThumbnail = thumbnail
-                    speedFileName = fileName
-                    speedVideoURL = url
-                    showSpeedView = true
-                }
-                .navigationDestination(isPresented: $showSpeedView) {
-                    if let thumbnail = speedThumbnail, let url = speedVideoURL {
-                        VideoSpeedView(
-                            thumbnail: thumbnail,
-                            fileName: speedFileName,
-                            fileURL: url
-                        ) { outputThumbnail, outputURL in
-                            viewModel.addHistoryRecord(
-                                fileName: speedFileName,
-                                thumbnail: outputThumbnail,
-                                outputURL: outputURL,
-                                toolType: "Speed",
-                                context: modelContext
-                            )
-                            DispatchQueue.main.async {
-                                showSpeedView = false
-                                showSpeedPicker = false
-                                selectedTab = .history
-                            }
-                        }
+                    if activeTool == "time_clip" {
+                        timeClipThumbnail = thumbnail
+                        timeClipFileName = fileName
+                        timeClipVideoURL = url
+                        showTimeClipView = true
+                    } else if activeTool == "speed" {
+                        speedThumbnail = thumbnail
+                        speedFileName = fileName
+                        speedVideoURL = url
+                        showSpeedView = true
+                    } else {
+                        viewModel.selectVideo(thumbnail: thumbnail, fileName: fileName, fileURL: url)
                     }
                 }
             }
-            .onChange(of: showSpeedPicker) {
-                if !showSpeedPicker {
-                    speedThumbnail = nil
-                    speedFileName = ""
-                    speedVideoURL = nil
-                    showSpeedView = false
+            .navigationDestination(isPresented: $showSpeedView) {
+                if let thumbnail = speedThumbnail, let url = speedVideoURL {
+                    VideoSpeedView(
+                        thumbnail: thumbnail,
+                        fileName: speedFileName,
+                        fileURL: url
+                    ) { outputThumbnail, outputURL in
+                        viewModel.addHistoryRecord(
+                            fileName: speedFileName,
+                            thumbnail: outputThumbnail,
+                            outputURL: outputURL,
+                            toolType: "Speed",
+                            context: modelContext
+                        )
+                        DispatchQueue.main.async {
+                            showSpeedView = false
+                            showVideoPicker = false
+                            selectedTab = .history
+                        }
+                    }
                 }
             }
             .navigationDestination(isPresented: $viewModel.showConversionDetail) {
@@ -114,6 +114,28 @@ struct VideoConverterView: View {
                     ) { format in
                         await viewModel.convert(to: format, context: modelContext)
                         selectedTab = .history
+                    }
+                }
+            }
+            .navigationDestination(isPresented: $showTimeClipView) {
+                if let url = timeClipVideoURL, let thumb = timeClipThumbnail {
+                    VideoTimeClipView(
+                        videoURL: url,
+                        thumbnail: thumb,
+                        fileName: timeClipFileName
+                    ) { outputThumb, outputURL in
+                        viewModel.addHistoryRecord(
+                            fileName: outputURL.lastPathComponent,
+                            thumbnail: outputThumb,
+                            outputURL: outputURL,
+                            toolType: "Time Clip",
+                            context: modelContext
+                        )
+                        DispatchQueue.main.async {
+                            showTimeClipView = false
+                            showVideoPicker = false
+                            selectedTab = .history
+                        }
                     }
                 }
             }
@@ -194,11 +216,10 @@ struct VideoConverterView: View {
 
     private func handleToolTap(_ tool: VideoTool) {
         if tool.isAvailable {
+            activeTool = tool.id
             switch tool.id {
-            case "convert":
+            case "convert", "time_clip", "speed":
                 showVideoPicker = true
-            case "speed":
-                showSpeedPicker = true
             default:
                 break
             }

@@ -9,11 +9,15 @@ final class FFmpegConversionEngine: ConversionEngine {
     /// Formats handled by NativeImageEngine instead of FFmpeg.
     private static let nativeOnlyFormats: Set<String> = ["webp", "heic"]
 
+    /// Formats that require external libraries not included in this FFmpeg build.
+    private static let unsupportedFormats: Set<String> = ["webm", "ogv", "swf", "amv"]
+
     private let wrapper = FFmpegWrapper.shared
 
     func canConvert(from inputExtension: String, to outputFormat: FormatDefinition) -> Bool {
         guard supportedMediaTypes.contains(outputFormat.mediaType) else { return false }
         guard !Self.nativeOnlyFormats.contains(outputFormat.id) else { return false }
+        guard !Self.unsupportedFormats.contains(outputFormat.id) else { return false }
         return FormatRegistry.format(forExtension: inputExtension) != nil
     }
 
@@ -128,6 +132,22 @@ final class FFmpegConversionEngine: ConversionEngine {
         case "yuv":
             // Raw YUV needs explicit pixel format
             return ["-c:v", "rawvideo", "-pix_fmt", "yuv420p"]
+
+        // MARK: Video formats
+        case "amv":
+            // AMV requires specific resolution, framerate, pixel format, and mono audio
+            return ["-f", "avi", "-c:v", "amv", "-c:a", "adpcm_ima_amv",
+                    "-s", "160x120", "-r", "16", "-pix_fmt", "yuvj420p",
+                    "-ac", "1", "-ar", "22050"]
+        case "flv":
+            // FLV with Sorenson H.263 video and AAC audio (native encoder, no libmp3lame needed)
+            return ["-c:v", "flv1", "-c:a", "aac", "-ar", "44100"]
+        case "rm":
+            return ["-f", "rm", "-c:v", "rv20", "-c:a", "real_144"]
+        case "3gp":
+            return ["-f", "3gp", "-c:v", "mpeg4", "-c:a", "aac"]
+        case "3g2":
+            return ["-f", "3g2", "-c:v", "mpeg4", "-c:a", "aac"]
         default:
             return []
         }

@@ -16,7 +16,7 @@ struct HistoryRowView: View {
                     .fill(.quaternary)
                     .frame(width: 44, height: 44)
                     .overlay {
-                        Image(systemName: "photo")
+                        Image(systemName: record.mediaCategory == "video" ? "video" : "photo")
                             .foregroundStyle(.secondary)
                     }
             }

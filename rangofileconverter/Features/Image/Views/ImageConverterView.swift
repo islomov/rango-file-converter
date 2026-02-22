@@ -66,7 +66,13 @@ struct ImageConverterView: View {
     @State private var stitchFileNames: [String] = []
 
     @Environment(\.modelContext) private var modelContext
-    @Query(sort: \ConversionRecord.date, order: .reverse) private var history: [ConversionRecord]
+    @Query(
+        filter: #Predicate<ConversionRecord> { record in
+            record.mediaCategory == "image"
+        },
+        sort: \ConversionRecord.date,
+        order: .reverse
+    ) private var history: [ConversionRecord]
 
     var body: some View {
         NavigationStack {

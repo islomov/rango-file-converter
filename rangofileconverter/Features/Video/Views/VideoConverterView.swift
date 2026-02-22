@@ -1,4 +1,5 @@
 import SwiftUI
+import SwiftData
 
 private enum VideoTab: String, CaseIterable {
     case tools = "Tools"
@@ -13,7 +14,7 @@ private struct VideoTool: Identifiable, Hashable {
 }
 
 private let videoTools: [VideoTool] = [
-    VideoTool(id: "convert", title: "Format Conversion", icon: "arrow.triangle.2.circlepath", isAvailable: false),
+    VideoTool(id: "convert", title: "Format Conversion", icon: "arrow.triangle.2.circlepath", isAvailable: true),
     VideoTool(id: "extract_audio", title: "Extract Audio", icon: "music.note", isAvailable: false),
     VideoTool(id: "compress", title: "Video Compression", icon: "arrow.down.right.and.arrow.up.left", isAvailable: false),
     VideoTool(id: "speed", title: "Speed Change", icon: "gauge.with.dots.needle.33percent", isAvailable: false),
@@ -25,8 +26,19 @@ private let videoTools: [VideoTool] = [
 ]
 
 struct VideoConverterView: View {
+    @State private var viewModel = VideoConverterViewModel()
     @State private var selectedTab: VideoTab = .tools
     @State private var showComingSoon = false
+    @State private var showVideoPicker = false
+
+    @Environment(\.modelContext) private var modelContext
+    @Query(
+        filter: #Predicate<ConversionRecord> { record in
+            record.mediaCategory == "video"
+        },
+        sort: \ConversionRecord.date,
+        order: .reverse
+    ) private var history: [ConversionRecord]
 
     var body: some View {
         NavigationStack {
@@ -42,6 +54,24 @@ struct VideoConverterView: View {
                 }
             }
             .navigationBarHidden(true)
+            .navigationDestination(isPresented: $showVideoPicker) {
+                VideoPickerView { thumbnail, fileName, url in
+                    viewModel.selectVideo(thumbnail: thumbnail, fileName: fileName, fileURL: url)
+                }
+            }
+            .navigationDestination(isPresented: $viewModel.showConversionDetail) {
+                if let thumbnail = viewModel.selectedThumbnail,
+                   let fileURL = viewModel.selectedVideoURL {
+                    VideoDetailView(
+                        thumbnail: thumbnail,
+                        fileName: viewModel.selectedFileName,
+                        fileURL: fileURL
+                    ) { format in
+                        await viewModel.convert(to: format, context: modelContext)
+                        selectedTab = .history
+                    }
+                }
+            }
             .alert("Coming Soon", isPresented: $showComingSoon) {
                 Button("OK", role: .cancel) { }
             } message: {
@@ -119,7 +149,9 @@ struct VideoConverterView: View {
 
     private func handleToolTap(_ tool: VideoTool) {
         if tool.isAvailable {
-            // Tool navigation will be added when tools are implemented
+            if tool.id == "convert" {
+                showVideoPicker = true
+            }
         } else {
             showComingSoon = true
         }
@@ -127,19 +159,29 @@ struct VideoConverterView: View {
 
     @ViewBuilder
     private var historySection: some View {
-        Spacer()
-        VStack(spacing: 12) {
-            Image(systemName: "clock.arrow.circlepath")
-                .font(.largeTitle)
-                .foregroundStyle(.tertiary)
-            Text("No conversions yet")
-                .font(.subheadline)
-                .foregroundStyle(.secondary)
+        if history.isEmpty {
+            Spacer()
+            VStack(spacing: 12) {
+                Image(systemName: "clock.arrow.circlepath")
+                    .font(.largeTitle)
+                    .foregroundStyle(.tertiary)
+                Text("No conversions yet")
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+            }
+            Spacer()
+        } else {
+            List {
+                ForEach(history) { record in
+                    HistoryRowView(record: record)
+                }
+            }
+            .listStyle(.plain)
         }
-        Spacer()
     }
 }
 
 #Preview {
     VideoConverterView()
+        .modelContainer(for: ConversionRecord.self, inMemory: true)
 }

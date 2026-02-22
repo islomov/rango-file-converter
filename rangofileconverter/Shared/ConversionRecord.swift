@@ -21,6 +21,7 @@ final class ConversionRecord {
     var outputPath: String?
     var errorMessage: String?
     var toolType: String
+    var mediaCategory: String = "image"
 
     init(
         id: UUID = UUID(),
@@ -32,7 +33,8 @@ final class ConversionRecord {
         date: Date = Date(),
         outputPath: String? = nil,
         errorMessage: String? = nil,
-        toolType: String = "Convert"
+        toolType: String = "Convert",
+        mediaCategory: String = "image"
     ) {
         self.id = id
         self.sourceFileName = sourceFileName
@@ -44,6 +46,7 @@ final class ConversionRecord {
         self.outputPath = outputPath
         self.errorMessage = errorMessage
         self.toolType = toolType
+        self.mediaCategory = mediaCategory
     }
 
     // MARK: - Computed Helpers

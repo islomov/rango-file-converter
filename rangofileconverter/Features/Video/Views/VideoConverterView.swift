@@ -1,17 +1,52 @@
 import SwiftUI
 
+private enum VideoTab: String, CaseIterable {
+    case tools = "Tools"
+    case history = "History"
+}
+
+private struct VideoTool: Identifiable, Hashable {
+    let id: String
+    let title: String
+    let icon: String
+    let isAvailable: Bool
+}
+
+private let videoTools: [VideoTool] = [
+    VideoTool(id: "convert", title: "Format Conversion", icon: "arrow.triangle.2.circlepath", isAvailable: false),
+    VideoTool(id: "extract_audio", title: "Extract Audio", icon: "music.note", isAvailable: false),
+    VideoTool(id: "compress", title: "Video Compression", icon: "arrow.down.right.and.arrow.up.left", isAvailable: false),
+    VideoTool(id: "speed", title: "Speed Change", icon: "gauge.with.dots.needle.33percent", isAvailable: false),
+    VideoTool(id: "merge", title: "Merge Videos", icon: "square.stack.3d.up", isAvailable: false),
+    VideoTool(id: "ratio", title: "Video Ratio", icon: "aspectratio", isAvailable: false),
+    VideoTool(id: "clip", title: "Video Clipping", icon: "scissors", isAvailable: false),
+    VideoTool(id: "gif", title: "Convert GIF", icon: "photo.stack", isAvailable: false),
+    VideoTool(id: "time_clip", title: "Video Time Clip", icon: "timeline.selection", isAvailable: false),
+]
+
 struct VideoConverterView: View {
+    @State private var selectedTab: VideoTab = .tools
+    @State private var showComingSoon = false
+
     var body: some View {
         NavigationStack {
             VStack(spacing: 0) {
                 header
-                Spacer()
-                Text("Video Converter")
-                    .font(.title3)
-                    .foregroundStyle(.secondary)
-                Spacer()
+                tabPicker
+
+                switch selectedTab {
+                case .tools:
+                    toolsSection
+                case .history:
+                    historySection
+                }
             }
             .navigationBarHidden(true)
+            .alert("Coming Soon", isPresented: $showComingSoon) {
+                Button("OK", role: .cancel) { }
+            } message: {
+                Text("This tool is not available yet. Stay tuned!")
+            }
         }
     }
 
@@ -30,6 +65,78 @@ struct VideoConverterView: View {
         }
         .padding(.horizontal, 16)
         .padding(.vertical, 12)
+    }
+
+    private var tabPicker: some View {
+        Picker("", selection: $selectedTab) {
+            ForEach(VideoTab.allCases, id: \.self) { tab in
+                Text(tab.rawValue).tag(tab)
+            }
+        }
+        .pickerStyle(.segmented)
+        .padding(.horizontal, 16)
+        .padding(.bottom, 16)
+    }
+
+    private var toolsSection: some View {
+        ScrollView {
+            LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 12) {
+                ForEach(videoTools) { tool in
+                    Button {
+                        handleToolTap(tool)
+                    } label: {
+                        toolCard(tool)
+                    }
+                }
+            }
+            .padding(.horizontal, 16)
+        }
+    }
+
+    private func toolCard(_ tool: VideoTool) -> some View {
+        VStack(spacing: 10) {
+            Image(systemName: tool.icon)
+                .font(.title2)
+            Text(tool.title)
+                .font(.subheadline.weight(.medium))
+        }
+        .foregroundStyle(tool.isAvailable ? .primary : .secondary)
+        .frame(maxWidth: .infinity)
+        .padding(.vertical, 24)
+        .background(.quaternary, in: RoundedRectangle(cornerRadius: 12))
+        .overlay(alignment: .topTrailing) {
+            if !tool.isAvailable {
+                Text("Soon")
+                    .font(.caption2.weight(.semibold))
+                    .foregroundStyle(.white)
+                    .padding(.horizontal, 6)
+                    .padding(.vertical, 2)
+                    .background(.secondary, in: Capsule())
+                    .padding(8)
+            }
+        }
+    }
+
+    private func handleToolTap(_ tool: VideoTool) {
+        if tool.isAvailable {
+            // Tool navigation will be added when tools are implemented
+        } else {
+            showComingSoon = true
+        }
+    }
+
+    @ViewBuilder
+    private var historySection: some View {
+        Spacer()
+        VStack(spacing: 12) {
+            Image(systemName: "clock.arrow.circlepath")
+                .font(.largeTitle)
+                .foregroundStyle(.tertiary)
+            Text("No conversions yet")
+                .font(.subheadline)
+                .foregroundStyle(.secondary)
+        }
+        Spacer()
     }
 }
 

@@ -3,3 +3,6 @@ xcuserdata/
 *.xcuserstate
 *.xcuserdatad/
 *.xcworkspace/xcuserdata/
+
+# Conductor
+.context/

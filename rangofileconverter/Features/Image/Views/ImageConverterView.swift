@@ -19,7 +19,7 @@ private let imageTools: [ImageTool] = [
     ImageTool(id: "rotate", title: "Rotate", icon: "rotate.right", isAvailable: true),
     ImageTool(id: "resize", title: "Resize", icon: "arrow.up.left.and.arrow.down.right", isAvailable: true),
     ImageTool(id: "crop", title: "Crop", icon: "crop", isAvailable: true),
-    ImageTool(id: "stitch", title: "Stitch", icon: "rectangle.grid.2x2", isAvailable: false),
+    ImageTool(id: "stitch", title: "Stitch", icon: "rectangle.grid.2x2", isAvailable: true),
     ImageTool(id: "gif", title: "Make GIF", icon: "photo.stack", isAvailable: true),
 ]
 
@@ -59,6 +59,12 @@ struct ImageConverterView: View {
     @State private var gifImages: [UIImage] = []
     @State private var gifFileNames: [String] = []
 
+    // Stitch tool state
+    @State private var showStitchPicker = false
+    @State private var showStitchView = false
+    @State private var stitchImages: [UIImage] = []
+    @State private var stitchFileNames: [String] = []
+
     @Environment(\.modelContext) private var modelContext
     @Query(
         filter: #Predicate<ConversionRecord> { record in
@@ -90,6 +96,11 @@ struct ImageConverterView: View {
             .navigationDestination(isPresented: $showGifPicker) {
                 AssetPickerView(mode: .multiple(minCount: 2)) { results in
                     handleMultipleAssetsSelected(results)
+                }
+            }
+            .navigationDestination(isPresented: $showStitchPicker) {
+                AssetPickerView(mode: .multiple(minCount: 2)) { results in
+                    handleStitchAssetsSelected(results)
                 }
             }
             .navigationDestination(isPresented: $viewModel.showConversionDetail) {
@@ -216,6 +227,27 @@ struct ImageConverterView: View {
                     }
                 }
             }
+            .navigationDestination(isPresented: $showStitchView) {
+                if !stitchImages.isEmpty {
+                    ImageStitchView(
+                        images: stitchImages,
+                        fileNames: stitchFileNames
+                    ) { thumbnail, outputURL in
+                        viewModel.addHistoryRecord(
+                            fileName: "stitched.png",
+                            thumbnail: thumbnail,
+                            outputURL: outputURL,
+                            toolType: "Stitch",
+                            context: modelContext
+                        )
+                        DispatchQueue.main.async {
+                            showStitchView = false
+                            showStitchPicker = false
+                            selectedTab = .history
+                        }
+                    }
+                }
+            }
             .alert("Coming Soon", isPresented: $showComingSoon) {
                 Button("OK", role: .cancel) { }
             } message: {
@@ -324,6 +356,8 @@ struct ImageConverterView: View {
             activeTool = tool.id
             if tool.id == "gif" {
                 showGifPicker = true
+            } else if tool.id == "stitch" {
+                showStitchPicker = true
             } else {
                 showAssetPicker = true
             }
@@ -336,6 +370,12 @@ struct ImageConverterView: View {
         gifImages = results.map { $0.0 }
         gifFileNames = results.map { $0.1 }
         showGifView = true
+    }
+
+    private func handleStitchAssetsSelected(_ results: [(UIImage, String, URL)]) {
+        stitchImages = results.map { $0.0 }
+        stitchFileNames = results.map { $0.1 }
+        showStitchView = true
     }
 
     @ViewBuilder

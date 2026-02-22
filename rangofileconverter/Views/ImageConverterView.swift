@@ -15,7 +15,7 @@ private struct ImageTool: Identifiable, Hashable {
 private let imageTools: [ImageTool] = [
     ImageTool(id: "convert", title: "Convert", icon: "arrow.triangle.2.circlepath", isAvailable: true),
     ImageTool(id: "compress", title: "Compress", icon: "arrow.down.right.and.arrow.up.left", isAvailable: false),
-    ImageTool(id: "rotate", title: "Rotate", icon: "rotate.right", isAvailable: false),
+    ImageTool(id: "rotate", title: "Rotate", icon: "rotate.right", isAvailable: true),
     ImageTool(id: "resize", title: "Resize", icon: "arrow.up.left.and.arrow.down.right", isAvailable: false),
     ImageTool(id: "crop", title: "Crop", icon: "crop", isAvailable: false),
     ImageTool(id: "stitch", title: "Stitch", icon: "rectangle.grid.2x2", isAvailable: false),
@@ -27,6 +27,13 @@ struct ImageConverterView: View {
     @State private var selectedTab: ImageTab = .tools
     @State private var showComingSoon = false
     @State private var showAssetPicker = false
+    @State private var activeTool: String?
+
+    // Rotate tool state
+    @State private var showRotateView = false
+    @State private var rotateImage: UIImage?
+    @State private var rotateFileName: String = ""
+    @State private var rotateFileURL: URL?
 
     var body: some View {
         NavigationStack {
@@ -44,7 +51,7 @@ struct ImageConverterView: View {
             .navigationBarHidden(true)
             .navigationDestination(isPresented: $showAssetPicker) {
                 AssetPickerView { image, fileName, url in
-                    viewModel.selectImage(image, fileName: fileName, fileURL: url)
+                    handleAssetSelected(image: image, fileName: fileName, url: url)
                 }
             }
             .navigationDestination(isPresented: $viewModel.showConversionDetail) {
@@ -57,11 +64,44 @@ struct ImageConverterView: View {
                     }
                 }
             }
+            .navigationDestination(isPresented: $showRotateView) {
+                if let image = rotateImage {
+                    ImageRotateView(
+                        image: image,
+                        fileName: rotateFileName
+                    ) { rotatedImage, outputURL in
+                        viewModel.addHistoryRecord(
+                            fileName: rotateFileName,
+                            thumbnail: rotatedImage,
+                            outputURL: outputURL
+                        )
+                        // Pop back to root on next runloop tick so addHistoryRecord completes first
+                        DispatchQueue.main.async {
+                            showRotateView = false
+                            showAssetPicker = false
+                        }
+                    }
+                }
+            }
             .alert("Coming Soon", isPresented: $showComingSoon) {
                 Button("OK", role: .cancel) { }
             } message: {
                 Text("This tool is not available yet. Stay tuned!")
             }
+        }
+    }
+
+    private func handleAssetSelected(image: UIImage, fileName: String, url: URL) {
+        switch activeTool {
+        case "convert":
+            viewModel.selectImage(image, fileName: fileName, fileURL: url)
+        case "rotate":
+            rotateImage = image
+            rotateFileName = fileName
+            rotateFileURL = url
+            showRotateView = true
+        default:
+            break
         }
     }
 
@@ -134,6 +174,7 @@ struct ImageConverterView: View {
 
     private func handleToolTap(_ tool: ImageTool) {
         if tool.isAvailable {
+            activeTool = tool.id
             showAssetPicker = true
         } else {
             showComingSoon = true

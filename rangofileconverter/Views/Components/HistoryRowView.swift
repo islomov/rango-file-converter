@@ -26,7 +26,7 @@ struct HistoryRowView: View {
                     .font(.subheadline.weight(.medium))
                     .lineLimit(1)
 
-                Text("\(record.sourceFormat) → \(record.targetFormat.rawValue)")
+                Text("\(record.sourceFormat) → \(record.targetFormat.displayName)")
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }
@@ -35,9 +35,17 @@ struct HistoryRowView: View {
 
             VStack(alignment: .trailing, spacing: 4) {
                 statusBadge
-                Text(record.date, style: .relative)
-                    .font(.caption2)
-                    .foregroundStyle(.tertiary)
+
+                if record.status == .converted, let outputURL = record.outputURL {
+                    ShareLink(item: outputURL) {
+                        Label("Share", systemImage: "square.and.arrow.up")
+                            .font(.caption2)
+                    }
+                } else {
+                    Text(record.date, style: .relative)
+                        .font(.caption2)
+                        .foregroundStyle(.tertiary)
+                }
             }
         }
         .padding(.vertical, 4)
@@ -50,6 +58,14 @@ struct HistoryRowView: View {
             Label("Pending", systemImage: "clock")
                 .font(.caption2)
                 .foregroundStyle(.orange)
+        case .converting:
+            HStack(spacing: 4) {
+                ProgressView()
+                    .controlSize(.mini)
+                Text("Converting")
+                    .font(.caption2)
+                    .foregroundStyle(.blue)
+            }
         case .converted:
             Label("Done", systemImage: "checkmark.circle.fill")
                 .font(.caption2)

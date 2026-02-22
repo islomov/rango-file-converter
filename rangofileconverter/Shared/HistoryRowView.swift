@@ -67,6 +67,7 @@ struct HistoryRowView: View {
         case "Resize": return .orange
         case "Crop": return .teal
         case "GIF": return .pink
+        case "Stitch": return .mint
         default: return .green
         }
     }

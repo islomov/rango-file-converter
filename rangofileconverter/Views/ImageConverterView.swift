@@ -20,7 +20,7 @@ private let imageTools: [ImageTool] = [
     ImageTool(id: "resize", title: "Resize", icon: "arrow.up.left.and.arrow.down.right", isAvailable: false),
     ImageTool(id: "crop", title: "Crop", icon: "crop", isAvailable: true),
     ImageTool(id: "stitch", title: "Stitch", icon: "rectangle.grid.2x2", isAvailable: false),
-    ImageTool(id: "gif", title: "Make GIF", icon: "photo.stack", isAvailable: false),
+    ImageTool(id: "gif", title: "Make GIF", icon: "photo.stack", isAvailable: true),
 ]
 
 struct ImageConverterView: View {
@@ -42,6 +42,12 @@ struct ImageConverterView: View {
     @State private var cropFileName: String = ""
     @State private var cropFileURL: URL?
 
+    // GIF tool state
+    @State private var showGifPicker = false
+    @State private var showGifView = false
+    @State private var gifImages: [UIImage] = []
+    @State private var gifFileNames: [String] = []
+
     @Environment(\.modelContext) private var modelContext
     @Query(sort: \ConversionRecord.date, order: .reverse) private var history: [ConversionRecord]
 
@@ -62,6 +68,11 @@ struct ImageConverterView: View {
             .navigationDestination(isPresented: $showAssetPicker) {
                 AssetPickerView { image, fileName, url in
                     handleAssetSelected(image: image, fileName: fileName, url: url)
+                }
+            }
+            .navigationDestination(isPresented: $showGifPicker) {
+                AssetPickerView(mode: .multiple(minCount: 2)) { results in
+                    handleMultipleAssetsSelected(results)
                 }
             }
             .navigationDestination(isPresented: $viewModel.showConversionDetail) {
@@ -116,6 +127,27 @@ struct ImageConverterView: View {
                         DispatchQueue.main.async {
                             showCropView = false
                             showAssetPicker = false
+                            selectedTab = .history
+                        }
+                    }
+                }
+            }
+            .navigationDestination(isPresented: $showGifView) {
+                if !gifImages.isEmpty {
+                    MakeGifView(
+                        images: gifImages,
+                        fileNames: gifFileNames
+                    ) { thumbnail, outputURL in
+                        viewModel.addHistoryRecord(
+                            fileName: "animated.gif",
+                            thumbnail: thumbnail,
+                            outputURL: outputURL,
+                            toolType: "GIF",
+                            context: modelContext
+                        )
+                        DispatchQueue.main.async {
+                            showGifView = false
+                            showGifPicker = false
                             selectedTab = .history
                         }
                     }
@@ -218,10 +250,20 @@ struct ImageConverterView: View {
     private func handleToolTap(_ tool: ImageTool) {
         if tool.isAvailable {
             activeTool = tool.id
-            showAssetPicker = true
+            if tool.id == "gif" {
+                showGifPicker = true
+            } else {
+                showAssetPicker = true
+            }
         } else {
             showComingSoon = true
         }
+    }
+
+    private func handleMultipleAssetsSelected(_ results: [(UIImage, String, URL)]) {
+        gifImages = results.map { $0.0 }
+        gifFileNames = results.map { $0.1 }
+        showGifView = true
     }
 
     @ViewBuilder

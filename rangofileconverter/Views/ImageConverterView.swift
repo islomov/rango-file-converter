@@ -17,7 +17,7 @@ private let imageTools: [ImageTool] = [
     ImageTool(id: "convert", title: "Convert", icon: "arrow.triangle.2.circlepath", isAvailable: true),
     ImageTool(id: "compress", title: "Compress", icon: "arrow.down.right.and.arrow.up.left", isAvailable: true),
     ImageTool(id: "rotate", title: "Rotate", icon: "rotate.right", isAvailable: true),
-    ImageTool(id: "resize", title: "Resize", icon: "arrow.up.left.and.arrow.down.right", isAvailable: false),
+    ImageTool(id: "resize", title: "Resize", icon: "arrow.up.left.and.arrow.down.right", isAvailable: true),
     ImageTool(id: "crop", title: "Crop", icon: "crop", isAvailable: true),
     ImageTool(id: "stitch", title: "Stitch", icon: "rectangle.grid.2x2", isAvailable: false),
     ImageTool(id: "gif", title: "Make GIF", icon: "photo.stack", isAvailable: true),
@@ -41,6 +41,11 @@ struct ImageConverterView: View {
     @State private var cropImage: UIImage?
     @State private var cropFileName: String = ""
     @State private var cropFileURL: URL?
+
+    // Resize tool state
+    @State private var showResizeView = false
+    @State private var resizeImage: UIImage?
+    @State private var resizeFileName: String = ""
 
     // Compress tool state
     @State private var showCompressView = false
@@ -138,6 +143,30 @@ struct ImageConverterView: View {
                     }
                 }
             }
+            .navigationDestination(isPresented: $showResizeView) {
+                if let image = resizeImage {
+                    ImageResizeView(
+                        image: image,
+                        fileName: resizeFileName
+                    ) { resizedImage, outputURL in
+                        print("[ImageConverterView] onApply closure called")
+                        print("[ImageConverterView] resizedFileName: \(resizedImage)")
+                        print("[ImageConverterView] modelContext: \(outputURL)")
+                        viewModel.addHistoryRecord(
+                            fileName: resizeFileName,
+                            thumbnail: resizedImage,
+                            outputURL: outputURL,
+                            toolType: "Resize",
+                            context: modelContext
+                        )
+                        DispatchQueue.main.async {
+                            showResizeView = false
+                            showAssetPicker = false
+                            selectedTab = .history
+                        }
+                    }
+                }
+            }
             .navigationDestination(isPresented: $showCompressView) {
                 if let image = compressImage, let url = compressFileURL {
                     ImageCompressView(
@@ -198,6 +227,10 @@ struct ImageConverterView: View {
             rotateFileName = fileName
             rotateFileURL = url
             showRotateView = true
+        case "resize":
+            resizeImage = image
+            resizeFileName = fileName
+            showResizeView = true
         case "compress":
             compressImage = image
             compressFileName = fileName

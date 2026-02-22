@@ -45,3 +45,6 @@ FFmpegKit (format conversion), SwiftData, Firebase, Kingfisher, swift-algorithms
 ## Performance Targets
 - Image < 2s, Video (1min 1080p) < 30s, Audio (5min) < 5s, Document < 3s
 - Cold launch < 1.5s, Memory < 200MB
+
+## Agent Learnings
+Before starting work, check `.context/learnings/` for known issues and patterns discovered by previous agents. When you discover a bug, workaround, or important pattern, save it as a markdown file in `.context/learnings/` so future agents benefit.

@@ -11,26 +11,42 @@ struct ImageRotateView: View {
     @State private var isApplying = false
 
     var body: some View {
-        VStack(spacing: 0) {
-            Spacer()
+        ZStack {
+            VStack(spacing: 0) {
+                Spacer()
 
-            GeometryReader { geo in
-                let maxSide = min(geo.size.width - 40, geo.size.height)
-                Image(uiImage: image)
-                    .resizable()
-                    .aspectRatio(contentMode: .fit)
-                    .frame(maxWidth: maxSide, maxHeight: maxSide)
-                    .rotationEffect(.degrees(rotation))
-                    .scaleEffect(x: flipH ? -1 : 1, y: flipV ? -1 : 1)
-                    .frame(width: geo.size.width, height: geo.size.height)
-                    .animation(.easeInOut(duration: 0.25), value: rotation)
-                    .animation(.easeInOut(duration: 0.25), value: flipH)
-                    .animation(.easeInOut(duration: 0.25), value: flipV)
+                GeometryReader { geo in
+                    let maxSide = min(geo.size.width - 40, geo.size.height)
+                    Image(uiImage: image)
+                        .resizable()
+                        .aspectRatio(contentMode: .fit)
+                        .frame(maxWidth: maxSide, maxHeight: maxSide)
+                        .rotationEffect(.degrees(rotation))
+                        .scaleEffect(x: flipH ? -1 : 1, y: flipV ? -1 : 1)
+                        .frame(width: geo.size.width, height: geo.size.height)
+                        .animation(.easeInOut(duration: 0.25), value: rotation)
+                        .animation(.easeInOut(duration: 0.25), value: flipH)
+                        .animation(.easeInOut(duration: 0.25), value: flipV)
+                }
+
+                Spacer()
+
+                controls
             }
+            .allowsHitTesting(!isApplying)
 
-            Spacer()
-
-            controls
+            if isApplying {
+                Color.black.opacity(0.4)
+                    .ignoresSafeArea()
+                VStack(spacing: 16) {
+                    ProgressView()
+                        .scaleEffect(1.5)
+                        .tint(.white)
+                    Text("Rotating...")
+                        .font(.headline)
+                        .foregroundStyle(.white)
+                }
+            }
         }
         .navigationTitle("Rotate")
         .navigationBarTitleDisplayMode(.inline)
@@ -41,7 +57,7 @@ struct ImageRotateView: View {
                     flipH = false
                     flipV = false
                 }
-                .disabled(rotation == 0 && !flipH && !flipV)
+                .disabled(isApplying || (rotation == 0 && !flipH && !flipV))
             }
         }
     }

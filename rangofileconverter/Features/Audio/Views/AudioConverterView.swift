@@ -1,17 +1,50 @@
 import SwiftUI
 
+private enum AudioTab: String, CaseIterable {
+    case tools = "Tools"
+    case history = "History"
+}
+
+private struct AudioTool: Identifiable, Hashable {
+    let id: String
+    let title: String
+    let subtitle: String
+    let icon: String
+    let isAvailable: Bool
+}
+
+private let audioTools: [AudioTool] = [
+    AudioTool(id: "convert", title: "Format Conversion", subtitle: "Any conversion of multiple formats", icon: "arrow.triangle.2.circlepath", isAvailable: false),
+    AudioTool(id: "extract", title: "Extract Audio", subtitle: "Extract audio from video", icon: "music.note", isAvailable: false),
+    AudioTool(id: "compress", title: "Audio Compression", subtitle: "Custom compression", icon: "arrow.down.right.and.arrow.up.left", isAvailable: false),
+    AudioTool(id: "speed", title: "Audio Speed Change", subtitle: "0.1 to 5 times free adjustment", icon: "gauge.with.dots.needle.33percent", isAvailable: false),
+    AudioTool(id: "merge", title: "Combined Audios", subtitle: "Easily merge multiple audios", icon: "square.stack.3d.up", isAvailable: false),
+    AudioTool(id: "crop", title: "Audio Cropping", subtitle: "Capture and retain audio clips", icon: "scissors", isAvailable: false),
+]
+
 struct AudioConverterView: View {
+    @State private var selectedTab: AudioTab = .tools
+    @State private var showComingSoon = false
+
     var body: some View {
         NavigationStack {
             VStack(spacing: 0) {
                 header
-                Spacer()
-                Text("Audio Converter")
-                    .font(.title3)
-                    .foregroundStyle(.secondary)
-                Spacer()
+                tabPicker
+
+                switch selectedTab {
+                case .tools:
+                    toolsSection
+                case .history:
+                    historySection
+                }
             }
             .navigationBarHidden(true)
+            .alert("Coming Soon", isPresented: $showComingSoon) {
+                Button("OK", role: .cancel) { }
+            } message: {
+                Text("This tool is not available yet. Stay tuned!")
+            }
         }
     }
 
@@ -30,6 +63,79 @@ struct AudioConverterView: View {
         }
         .padding(.horizontal, 16)
         .padding(.vertical, 12)
+    }
+
+    private var tabPicker: some View {
+        Picker("", selection: $selectedTab) {
+            ForEach(AudioTab.allCases, id: \.self) { tab in
+                Text(tab.rawValue).tag(tab)
+            }
+        }
+        .pickerStyle(.segmented)
+        .padding(.horizontal, 16)
+        .padding(.bottom, 16)
+    }
+
+    private var toolsSection: some View {
+        ScrollView {
+            LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 12) {
+                ForEach(audioTools) { tool in
+                    Button {
+                        handleToolTap(tool)
+                    } label: {
+                        toolCard(tool)
+                    }
+                }
+            }
+            .padding(.horizontal, 16)
+        }
+    }
+
+    private func toolCard(_ tool: AudioTool) -> some View {
+        VStack(spacing: 10) {
+            Image(systemName: tool.icon)
+                .font(.title2)
+            Text(tool.title)
+                .font(.subheadline.weight(.medium))
+                .multilineTextAlignment(.center)
+        }
+        .foregroundStyle(tool.isAvailable ? .primary : .secondary)
+        .frame(maxWidth: .infinity)
+        .padding(.vertical, 24)
+        .background(.quaternary, in: RoundedRectangle(cornerRadius: 12))
+        .overlay(alignment: .topTrailing) {
+            if !tool.isAvailable {
+                Text("Soon")
+                    .font(.caption2.weight(.semibold))
+                    .foregroundStyle(.white)
+                    .padding(.horizontal, 6)
+                    .padding(.vertical, 2)
+                    .background(.secondary, in: Capsule())
+                    .padding(8)
+            }
+        }
+    }
+
+    private func handleToolTap(_ tool: AudioTool) {
+        if tool.isAvailable {
+            // Tool navigation will be added when tools are implemented
+        } else {
+            showComingSoon = true
+        }
+    }
+
+    @ViewBuilder
+    private var historySection: some View {
+        Spacer()
+        VStack(spacing: 12) {
+            Image(systemName: "clock.arrow.circlepath")
+                .font(.largeTitle)
+                .foregroundStyle(.tertiary)
+            Text("No conversions yet")
+                .font(.subheadline)
+                .foregroundStyle(.secondary)
+        }
+        Spacer()
     }
 }
 

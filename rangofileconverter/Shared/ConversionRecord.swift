@@ -22,6 +22,7 @@ final class ConversionRecord {
     var errorMessage: String?
     var toolType: String
     var mediaCategory: String = "image"
+    var progress: Double = 0.0
 
     init(
         id: UUID = UUID(),

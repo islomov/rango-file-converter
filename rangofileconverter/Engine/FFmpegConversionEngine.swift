@@ -50,6 +50,11 @@ final class FFmpegConversionEngine: ConversionEngine {
     private func buildFFmpegArgs(for job: ConversionJob) -> [String] {
         var args: [String] = []
 
+        // Progress file for external polling
+        if let progressPath = job.progressFilePath {
+            args += ["-progress", progressPath]
+        }
+
         // Trim: -ss (start) and -t (duration)
         if let trim = job.trimRange {
             args += ["-ss", formatTime(trim.lowerBound)]

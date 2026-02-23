@@ -16,7 +16,7 @@ private struct VideoTool: Identifiable, Hashable {
 private let videoTools: [VideoTool] = [
     VideoTool(id: "convert", title: "Format Conversion", icon: "arrow.triangle.2.circlepath", isAvailable: true),
     VideoTool(id: "extract_audio", title: "Extract Audio", icon: "music.note", isAvailable: false),
-    VideoTool(id: "compress", title: "Video Compression", icon: "arrow.down.right.and.arrow.up.left", isAvailable: false),
+    VideoTool(id: "compress", title: "Video Compression", icon: "arrow.down.right.and.arrow.up.left", isAvailable: true),
     VideoTool(id: "speed", title: "Speed Change", icon: "gauge.with.dots.needle.33percent", isAvailable: true),
     VideoTool(id: "merge", title: "Merge Videos", icon: "square.stack.3d.up", isAvailable: false),
     VideoTool(id: "ratio", title: "Video Ratio", icon: "aspectratio", isAvailable: false),
@@ -41,6 +41,12 @@ struct VideoConverterView: View {
     @State private var speedThumbnail: UIImage?
     @State private var speedFileName: String = ""
     @State private var speedVideoURL: URL?
+
+    // Compress tool state
+    @State private var showCompressView = false
+    @State private var compressThumbnail: UIImage?
+    @State private var compressFileName: String = ""
+    @State private var compressFileURL: URL?
 
     @Environment(\.modelContext) private var modelContext
     @Query(
@@ -67,19 +73,7 @@ struct VideoConverterView: View {
             .navigationBarHidden(true)
             .navigationDestination(isPresented: $showVideoPicker) {
                 VideoPickerView { thumbnail, fileName, url in
-                    if activeTool == "time_clip" {
-                        timeClipThumbnail = thumbnail
-                        timeClipFileName = fileName
-                        timeClipVideoURL = url
-                        showTimeClipView = true
-                    } else if activeTool == "speed" {
-                        speedThumbnail = thumbnail
-                        speedFileName = fileName
-                        speedVideoURL = url
-                        showSpeedView = true
-                    } else {
-                        viewModel.selectVideo(thumbnail: thumbnail, fileName: fileName, fileURL: url)
-                    }
+                    handleVideoSelected(thumbnail: thumbnail, fileName: fileName, url: url)
                 }
             }
             .navigationDestination(isPresented: $showSpeedView) {
@@ -88,14 +82,16 @@ struct VideoConverterView: View {
                         thumbnail: thumbnail,
                         fileName: speedFileName,
                         fileURL: url
-                    ) { outputThumbnail, outputURL in
-                        viewModel.addHistoryRecord(
-                            fileName: speedFileName,
-                            thumbnail: outputThumbnail,
-                            outputURL: outputURL,
-                            toolType: "Speed",
-                            context: modelContext
-                        )
+                    ) { speed in
+                        Task {
+                            await viewModel.changeSpeed(
+                                inputURL: url,
+                                fileName: speedFileName,
+                                thumbnail: thumbnail,
+                                speed: speed,
+                                context: modelContext
+                            )
+                        }
                         DispatchQueue.main.async {
                             showSpeedView = false
                             showVideoPicker = false
@@ -112,8 +108,14 @@ struct VideoConverterView: View {
                         fileName: viewModel.selectedFileName,
                         fileURL: fileURL
                     ) { format in
-                        await viewModel.convert(to: format, context: modelContext)
-                        selectedTab = .history
+                        Task {
+                            await viewModel.convert(to: format, context: modelContext)
+                        }
+                        DispatchQueue.main.async {
+                            viewModel.showConversionDetail = false
+                            showVideoPicker = false
+                            selectedTab = .history
+                        }
                     }
                 }
             }
@@ -123,16 +125,46 @@ struct VideoConverterView: View {
                         videoURL: url,
                         thumbnail: thumb,
                         fileName: timeClipFileName
-                    ) { outputThumb, outputURL in
-                        viewModel.addHistoryRecord(
-                            fileName: outputURL.lastPathComponent,
-                            thumbnail: outputThumb,
-                            outputURL: outputURL,
-                            toolType: "Time Clip",
-                            context: modelContext
-                        )
+                    ) { startTime, endTime in
+                        Task {
+                            await viewModel.clipVideo(
+                                inputURL: url,
+                                fileName: timeClipFileName,
+                                thumbnail: thumb,
+                                startTime: startTime,
+                                endTime: endTime,
+                                context: modelContext
+                            )
+                        }
                         DispatchQueue.main.async {
                             showTimeClipView = false
+                            showVideoPicker = false
+                            selectedTab = .history
+                        }
+                    }
+                }
+            }
+            .navigationDestination(isPresented: $showCompressView) {
+                if let thumbnail = compressThumbnail, let url = compressFileURL {
+                    VideoCompressView(
+                        thumbnail: thumbnail,
+                        fileName: compressFileName,
+                        fileURL: url
+                    ) { quality, resolutionHeight, preset, format in
+                        Task {
+                            await viewModel.compressVideo(
+                                inputURL: url,
+                                fileName: compressFileName,
+                                thumbnail: thumbnail,
+                                quality: quality,
+                                resolutionHeight: resolutionHeight,
+                                preset: preset,
+                                outputFormat: format,
+                                context: modelContext
+                            )
+                        }
+                        DispatchQueue.main.async {
+                            showCompressView = false
                             showVideoPicker = false
                             selectedTab = .history
                         }
@@ -218,13 +250,37 @@ struct VideoConverterView: View {
         if tool.isAvailable {
             activeTool = tool.id
             switch tool.id {
-            case "convert", "time_clip", "speed":
+            case "convert", "time_clip", "speed", "compress":
                 showVideoPicker = true
             default:
                 break
             }
         } else {
             showComingSoon = true
+        }
+    }
+
+    private func handleVideoSelected(thumbnail: UIImage, fileName: String, url: URL) {
+        switch activeTool {
+        case "convert":
+            viewModel.selectVideo(thumbnail: thumbnail, fileName: fileName, fileURL: url)
+        case "time_clip":
+            timeClipThumbnail = thumbnail
+            timeClipFileName = fileName
+            timeClipVideoURL = url
+            showTimeClipView = true
+        case "speed":
+            speedThumbnail = thumbnail
+            speedFileName = fileName
+            speedVideoURL = url
+            showSpeedView = true
+        case "compress":
+            compressThumbnail = thumbnail
+            compressFileName = fileName
+            compressFileURL = url
+            showCompressView = true
+        default:
+            break
         }
     }
 

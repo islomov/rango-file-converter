@@ -5,12 +5,11 @@ struct VideoTimeClipView: View {
     let videoURL: URL
     let thumbnail: UIImage
     let fileName: String
-    let onApply: (UIImage, URL) async -> Void
+    let onApply: (_ startTime: Double, _ endTime: Double) -> Void
 
     @State private var duration: Double = 0
     @State private var startTime: Double = 0
     @State private var endTime: Double = 0
-    @State private var isApplying = false
     @State private var isPlaying = false
     @State private var currentTime: Double = 0
     @State private var player: AVPlayer?
@@ -18,27 +17,11 @@ struct VideoTimeClipView: View {
     @State private var videoAspectRatio: CGFloat?
 
     var body: some View {
-        ZStack {
-            VStack(spacing: 0) {
-                Spacer()
-                videoPreview
-                Spacer()
-                controls
-            }
-            .allowsHitTesting(!isApplying)
-
-            if isApplying {
-                Color.black.opacity(0.4)
-                    .ignoresSafeArea()
-                VStack(spacing: 16) {
-                    ProgressView()
-                        .scaleEffect(1.5)
-                        .tint(.white)
-                    Text("Clipping...")
-                        .font(.headline)
-                        .foregroundStyle(.white)
-                }
-            }
+        VStack(spacing: 0) {
+            Spacer()
+            videoPreview
+            Spacer()
+            controls
         }
         .navigationTitle("Time Clip")
         .navigationBarTitleDisplayMode(.inline)
@@ -182,30 +165,18 @@ struct VideoTimeClipView: View {
             .foregroundStyle(.primary)
 
             Button {
-                isApplying = true
                 player?.pause()
                 isPlaying = false
-                Task {
-                    if let (thumb, url) = await renderClip() {
-                        await onApply(thumb, url)
-                    }
-                    isApplying = false
-                }
+                onApply(startTime, endTime)
             } label: {
-                if isApplying {
-                    ProgressView()
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, 14)
-                } else {
-                    Text("Clip Video")
-                        .font(.headline)
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, 14)
-                }
+                Text("Clip Video")
+                    .font(.headline)
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 14)
             }
             .buttonStyle(.borderedProminent)
             .tint(.mint)
-            .disabled(isApplying || endTime - startTime < 0.1)
+            .disabled(endTime - startTime < 0.1)
         }
         .padding(20)
         .background(.bar)
@@ -295,45 +266,7 @@ struct VideoTimeClipView: View {
         player = nil
     }
 
-    // MARK: - Processing
-
-    private func renderClip() async -> (UIImage, URL)? {
-        let ext = videoURL.pathExtension.isEmpty ? "mp4" : videoURL.pathExtension
-        let outputName = "clip_\(UUID().uuidString.prefix(8)).\(ext)"
-        let outputDir = FileManager.default.temporaryDirectory
-            .appendingPathComponent("rango_conversions", isDirectory: true)
-        let outputURL = outputDir.appendingPathComponent(outputName)
-
-        try? FileManager.default.createDirectory(at: outputDir, withIntermediateDirectories: true)
-
-        do {
-            try await FFmpegWrapper.shared.convert(
-                input: videoURL,
-                output: outputURL,
-                extraArgs: [
-                    "-ss", String(format: "%.3f", startTime),
-                    "-to", String(format: "%.3f", endTime),
-                    "-c", "copy"
-                ]
-            )
-        } catch {
-            return nil
-        }
-
-        let thumb = generateThumbnail(from: outputURL) ?? thumbnail
-        return (thumb, outputURL)
-    }
-
     // MARK: - Helpers
-
-    private func generateThumbnail(from url: URL) -> UIImage? {
-        let asset = AVAsset(url: url)
-        let generator = AVAssetImageGenerator(asset: asset)
-        generator.appliesPreferredTrackTransform = true
-        generator.maximumSize = CGSize(width: 600, height: 600)
-        guard let cgImage = try? generator.copyCGImage(at: .zero, actualTime: nil) else { return nil }
-        return UIImage(cgImage: cgImage)
-    }
 
     private func formatTime(_ seconds: Double) -> String {
         guard seconds.isFinite && seconds >= 0 else { return "00:00" }

@@ -30,6 +30,9 @@ struct ImageConverterView: View {
     @State private var showAssetPicker = false
     @State private var activeTool: String?
 
+    // History sheet state
+    @State private var selectedRecord: ConversionRecord?
+
     // Rotate tool state
     @State private var showRotateView = false
     @State private var rotateImage: UIImage?
@@ -376,10 +379,19 @@ struct ImageConverterView: View {
         } else {
             List {
                 ForEach(history) { record in
-                    HistoryRowView(record: record)
+                    Button {
+                        selectedRecord = record
+                    } label: {
+                        HistoryRowView(record: record)
+                    }
+                    .buttonStyle(.plain)
                 }
             }
             .listStyle(.plain)
+            .sheet(item: $selectedRecord) { record in
+                HistoryResultSheet(record: record)
+                    .environmentObject(historyStore)
+            }
         }
     }
 }

@@ -32,6 +32,14 @@ final class HistoryStore: ObservableObject {
         save()
     }
 
+    func remove(_ record: ConversionRecord) {
+        if let outputURL = record.outputURL {
+            try? FileManager.default.removeItem(at: outputURL)
+        }
+        records.removeAll { $0.id == record.id }
+        save()
+    }
+
     func save() {
         objectWillChange.send()
         do {

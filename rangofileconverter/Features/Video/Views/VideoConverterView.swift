@@ -46,6 +46,9 @@ struct VideoConverterView: View {
     @State private var compressFileName: String = ""
     @State private var compressFileURL: URL?
 
+    // History sheet state
+    @State private var selectedRecord: ConversionRecord?
+
     // Merge tool state
     @State private var showMergePicker = false
     @State private var showMergeView = false
@@ -365,10 +368,19 @@ struct VideoConverterView: View {
         } else {
             List {
                 ForEach(history) { record in
-                    HistoryRowView(record: record)
+                    Button {
+                        selectedRecord = record
+                    } label: {
+                        HistoryRowView(record: record)
+                    }
+                    .buttonStyle(.plain)
                 }
             }
             .listStyle(.plain)
+            .sheet(item: $selectedRecord) { record in
+                HistoryResultSheet(record: record)
+                    .environmentObject(historyStore)
+            }
         }
     }
 }

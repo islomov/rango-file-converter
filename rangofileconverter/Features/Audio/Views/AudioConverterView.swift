@@ -14,7 +14,7 @@ private struct AudioTool: Identifiable, Hashable {
 }
 
 private let audioTools: [AudioTool] = [
-    AudioTool(id: "convert", title: "Format Conversion", subtitle: "Any conversion of multiple formats", icon: "arrow.triangle.2.circlepath", isAvailable: false),
+    AudioTool(id: "convert", title: "Format Conversion", subtitle: "Any conversion of multiple formats", icon: "arrow.triangle.2.circlepath", isAvailable: true),
     AudioTool(id: "extract", title: "Extract Audio", subtitle: "Extract audio from video", icon: "music.note", isAvailable: false),
     AudioTool(id: "compress", title: "Audio Compression", subtitle: "Custom compression", icon: "arrow.down.right.and.arrow.up.left", isAvailable: false),
     AudioTool(id: "speed", title: "Audio Speed Change", subtitle: "0.1 to 5 times free adjustment", icon: "gauge.with.dots.needle.33percent", isAvailable: false),
@@ -23,8 +23,15 @@ private let audioTools: [AudioTool] = [
 ]
 
 struct AudioConverterView: View {
+    @StateObject private var viewModel = AudioConverterViewModel()
+    @EnvironmentObject private var historyStore: HistoryStore
     @State private var selectedTab: AudioTab = .tools
+    @State private var showAudioPicker = false
     @State private var showComingSoon = false
+
+    private var history: [ConversionRecord] {
+        historyStore.records(for: "audio")
+    }
 
     var body: some View {
         NavigationStack {
@@ -40,6 +47,44 @@ struct AudioConverterView: View {
                 }
             }
             .navigationBarHidden(true)
+            .navigationDestination(isPresented: $showAudioPicker) {
+                ZStack {
+                    AudioPickerView { fileName, url in
+                        viewModel.selectAudio(fileName: fileName, fileURL: url)
+                    }
+
+                    if viewModel.isExtracting {
+                        Color.black.opacity(0.4)
+                            .ignoresSafeArea()
+                        VStack(spacing: 16) {
+                            ProgressView()
+                                .scaleEffect(1.5)
+                            Text("Extracting audio...")
+                                .font(.headline)
+                                .foregroundStyle(.white)
+                        }
+                        .padding(32)
+                        .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 16))
+                    }
+                }
+            }
+            .navigationDestination(isPresented: $viewModel.showConversionDetail) {
+                if let fileURL = viewModel.selectedFileURL {
+                    AudioDetailView(
+                        fileName: viewModel.selectedFileName,
+                        fileURL: fileURL
+                    ) { format in
+                        Task {
+                            await viewModel.convert(to: format)
+                        }
+                        DispatchQueue.main.async {
+                            viewModel.showConversionDetail = false
+                            showAudioPicker = false
+                            selectedTab = .history
+                        }
+                    }
+                }
+            }
             .alert("Coming Soon", isPresented: $showComingSoon) {
                 Button("OK", role: .cancel) { }
             } message: {
@@ -118,7 +163,12 @@ struct AudioConverterView: View {
 
     private func handleToolTap(_ tool: AudioTool) {
         if tool.isAvailable {
-            // Tool navigation will be added when tools are implemented
+            switch tool.id {
+            case "convert":
+                showAudioPicker = true
+            default:
+                break
+            }
         } else {
             showComingSoon = true
         }
@@ -126,19 +176,29 @@ struct AudioConverterView: View {
 
     @ViewBuilder
     private var historySection: some View {
-        Spacer()
-        VStack(spacing: 12) {
-            Image(systemName: "clock.arrow.circlepath")
-                .font(.largeTitle)
-                .foregroundStyle(.tertiary)
-            Text("No conversions yet")
-                .font(.subheadline)
-                .foregroundStyle(.secondary)
+        if history.isEmpty {
+            Spacer()
+            VStack(spacing: 12) {
+                Image(systemName: "clock.arrow.circlepath")
+                    .font(.largeTitle)
+                    .foregroundStyle(.tertiary)
+                Text("No conversions yet")
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+            }
+            Spacer()
+        } else {
+            List {
+                ForEach(history) { record in
+                    HistoryRowView(record: record)
+                }
+            }
+            .listStyle(.plain)
         }
-        Spacer()
     }
 }
 
 #Preview {
     AudioConverterView()
+        .environmentObject(HistoryStore.shared)
 }

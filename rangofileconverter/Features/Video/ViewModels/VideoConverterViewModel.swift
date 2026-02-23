@@ -10,6 +10,7 @@ final class VideoConverterViewModel: ObservableObject {
     @Published var showConversionDetail = false
     @Published var showGifDetail = false
     @Published var showExtractAudioDetail = false
+    @Published var showVideoRatio = false
 
     private let coordinator = ConversionCoordinator()
     private let store = HistoryStore.shared
@@ -33,6 +34,13 @@ final class VideoConverterViewModel: ObservableObject {
         selectedFileName = fileName
         selectedVideoURL = fileURL
         showExtractAudioDetail = true
+    }
+
+    func selectVideoForRatio(thumbnail: UIImage, fileName: String, fileURL: URL) {
+        selectedThumbnail = thumbnail
+        selectedFileName = fileName
+        selectedVideoURL = fileURL
+        showVideoRatio = true
     }
 
     func addHistoryRecord(fileName: String, thumbnail: UIImage?, outputURL: URL, toolType: String = "Convert") {
@@ -471,6 +479,158 @@ final class VideoConverterViewModel: ObservableObject {
             var job = ConversionJob(inputURL: inputURL, outputFormat: gifFormat)
             job.fps = fps
             job.scale = CGSize(width: width, height: -1)
+
+            let tempDir = FileManager.default.temporaryDirectory
+                .appendingPathComponent("rango_conversions", isDirectory: true)
+            try? FileManager.default.createDirectory(at: tempDir, withIntermediateDirectories: true)
+            let shortID = UUID().uuidString.prefix(8)
+            let progressFile = tempDir.appendingPathComponent("progress_\(shortID).txt")
+
+            var pollingTask: Task<Void, Never>?
+            if totalDurationUs > 0 {
+                job.progressFilePath = progressFile.path
+                pollingTask = startProgressPolling(
+                    progressFile: progressFile,
+                    totalDurationUs: totalDurationUs,
+                    record: record
+                )
+            }
+
+            let result = try await coordinator.convert(job: job)
+
+            pollingTask?.cancel()
+            try? FileManager.default.removeItem(at: progressFile)
+
+            let outputPath = ConversionRecord.persistOutput(from: result.outputURL)
+            await MainActor.run {
+                record.progress = 1.0
+                record.status = .converted
+                record.outputPath = outputPath
+                store.save()
+            }
+        } catch {
+            await MainActor.run {
+                record.status = .failed
+                record.errorMessage = error.localizedDescription
+                store.save()
+            }
+        }
+
+        await MainActor.run {
+            isConverting = false
+            selectedThumbnail = nil
+            selectedFileName = ""
+            selectedVideoURL = nil
+        }
+    }
+
+    // MARK: - Merge Videos
+
+    func mergeVideos(
+        inputs: [URL],
+        outputExtension: String,
+        thumbnail: UIImage?
+    ) async {
+        await MainActor.run { isConverting = true }
+
+        let thumbnailData = thumbnail?
+            .preparingThumbnail(of: CGSize(width: 80, height: 80))?
+            .jpegData(compressionQuality: 0.8)
+
+        let record = ConversionRecord(
+            sourceFileName: "merged.\(outputExtension)",
+            sourceFormat: outputExtension.uppercased(),
+            targetFormatID: outputExtension.lowercased(),
+            thumbnailData: thumbnailData,
+            status: .converting,
+            toolType: "Merge",
+            mediaCategory: "video"
+        )
+
+        await MainActor.run { store.add(record) }
+
+        // Sum durations across all inputs for progress tracking
+        var totalDurationUs: Double = 0
+        for url in inputs {
+            totalDurationUs += await probeDurationUs(url: url)
+        }
+
+        do {
+            let mergeEngine = FFmpegMergeEngine()
+            let tempDir = FileManager.default.temporaryDirectory
+                .appendingPathComponent("rango_conversions", isDirectory: true)
+            try? FileManager.default.createDirectory(at: tempDir, withIntermediateDirectories: true)
+            let shortID = UUID().uuidString.prefix(8)
+            let progressFile = tempDir.appendingPathComponent("progress_\(shortID).txt")
+
+            var pollingTask: Task<Void, Never>?
+            if totalDurationUs > 0 {
+                pollingTask = startProgressPolling(
+                    progressFile: progressFile,
+                    totalDurationUs: totalDurationUs,
+                    record: record
+                )
+            }
+
+            let outputURL = try await mergeEngine.merge(
+                inputs: inputs,
+                outputExtension: outputExtension,
+                progressFilePath: progressFile.path
+            )
+
+            pollingTask?.cancel()
+            try? FileManager.default.removeItem(at: progressFile)
+
+            let outputPath = ConversionRecord.persistOutput(from: outputURL)
+            await MainActor.run {
+                record.progress = 1.0
+                record.status = .converted
+                record.outputPath = outputPath
+                store.save()
+            }
+        } catch {
+            await MainActor.run {
+                record.status = .failed
+                record.errorMessage = error.localizedDescription
+                store.save()
+            }
+        }
+
+        await MainActor.run { isConverting = false }
+    }
+
+    func convertRatio(aspectRatio: (width: Int, height: Int), fitMode: RatioFitMode) async {
+        guard let inputURL = selectedVideoURL else { return }
+
+        await MainActor.run { isConverting = true }
+
+        let sourceExt = selectedFileName.components(separatedBy: ".").last?.lowercased() ?? "mp4"
+        let outputFormat = FormatRegistry.format(forExtension: sourceExt)
+            ?? FormatRegistry.videoFormats.first(where: { $0.id == "mp4" })!
+
+        let sourceExtUpper = sourceExt.uppercased()
+        let thumbnailData = selectedThumbnail?
+            .preparingThumbnail(of: CGSize(width: 80, height: 80))?
+            .jpegData(compressionQuality: 0.8)
+
+        let record = ConversionRecord(
+            sourceFileName: selectedFileName,
+            sourceFormat: sourceExtUpper,
+            targetFormatID: outputFormat.id,
+            thumbnailData: thumbnailData,
+            status: .converting,
+            toolType: "Ratio",
+            mediaCategory: "video"
+        )
+
+        await MainActor.run { store.add(record) }
+
+        let totalDurationUs = await probeDurationUs(url: inputURL)
+
+        do {
+            var job = ConversionJob(inputURL: inputURL, outputFormat: outputFormat)
+            job.aspectRatio = aspectRatio
+            job.ratioFitMode = fitMode
 
             let tempDir = FileManager.default.temporaryDirectory
                 .appendingPathComponent("rango_conversions", isDirectory: true)

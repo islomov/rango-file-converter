@@ -599,7 +599,12 @@ final class VideoConverterViewModel: ObservableObject {
         await MainActor.run { isConverting = false }
     }
 
-    func convertRatio(aspectRatio: (width: Int, height: Int), fitMode: RatioFitMode) async {
+    func convertRatio(
+        aspectRatio: (width: Int, height: Int),
+        fitMode: RatioFitMode,
+        cropPosition: CGPoint? = nil,
+        cropScale: CGFloat? = nil
+    ) async {
         guard let inputURL = selectedVideoURL else { return }
 
         await MainActor.run { isConverting = true }
@@ -631,6 +636,8 @@ final class VideoConverterViewModel: ObservableObject {
             var job = ConversionJob(inputURL: inputURL, outputFormat: outputFormat)
             job.aspectRatio = aspectRatio
             job.ratioFitMode = fitMode
+            job.cropPosition = cropPosition
+            job.cropScale = cropScale
 
             let tempDir = FileManager.default.temporaryDirectory
                 .appendingPathComponent("rango_conversions", isDirectory: true)

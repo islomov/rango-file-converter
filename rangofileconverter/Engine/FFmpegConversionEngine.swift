@@ -88,8 +88,18 @@ final class FFmpegConversionEngine: ConversionEngine {
             let h = ratio.height
             switch job.ratioFitMode {
             case .crop:
-                // Crop to fill: pick the largest centered rectangle matching the target ratio
-                videoFilters.append("crop='min(iw,ih*\(w)/\(h))':'min(ih,iw*\(h)/\(w))'")
+                let s = String(format: "%.4f", job.cropScale ?? 1.0)
+                let cropW = "min(iw\\,ih*\(w)/\(h))*\(s)"
+                let cropH = "min(ih\\,iw*\(h)/\(w))*\(s)"
+                if let pos = job.cropPosition {
+                    let px = String(format: "%.4f", pos.x)
+                    let py = String(format: "%.4f", pos.y)
+                    let cropX = "(iw-\(cropW))*\(px)"
+                    let cropY = "(ih-\(cropH))*\(py)"
+                    videoFilters.append("crop=\(cropW):\(cropH):\(cropX):\(cropY)")
+                } else {
+                    videoFilters.append("crop=\(cropW):\(cropH)")
+                }
             case .pad:
                 // Pad (letterbox/pillarbox): scale down to fit, then pad with black
                 videoFilters.append("scale='if(gt(iw/ih,\(w)/\(h)),iw,ih*\(w)/\(h))':'if(gt(iw/ih,\(w)/\(h)),iw*\(h)/\(w),ih)':force_original_aspect_ratio=decrease")

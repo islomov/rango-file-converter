@@ -18,7 +18,7 @@ private let videoTools: [VideoTool] = [
     VideoTool(id: "compress", title: "Video Compression", icon: "arrow.down.right.and.arrow.up.left", isAvailable: true),
     VideoTool(id: "speed", title: "Speed Change", icon: "gauge.with.dots.needle.33percent", isAvailable: true),
     VideoTool(id: "merge", title: "Merge Videos", icon: "square.stack.3d.up", isAvailable: true),
-    VideoTool(id: "ratio", title: "Video Ratio", icon: "aspectratio", isAvailable: false),
+    VideoTool(id: "ratio", title: "Video Ratio", icon: "aspectratio", isAvailable: true),
     VideoTool(id: "clip", title: "Video Clipping", icon: "scissors", isAvailable: false),
     VideoTool(id: "gif", title: "Convert GIF", icon: "photo.stack", isAvailable: true),
     VideoTool(id: "time_clip", title: "Video Time Clip", icon: "timeline.selection", isAvailable: true),
@@ -206,6 +206,25 @@ struct VideoConverterView: View {
                     }
                 }
             }
+            .navigationDestination(isPresented: $viewModel.showVideoRatio) {
+                if let thumbnail = viewModel.selectedThumbnail,
+                   let fileURL = viewModel.selectedVideoURL {
+                    VideoRatioView(
+                        thumbnail: thumbnail,
+                        fileName: viewModel.selectedFileName,
+                        fileURL: fileURL
+                    ) { aspectRatio, fitMode, cropPosition, cropScale in
+                        Task {
+                            await viewModel.convertRatio(aspectRatio: aspectRatio, fitMode: fitMode, cropPosition: cropPosition, cropScale: cropScale)
+                        }
+                        DispatchQueue.main.async {
+                            viewModel.showVideoRatio = false
+                            showVideoPicker = false
+                            selectedTab = .history
+                        }
+                    }
+                }
+            }
             .navigationDestination(isPresented: $showMergePicker) {
                 VideoMergePickerView { results in
                     mergeVideos = results.map { (thumbnail: $0.0, fileName: $0.1, url: $0.2) }
@@ -309,7 +328,7 @@ struct VideoConverterView: View {
         if tool.isAvailable {
             activeTool = tool.id
             switch tool.id {
-            case "convert", "time_clip", "speed", "compress", "gif", "extract_audio":
+            case "convert", "time_clip", "speed", "compress", "gif", "extract_audio", "ratio":
                 showVideoPicker = true
             case "merge":
                 showMergePicker = true
@@ -329,6 +348,8 @@ struct VideoConverterView: View {
             viewModel.selectVideoForGif(thumbnail: thumbnail, fileName: fileName, fileURL: url)
         case "extract_audio":
             viewModel.selectVideoForExtractAudio(thumbnail: thumbnail, fileName: fileName, fileURL: url)
+        case "ratio":
+            viewModel.selectVideoForRatio(thumbnail: thumbnail, fileName: fileName, fileURL: url)
         case "time_clip":
             timeClipThumbnail = thumbnail
             timeClipFileName = fileName

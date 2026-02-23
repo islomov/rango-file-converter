@@ -21,6 +21,10 @@ struct ConversionJob: Identifiable {
     var stripVideo: Bool = false
     var aspectRatio: (width: Int, height: Int)?
     var ratioFitMode: RatioFitMode = .crop
+    /// Normalized crop position (0...1). 0.5,0.5 = centered. Only used with aspectRatio + crop mode.
+    var cropPosition: CGPoint?
+    /// Crop scale factor (0...1). 1.0 = maximum crop size. Only used with aspectRatio + crop mode.
+    var cropScale: CGFloat?
 }
 
 /// Result of a completed conversion.

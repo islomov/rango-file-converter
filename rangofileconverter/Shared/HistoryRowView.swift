@@ -87,11 +87,20 @@ struct HistoryRowView: View {
                 .foregroundStyle(.orange)
         case .converting:
             HStack(spacing: 4) {
-                ProgressView()
-                    .controlSize(.mini)
-                Text("Converting")
-                    .font(.caption2)
-                    .foregroundStyle(.blue)
+                if record.progress > 0 {
+                    ProgressView(value: record.progress)
+                        .progressViewStyle(.circular)
+                        .controlSize(.mini)
+                    Text("\(Int(record.progress * 100))%")
+                        .font(.caption2.monospacedDigit())
+                        .foregroundStyle(.blue)
+                } else {
+                    ProgressView()
+                        .controlSize(.mini)
+                    Text("Starting...")
+                        .font(.caption2)
+                        .foregroundStyle(.blue)
+                }
             }
         case .converted:
             Label("Done", systemImage: "checkmark.circle.fill")

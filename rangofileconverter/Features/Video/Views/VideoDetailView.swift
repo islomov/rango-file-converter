@@ -4,14 +4,12 @@ struct VideoDetailView: View {
     let thumbnail: UIImage
     let fileName: String
     let fileURL: URL
-    let onConvert: (FormatDefinition) async -> Void
+    let onConvert: (FormatDefinition) -> Void
 
     private static let unsupportedFormats: Set<String> = ["webm", "ogv", "swf", "amv"]
     private static let supportedVideoFormats = FormatRegistry.videoFormats.filter { !unsupportedFormats.contains($0.id) }
 
     @State private var targetFormat: FormatDefinition = FormatRegistry.videoFormats[0] // MP4
-    @State private var isConverting = false
-    @Environment(\.dismiss) private var dismiss
 
     var body: some View {
         ScrollView {
@@ -55,26 +53,14 @@ struct VideoDetailView: View {
                 }
 
                 Button {
-                    isConverting = true
-                    Task {
-                        await onConvert(targetFormat)
-                        isConverting = false
-                        dismiss()
-                    }
+                    onConvert(targetFormat)
                 } label: {
-                    if isConverting {
-                        ProgressView()
-                            .frame(maxWidth: .infinity)
-                            .padding(.vertical, 14)
-                    } else {
-                        Text("Convert")
-                            .font(.headline)
-                            .frame(maxWidth: .infinity)
-                            .padding(.vertical, 14)
-                    }
+                    Text("Convert")
+                        .font(.headline)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 14)
                 }
                 .buttonStyle(.borderedProminent)
-                .disabled(isConverting)
             }
             .padding(20)
         }

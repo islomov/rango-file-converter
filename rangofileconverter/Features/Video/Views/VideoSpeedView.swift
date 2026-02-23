@@ -27,10 +27,9 @@ struct VideoSpeedView: View {
     let thumbnail: UIImage
     let fileName: String
     let fileURL: URL
-    let onApply: (UIImage, URL) async -> Void
+    let onApply: (_ speed: Double) -> Void
 
     @State private var selectedSpeed: SpeedPreset = .double
-    @State private var isApplying = false
     @State private var isPlaying = false
     @State private var originalDuration: Double = 0
     @State private var player: AVPlayer?
@@ -38,27 +37,11 @@ struct VideoSpeedView: View {
     @State private var videoAspectRatio: CGFloat?
 
     var body: some View {
-        ZStack {
-            VStack(spacing: 0) {
-                Spacer()
-                preview
-                Spacer()
-                controls
-            }
-            .allowsHitTesting(!isApplying)
-
-            if isApplying {
-                Color.black.opacity(0.4)
-                    .ignoresSafeArea()
-                VStack(spacing: 16) {
-                    ProgressView()
-                        .scaleEffect(1.5)
-                        .tint(.white)
-                    Text("Changing speed...")
-                        .font(.headline)
-                        .foregroundStyle(.white)
-                }
-            }
+        VStack(spacing: 0) {
+            Spacer()
+            preview
+            Spacer()
+            controls
         }
         .navigationTitle("Speed Change")
         .navigationBarTitleDisplayMode(.inline)
@@ -67,7 +50,6 @@ struct VideoSpeedView: View {
                 Button("Reset") {
                     selectedSpeed = .double
                 }
-                .disabled(isApplying)
             }
         }
         .task {
@@ -197,30 +179,18 @@ struct VideoSpeedView: View {
             .foregroundStyle(.primary)
 
             Button {
-                isApplying = true
                 player?.pause()
                 isPlaying = false
-                Task {
-                    if let outputURL = await applySpeedChange() {
-                        await onApply(thumbnail, outputURL)
-                    }
-                    isApplying = false
-                }
+                onApply(selectedSpeed.rawValue)
             } label: {
-                if isApplying {
-                    ProgressView()
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, 14)
-                } else {
-                    Text("Apply")
-                        .font(.headline)
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, 14)
-                }
+                Text("Apply")
+                    .font(.headline)
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 14)
             }
             .buttonStyle(.borderedProminent)
             .tint(.orange)
-            .disabled(isApplying || player == nil)
+            .disabled(player == nil)
         }
         .padding(20)
         .background(.bar)
@@ -337,58 +307,6 @@ struct VideoSpeedView: View {
             timeObserver = nil
         }
         player = nil
-    }
-
-    // MARK: - Processing
-
-    private func applySpeedChange() async -> URL? {
-        let ext = fileURL.pathExtension.lowercased()
-        let outputExt = (ext.isEmpty || ext == "mov") ? "mp4" : ext
-        let outputName = "speed_\(UUID().uuidString.prefix(8)).\(outputExt)"
-        let outputDir = FileManager.default.temporaryDirectory
-            .appendingPathComponent("rango_conversions", isDirectory: true)
-        let outputURL = outputDir.appendingPathComponent(outputName)
-
-        try? FileManager.default.createDirectory(at: outputDir, withIntermediateDirectories: true)
-
-        let speed = selectedSpeed.rawValue
-        let videoFilter = "setpts=PTS/\(speed)"
-        let audioFilter = buildAtempoFilter(for: speed)
-
-        let extraArgs = ["-filter:v", videoFilter, "-filter:a", audioFilter]
-
-        do {
-            try await FFmpegWrapper.shared.convert(
-                input: fileURL,
-                output: outputURL,
-                extraArgs: extraArgs
-            )
-            return outputURL
-        } catch {
-            return nil
-        }
-    }
-
-    /// Build chained atempo filters for the given speed.
-    /// FFmpeg's atempo only accepts values in [0.5, 2.0], so we chain multiple filters.
-    private func buildAtempoFilter(for speed: Double) -> String {
-        var remaining = speed
-        var filters: [String] = []
-
-        while remaining > 2.0 {
-            filters.append("atempo=2.0")
-            remaining /= 2.0
-        }
-        while remaining < 0.5 {
-            filters.append("atempo=0.5")
-            remaining /= 0.5
-        }
-
-        if abs(remaining - 1.0) > 0.001 {
-            filters.append("atempo=\(remaining)")
-        }
-
-        return filters.isEmpty ? "atempo=1.0" : filters.joined(separator: ",")
     }
 
     private func formatDuration(_ seconds: Double) -> String {

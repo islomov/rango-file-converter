@@ -11,6 +11,7 @@ struct ConversionJob: Identifiable {
     var cropRect: CGRect?
     var trimRange: ClosedRange<TimeInterval>?
     var quality: Int?
+    var progressFilePath: String?
 }
 
 /// Result of a completed conversion.

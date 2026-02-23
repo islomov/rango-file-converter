@@ -13,6 +13,7 @@ struct ConversionJob: Identifiable {
     var quality: Int?
     var progressFilePath: String?
     var fps: Int?
+    var stripVideo: Bool = false
 }
 
 /// Result of a completed conversion.

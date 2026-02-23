@@ -14,7 +14,7 @@ private struct VideoTool: Identifiable, Hashable {
 
 private let videoTools: [VideoTool] = [
     VideoTool(id: "convert", title: "Format Conversion", icon: "arrow.triangle.2.circlepath", isAvailable: true),
-    VideoTool(id: "extract_audio", title: "Extract Audio", icon: "music.note", isAvailable: false),
+    VideoTool(id: "extract_audio", title: "Extract Audio", icon: "music.note", isAvailable: true),
     VideoTool(id: "compress", title: "Video Compression", icon: "arrow.down.right.and.arrow.up.left", isAvailable: true),
     VideoTool(id: "speed", title: "Speed Change", icon: "gauge.with.dots.needle.33percent", isAvailable: true),
     VideoTool(id: "merge", title: "Merge Videos", icon: "square.stack.3d.up", isAvailable: false),
@@ -182,6 +182,25 @@ struct VideoConverterView: View {
                     }
                 }
             }
+            .navigationDestination(isPresented: $viewModel.showExtractAudioDetail) {
+                if let thumbnail = viewModel.selectedThumbnail,
+                   let fileURL = viewModel.selectedVideoURL {
+                    ExtractAudioDetailView(
+                        thumbnail: thumbnail,
+                        fileName: viewModel.selectedFileName,
+                        fileURL: fileURL
+                    ) { format in
+                        Task {
+                            await viewModel.extractAudio(to: format)
+                        }
+                        DispatchQueue.main.async {
+                            viewModel.showExtractAudioDetail = false
+                            showVideoPicker = false
+                            selectedTab = .history
+                        }
+                    }
+                }
+            }
             .alert("Coming Soon", isPresented: $showComingSoon) {
                 Button("OK", role: .cancel) { }
             } message: {
@@ -261,7 +280,7 @@ struct VideoConverterView: View {
         if tool.isAvailable {
             activeTool = tool.id
             switch tool.id {
-            case "convert", "time_clip", "speed", "compress", "gif":
+            case "convert", "time_clip", "speed", "compress", "gif", "extract_audio":
                 showVideoPicker = true
             default:
                 break
@@ -277,6 +296,8 @@ struct VideoConverterView: View {
             viewModel.selectVideo(thumbnail: thumbnail, fileName: fileName, fileURL: url)
         case "gif":
             viewModel.selectVideoForGif(thumbnail: thumbnail, fileName: fileName, fileURL: url)
+        case "extract_audio":
+            viewModel.selectVideoForExtractAudio(thumbnail: thumbnail, fileName: fileName, fileURL: url)
         case "time_clip":
             timeClipThumbnail = thumbnail
             timeClipFileName = fileName

@@ -1,7 +1,7 @@
 import SwiftUI
 
 struct HistoryRowView: View {
-    let record: ConversionRecord
+    @ObservedObject var record: ConversionRecord
 
     var body: some View {
         HStack(spacing: 12) {

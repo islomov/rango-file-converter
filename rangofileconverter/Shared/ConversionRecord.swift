@@ -15,13 +15,13 @@ final class ConversionRecord: Identifiable, Codable, ObservableObject {
     var sourceFormat: String
     var targetFormatID: String
     var thumbnailData: Data?
-    var statusRaw: String
+    var statusRaw: String { willSet { objectWillChange.send() } }
     var date: Date
-    var outputPath: String?
+    var outputPath: String? { willSet { objectWillChange.send() } }
     var errorMessage: String?
     var toolType: String
     var mediaCategory: String
-    var progress: Double
+    var progress: Double { willSet { objectWillChange.send() } }
 
     init(
         id: UUID = UUID(),

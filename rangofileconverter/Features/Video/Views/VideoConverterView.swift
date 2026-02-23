@@ -21,7 +21,7 @@ private let videoTools: [VideoTool] = [
     VideoTool(id: "merge", title: "Merge Videos", icon: "square.stack.3d.up", isAvailable: false),
     VideoTool(id: "ratio", title: "Video Ratio", icon: "aspectratio", isAvailable: false),
     VideoTool(id: "clip", title: "Video Clipping", icon: "scissors", isAvailable: false),
-    VideoTool(id: "gif", title: "Convert GIF", icon: "photo.stack", isAvailable: false),
+    VideoTool(id: "gif", title: "Convert GIF", icon: "photo.stack", isAvailable: true),
     VideoTool(id: "time_clip", title: "Video Time Clip", icon: "timeline.selection", isAvailable: true),
 ]
 
@@ -94,6 +94,25 @@ struct VideoConverterView: View {
                         }
                         DispatchQueue.main.async {
                             showSpeedView = false
+                            showVideoPicker = false
+                            selectedTab = .history
+                        }
+                    }
+                }
+            }
+            .navigationDestination(isPresented: $viewModel.showGifDetail) {
+                if let thumbnail = viewModel.selectedThumbnail,
+                   let fileURL = viewModel.selectedVideoURL {
+                    VideoToGifView(
+                        thumbnail: thumbnail,
+                        fileName: viewModel.selectedFileName,
+                        fileURL: fileURL
+                    ) { fps, width in
+                        Task {
+                            await viewModel.convertToGif(fps: fps, width: width, context: modelContext)
+                        }
+                        DispatchQueue.main.async {
+                            viewModel.showGifDetail = false
                             showVideoPicker = false
                             selectedTab = .history
                         }
@@ -250,7 +269,7 @@ struct VideoConverterView: View {
         if tool.isAvailable {
             activeTool = tool.id
             switch tool.id {
-            case "convert", "time_clip", "speed", "compress":
+            case "convert", "time_clip", "speed", "compress", "gif":
                 showVideoPicker = true
             default:
                 break
@@ -264,6 +283,8 @@ struct VideoConverterView: View {
         switch activeTool {
         case "convert":
             viewModel.selectVideo(thumbnail: thumbnail, fileName: fileName, fileURL: url)
+        case "gif":
+            viewModel.selectVideoForGif(thumbnail: thumbnail, fileName: fileName, fileURL: url)
         case "time_clip":
             timeClipThumbnail = thumbnail
             timeClipFileName = fileName

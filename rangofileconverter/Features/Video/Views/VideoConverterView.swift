@@ -17,7 +17,7 @@ private let videoTools: [VideoTool] = [
     VideoTool(id: "extract_audio", title: "Extract Audio", icon: "music.note", isAvailable: true),
     VideoTool(id: "compress", title: "Video Compression", icon: "arrow.down.right.and.arrow.up.left", isAvailable: true),
     VideoTool(id: "speed", title: "Speed Change", icon: "gauge.with.dots.needle.33percent", isAvailable: true),
-    VideoTool(id: "merge", title: "Merge Videos", icon: "square.stack.3d.up", isAvailable: false),
+    VideoTool(id: "merge", title: "Merge Videos", icon: "square.stack.3d.up", isAvailable: true),
     VideoTool(id: "ratio", title: "Video Ratio", icon: "aspectratio", isAvailable: false),
     VideoTool(id: "clip", title: "Video Clipping", icon: "scissors", isAvailable: false),
     VideoTool(id: "gif", title: "Convert GIF", icon: "photo.stack", isAvailable: true),
@@ -47,6 +47,11 @@ struct VideoConverterView: View {
     @State private var compressThumbnail: UIImage?
     @State private var compressFileName: String = ""
     @State private var compressFileURL: URL?
+
+    // Merge tool state
+    @State private var showMergePicker = false
+    @State private var showMergeView = false
+    @State private var mergeVideos: [(thumbnail: UIImage, fileName: String, url: URL)] = []
 
     private var history: [ConversionRecord] {
         historyStore.records(for: "video")
@@ -201,6 +206,30 @@ struct VideoConverterView: View {
                     }
                 }
             }
+            .navigationDestination(isPresented: $showMergePicker) {
+                VideoMergePickerView { results in
+                    mergeVideos = results.map { (thumbnail: $0.0, fileName: $0.1, url: $0.2) }
+                    showMergeView = true
+                }
+            }
+            .navigationDestination(isPresented: $showMergeView) {
+                if !mergeVideos.isEmpty {
+                    VideoMergeView(videos: mergeVideos) { outputExtension, thumbnail in
+                        Task {
+                            await viewModel.mergeVideos(
+                                inputs: mergeVideos.map(\.url),
+                                outputExtension: outputExtension,
+                                thumbnail: thumbnail
+                            )
+                        }
+                        DispatchQueue.main.async {
+                            showMergeView = false
+                            showMergePicker = false
+                            selectedTab = .history
+                        }
+                    }
+                }
+            }
             .alert("Coming Soon", isPresented: $showComingSoon) {
                 Button("OK", role: .cancel) { }
             } message: {
@@ -282,6 +311,8 @@ struct VideoConverterView: View {
             switch tool.id {
             case "convert", "time_clip", "speed", "compress", "gif", "extract_audio":
                 showVideoPicker = true
+            case "merge":
+                showMergePicker = true
             default:
                 break
             }

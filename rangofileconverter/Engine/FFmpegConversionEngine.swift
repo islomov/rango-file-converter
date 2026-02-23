@@ -83,6 +83,20 @@ final class FFmpegConversionEngine: ConversionEngine {
             videoFilters.append("scale=\(Int(scale.width)):\(Int(scale.height))")
         }
 
+        if let ratio = job.aspectRatio {
+            let w = ratio.width
+            let h = ratio.height
+            switch job.ratioFitMode {
+            case .crop:
+                // Crop to fill: pick the largest centered rectangle matching the target ratio
+                videoFilters.append("crop='min(iw,ih*\(w)/\(h))':'min(ih,iw*\(h)/\(w))'")
+            case .pad:
+                // Pad (letterbox/pillarbox): scale down to fit, then pad with black
+                videoFilters.append("scale='if(gt(iw/ih,\(w)/\(h)),iw,ih*\(w)/\(h))':'if(gt(iw/ih,\(w)/\(h)),iw*\(h)/\(w),ih)':force_original_aspect_ratio=decrease")
+                videoFilters.append("pad='if(gt(iw/ih,\(w)/\(h)),iw,ih*\(w)/\(h))':'if(gt(iw/ih,\(w)/\(h)),iw*\(h)/\(w),ih)':(ow-iw)/2:(oh-ih)/2:black")
+            }
+        }
+
         if !videoFilters.isEmpty {
             args += ["-vf", videoFilters.joined(separator: ",")]
         }

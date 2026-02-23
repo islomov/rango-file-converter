@@ -114,6 +114,23 @@ final class VideoLibraryViewModel: ObservableObject {
         }
     }
 
+    func loadFullVideos(for assets: [PHAsset]) async -> [(UIImage, String, URL)] {
+        await withTaskGroup(of: (Int, UIImage, String, URL)?.self) { group in
+            for (index, asset) in assets.enumerated() {
+                group.addTask {
+                    guard let result = await self.loadFullVideo(for: asset) else { return nil }
+                    return (index, result.0, result.1, result.2)
+                }
+            }
+
+            var indexed: [(Int, UIImage, String, URL)] = []
+            for await result in group {
+                if let result { indexed.append(result) }
+            }
+            return indexed.sorted { $0.0 < $1.0 }.map { ($0.1, $0.2, $0.3) }
+        }
+    }
+
     private static func fileExtension(for uti: String?) -> String? {
         guard let uti else { return nil }
         switch uti {

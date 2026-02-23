@@ -1,5 +1,10 @@
 import Foundation
 
+enum RatioFitMode: String, CaseIterable {
+    case crop = "Crop"
+    case pad = "Pad"
+}
+
 /// Describes a conversion job with all parameters.
 struct ConversionJob: Identifiable {
     let id = UUID()
@@ -14,6 +19,8 @@ struct ConversionJob: Identifiable {
     var progressFilePath: String?
     var fps: Int?
     var stripVideo: Bool = false
+    var aspectRatio: (width: Int, height: Int)?
+    var ratioFitMode: RatioFitMode = .crop
 }
 
 /// Result of a completed conversion.

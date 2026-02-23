@@ -9,6 +9,7 @@ final class VideoConverterViewModel: ObservableObject {
     @Published var isConverting = false
     @Published var showConversionDetail = false
     @Published var showGifDetail = false
+    @Published var showExtractAudioDetail = false
 
     private let coordinator = ConversionCoordinator()
     private let store = HistoryStore.shared
@@ -25,6 +26,13 @@ final class VideoConverterViewModel: ObservableObject {
         selectedFileName = fileName
         selectedVideoURL = fileURL
         showGifDetail = true
+    }
+
+    func selectVideoForExtractAudio(thumbnail: UIImage, fileName: String, fileURL: URL) {
+        selectedThumbnail = thumbnail
+        selectedFileName = fileName
+        selectedVideoURL = fileURL
+        showExtractAudioDetail = true
     }
 
     func addHistoryRecord(fileName: String, thumbnail: UIImage?, outputURL: URL, toolType: String = "Convert") {
@@ -175,6 +183,78 @@ final class VideoConverterViewModel: ObservableObject {
 
         do {
             var job = ConversionJob(inputURL: inputURL, outputFormat: format)
+
+            let tempDir = FileManager.default.temporaryDirectory
+                .appendingPathComponent("rango_conversions", isDirectory: true)
+            try? FileManager.default.createDirectory(at: tempDir, withIntermediateDirectories: true)
+            let shortID = UUID().uuidString.prefix(8)
+            let progressFile = tempDir.appendingPathComponent("progress_\(shortID).txt")
+
+            var pollingTask: Task<Void, Never>?
+            if totalDurationUs > 0 {
+                job.progressFilePath = progressFile.path
+                pollingTask = startProgressPolling(
+                    progressFile: progressFile,
+                    totalDurationUs: totalDurationUs,
+                    record: record
+                )
+            }
+
+            let result = try await coordinator.convert(job: job)
+
+            pollingTask?.cancel()
+            try? FileManager.default.removeItem(at: progressFile)
+
+            let outputPath = ConversionRecord.persistOutput(from: result.outputURL)
+            await MainActor.run {
+                record.progress = 1.0
+                record.status = .converted
+                record.outputPath = outputPath
+                store.save()
+            }
+        } catch {
+            await MainActor.run {
+                record.status = .failed
+                record.errorMessage = error.localizedDescription
+                store.save()
+            }
+        }
+
+        await MainActor.run {
+            isConverting = false
+            selectedThumbnail = nil
+            selectedFileName = ""
+            selectedVideoURL = nil
+        }
+    }
+
+    func extractAudio(to format: FormatDefinition) async {
+        guard let inputURL = selectedVideoURL else { return }
+
+        await MainActor.run { isConverting = true }
+
+        let sourceExt = selectedFileName.components(separatedBy: ".").last?.uppercased() ?? "UNKNOWN"
+        let thumbnailData = selectedThumbnail?
+            .preparingThumbnail(of: CGSize(width: 80, height: 80))?
+            .jpegData(compressionQuality: 0.8)
+
+        let record = ConversionRecord(
+            sourceFileName: selectedFileName,
+            sourceFormat: sourceExt,
+            targetFormatID: format.id,
+            thumbnailData: thumbnailData,
+            status: .converting,
+            toolType: "Extract Audio",
+            mediaCategory: "video"
+        )
+
+        await MainActor.run { store.add(record) }
+
+        let totalDurationUs = await probeDurationUs(url: inputURL)
+
+        do {
+            var job = ConversionJob(inputURL: inputURL, outputFormat: format)
+            job.stripVideo = true
 
             let tempDir = FileManager.default.temporaryDirectory
                 .appendingPathComponent("rango_conversions", isDirectory: true)

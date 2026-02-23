@@ -55,6 +55,11 @@ final class FFmpegConversionEngine: ConversionEngine {
             args += ["-progress", progressPath]
         }
 
+        // Strip video stream (used for audio extraction from video)
+        if job.stripVideo {
+            args += ["-vn"]
+        }
+
         // Trim: -ss (start) and -t (duration)
         if let trim = job.trimRange {
             args += ["-ss", formatTime(trim.lowerBound)]
@@ -125,7 +130,6 @@ final class FFmpegConversionEngine: ConversionEngine {
     private func formatSpecificArgs(for format: FormatDefinition) -> [String] {
         switch format.id {
         case "jpeg", "jpg":
-            // Use mjpeg codec, default quality is fine
             return ["-c:v", "mjpeg"]
         case "bmp":
             return ["-c:v", "bmp"]
@@ -154,17 +158,14 @@ final class FFmpegConversionEngine: ConversionEngine {
         case "sunvbm":
             return ["-c:v", "sunrast"]
         case "yuv":
-            // Raw YUV needs explicit pixel format
             return ["-c:v", "rawvideo", "-pix_fmt", "yuv420p"]
 
         // MARK: Video formats
         case "amv":
-            // AMV requires specific resolution, framerate, pixel format, and mono audio
             return ["-f", "avi", "-c:v", "amv", "-c:a", "adpcm_ima_amv",
                     "-s", "160x120", "-r", "16", "-pix_fmt", "yuvj420p",
                     "-ac", "1", "-ar", "22050"]
         case "flv":
-            // FLV with Sorenson H.263 video and AAC audio (native encoder, no libmp3lame needed)
             return ["-c:v", "flv1", "-c:a", "aac", "-ar", "44100"]
         case "rm":
             return ["-f", "rm", "-c:v", "rv20", "-c:a", "real_144"]

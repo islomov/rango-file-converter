@@ -108,8 +108,8 @@ struct VideoToGifView: View {
             stopTimer()
             extractionTask?.cancel()
         }
-        .onChange(of: fps) { restartTimer() }
-        .onChange(of: width) { extractFrames() }
+        .onChange(of: fps) { _ in restartTimer() }
+        .onChange(of: width) { _ in extractFrames() }
     }
 
     // MARK: - Preview

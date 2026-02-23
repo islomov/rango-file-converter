@@ -1,12 +1,12 @@
 import SwiftUI
+import Combine
 import Photos
 
-@Observable
-final class PhotoLibraryViewModel {
-    var assets: [PHAsset] = []
-    var thumbnails: [String: UIImage] = [:]
-    var authorizationStatus: PHAuthorizationStatus = .notDetermined
-    var isLoading = false
+final class PhotoLibraryViewModel: ObservableObject {
+    @Published var assets: [PHAsset] = []
+    @Published var thumbnails: [String: UIImage] = [:]
+    @Published var authorizationStatus: PHAuthorizationStatus = .notDetermined
+    @Published var isLoading = false
 
     private let imageManager = PHCachingImageManager()
     private let thumbnailSize = CGSize(width: 200, height: 200)

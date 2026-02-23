@@ -51,7 +51,7 @@ struct ImageRotateView: View {
         .navigationTitle("Rotate")
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
-            ToolbarItem(placement: .topBarTrailing) {
+            ToolbarItem(placement: .navigationBarTrailing) {
                 Button("Reset") {
                     rotation = 0
                     flipH = false

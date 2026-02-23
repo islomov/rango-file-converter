@@ -1,5 +1,4 @@
 import SwiftUI
-import SwiftData
 
 private enum VideoTab: String, CaseIterable {
     case tools = "Tools"
@@ -26,7 +25,8 @@ private let videoTools: [VideoTool] = [
 ]
 
 struct VideoConverterView: View {
-    @State private var viewModel = VideoConverterViewModel()
+    @StateObject private var viewModel = VideoConverterViewModel()
+    @EnvironmentObject private var historyStore: HistoryStore
     @State private var selectedTab: VideoTab = .tools
     @State private var showComingSoon = false
     @State private var showVideoPicker = false
@@ -48,14 +48,9 @@ struct VideoConverterView: View {
     @State private var compressFileName: String = ""
     @State private var compressFileURL: URL?
 
-    @Environment(\.modelContext) private var modelContext
-    @Query(
-        filter: #Predicate<ConversionRecord> { record in
-            record.mediaCategory == "video"
-        },
-        sort: \ConversionRecord.date,
-        order: .reverse
-    ) private var history: [ConversionRecord]
+    private var history: [ConversionRecord] {
+        historyStore.records(for: "video")
+    }
 
     var body: some View {
         NavigationStack {
@@ -88,8 +83,7 @@ struct VideoConverterView: View {
                                 inputURL: url,
                                 fileName: speedFileName,
                                 thumbnail: thumbnail,
-                                speed: speed,
-                                context: modelContext
+                                speed: speed
                             )
                         }
                         DispatchQueue.main.async {
@@ -109,7 +103,7 @@ struct VideoConverterView: View {
                         fileURL: fileURL
                     ) { fps, width in
                         Task {
-                            await viewModel.convertToGif(fps: fps, width: width, context: modelContext)
+                            await viewModel.convertToGif(fps: fps, width: width)
                         }
                         DispatchQueue.main.async {
                             viewModel.showGifDetail = false
@@ -128,7 +122,7 @@ struct VideoConverterView: View {
                         fileURL: fileURL
                     ) { format in
                         Task {
-                            await viewModel.convert(to: format, context: modelContext)
+                            await viewModel.convert(to: format)
                         }
                         DispatchQueue.main.async {
                             viewModel.showConversionDetail = false
@@ -151,8 +145,7 @@ struct VideoConverterView: View {
                                 fileName: timeClipFileName,
                                 thumbnail: thumb,
                                 startTime: startTime,
-                                endTime: endTime,
-                                context: modelContext
+                                endTime: endTime
                             )
                         }
                         DispatchQueue.main.async {
@@ -178,8 +171,7 @@ struct VideoConverterView: View {
                                 quality: quality,
                                 resolutionHeight: resolutionHeight,
                                 preset: preset,
-                                outputFormat: format,
-                                context: modelContext
+                                outputFormat: format
                             )
                         }
                         DispatchQueue.main.async {
@@ -331,5 +323,5 @@ struct VideoConverterView: View {
 
 #Preview {
     VideoConverterView()
-        .modelContainer(for: ConversionRecord.self, inMemory: true)
+        .environmentObject(HistoryStore.shared)
 }

@@ -58,8 +58,8 @@ struct ImageStitchView: View {
         .navigationTitle("Stitch")
         .navigationBarTitleDisplayMode(.inline)
         .onAppear { updatePreview() }
-        .onChange(of: layout) { updatePreview() }
-        .onChange(of: background) { updatePreview() }
+        .onChange(of: layout) { _ in updatePreview() }
+        .onChange(of: background) { _ in updatePreview() }
     }
 
     // MARK: - Preview

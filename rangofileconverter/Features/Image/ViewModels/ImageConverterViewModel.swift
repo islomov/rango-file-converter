@@ -1,16 +1,15 @@
 import SwiftUI
-import SwiftData
+import Combine
 
-@Observable
-final class ImageConverterViewModel {
-    var selectedImage: UIImage?
-    var selectedFileName: String = ""
-    var selectedFileURL: URL?
-    var isConverting = false
-
-    var showConversionDetail = false
+final class ImageConverterViewModel: ObservableObject {
+    @Published var selectedImage: UIImage?
+    @Published var selectedFileName: String = ""
+    @Published var selectedFileURL: URL?
+    @Published var isConverting = false
+    @Published var showConversionDetail = false
 
     private let coordinator = ConversionCoordinator()
+    private let store = HistoryStore.shared
 
     func selectImage(_ image: UIImage, fileName: String, fileURL: URL) {
         selectedImage = image
@@ -19,20 +18,15 @@ final class ImageConverterViewModel {
         showConversionDetail = true
     }
 
-    func addHistoryRecord(fileName: String, thumbnail: UIImage?, outputURL: URL, toolType: String = "Convert", context: ModelContext) {
-        print("[History] addHistoryRecord called — fileName: \(fileName), toolType: \(toolType)")
-        print("[History] outputURL: \(outputURL)")
-
+    func addHistoryRecord(fileName: String, thumbnail: UIImage?, outputURL: URL, toolType: String = "Convert") {
         let ext = fileName.components(separatedBy: ".").last ?? "png"
         let formatDef = FormatRegistry.format(forExtension: ext)
 
         let outputPath = ConversionRecord.persistOutput(from: outputURL)
-        print("[History] persistOutput returned: \(String(describing: outputPath))")
 
         let thumbnailData = thumbnail?
             .preparingThumbnail(of: CGSize(width: 80, height: 80))?
             .jpegData(compressionQuality: 0.8)
-        print("[History] thumbnailData size: \(thumbnailData?.count ?? 0)")
 
         let record = ConversionRecord(
             sourceFileName: fileName,
@@ -44,29 +38,13 @@ final class ImageConverterViewModel {
             toolType: toolType
         )
 
-        context.insert(record)
-        print("[History] record inserted into context")
-
-        do {
-            try context.save()
-            print("[History] context.save() succeeded")
-
-            // Verify: fetch all records to confirm it's queryable
-            let descriptor = FetchDescriptor<ConversionRecord>()
-            let allRecords = try context.fetch(descriptor)
-            print("[History] Total records in store after save: \(allRecords.count)")
-            for r in allRecords {
-                print("[History]   - \(r.sourceFileName) | \(r.toolType) | \(r.statusRaw)")
-            }
-        } catch {
-            print("[History] context.save() FAILED: \(error)")
-        }
+        store.add(record)
     }
 
-    func convert(to format: FormatDefinition, context: ModelContext) async {
+    func convert(to format: FormatDefinition) async {
         guard let inputURL = selectedFileURL else { return }
 
-        isConverting = true
+        await MainActor.run { isConverting = true }
 
         let sourceExt = selectedFileName.components(separatedBy: ".").last?.uppercased() ?? "UNKNOWN"
         let thumbnailData = selectedImage?
@@ -81,26 +59,31 @@ final class ImageConverterViewModel {
             status: .converting
         )
 
-        context.insert(record)
-        try? context.save()
+        await MainActor.run { store.add(record) }
 
         do {
             let job = ConversionJob(inputURL: inputURL, outputFormat: format)
             let result = try await coordinator.convert(job: job)
 
             let outputPath = ConversionRecord.persistOutput(from: result.outputURL)
-            record.status = .converted
-            record.outputPath = outputPath
+            await MainActor.run {
+                record.status = .converted
+                record.outputPath = outputPath
+                store.save()
+            }
         } catch {
-            record.status = .failed
-            record.errorMessage = error.localizedDescription
+            await MainActor.run {
+                record.status = .failed
+                record.errorMessage = error.localizedDescription
+                store.save()
+            }
         }
 
-        try? context.save()
-
-        isConverting = false
-        selectedImage = nil
-        selectedFileName = ""
-        selectedFileURL = nil
+        await MainActor.run {
+            isConverting = false
+            selectedImage = nil
+            selectedFileName = ""
+            selectedFileURL = nil
+        }
     }
 }

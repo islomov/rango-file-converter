@@ -3,21 +3,25 @@ import SwiftUI
 struct ContentView: View {
     var body: some View {
         TabView {
-            Tab("Image", systemImage: "photo") {
-                ImageConverterView()
-            }
+            ImageConverterView()
+                .tabItem {
+                    Label("Image", systemImage: "photo")
+                }
 
-            Tab("Video", systemImage: "video") {
-                VideoConverterView()
-            }
+            VideoConverterView()
+                .tabItem {
+                    Label("Video", systemImage: "video")
+                }
 
-            Tab("Audio", systemImage: "music.note") {
-                AudioConverterView()
-            }
+            AudioConverterView()
+                .tabItem {
+                    Label("Audio", systemImage: "music.note")
+                }
 
-            Tab("Document", systemImage: "doc.text") {
-                DocumentConverterView()
-            }
+            DocumentConverterView()
+                .tabItem {
+                    Label("Document", systemImage: "doc.text")
+                }
         }
     }
 }

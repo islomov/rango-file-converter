@@ -45,13 +45,6 @@ struct HistoryRowView: View {
             VStack(alignment: .trailing, spacing: 4) {
                 statusBadge
 
-                if record.status == .converted, let outputURL = record.outputURL {
-                    ShareLink(item: outputURL) {
-                        Label("Share", systemImage: "square.and.arrow.up")
-                            .font(.caption2)
-                    }
-                }
-
                 Text(formattedDate)
                     .font(.caption2)
                     .foregroundStyle(.tertiary)

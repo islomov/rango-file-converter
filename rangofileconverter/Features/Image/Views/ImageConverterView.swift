@@ -1,5 +1,4 @@
 import SwiftUI
-import SwiftData
 
 private enum ImageTab: String, CaseIterable {
     case tools = "Tools"
@@ -24,7 +23,8 @@ private let imageTools: [ImageTool] = [
 ]
 
 struct ImageConverterView: View {
-    @State private var viewModel = ImageConverterViewModel()
+    @StateObject private var viewModel = ImageConverterViewModel()
+    @EnvironmentObject private var historyStore: HistoryStore
     @State private var selectedTab: ImageTab = .tools
     @State private var showComingSoon = false
     @State private var showAssetPicker = false
@@ -65,14 +65,9 @@ struct ImageConverterView: View {
     @State private var stitchImages: [UIImage] = []
     @State private var stitchFileNames: [String] = []
 
-    @Environment(\.modelContext) private var modelContext
-    @Query(
-        filter: #Predicate<ConversionRecord> { record in
-            record.mediaCategory == "image"
-        },
-        sort: \ConversionRecord.date,
-        order: .reverse
-    ) private var history: [ConversionRecord]
+    private var history: [ConversionRecord] {
+        historyStore.records(for: "image")
+    }
 
     var body: some View {
         NavigationStack {
@@ -109,7 +104,7 @@ struct ImageConverterView: View {
                         image: image,
                         fileName: viewModel.selectedFileName
                     ) { format in
-                        await viewModel.convert(to: format, context: modelContext)
+                        await viewModel.convert(to: format)
                         selectedTab = .history
                     }
                 }
@@ -120,17 +115,12 @@ struct ImageConverterView: View {
                         image: image,
                         fileName: rotateFileName
                     ) { rotatedImage, outputURL in
-                        print("[ImageConverterView] onApply closure called")
-                        print("[ImageConverterView] rotateFileName: \(rotateFileName)")
-                        print("[ImageConverterView] modelContext: \(modelContext)")
                         viewModel.addHistoryRecord(
                             fileName: rotateFileName,
                             thumbnail: rotatedImage,
                             outputURL: outputURL,
-                            toolType: "Rotate",
-                            context: modelContext
+                            toolType: "Rotate"
                         )
-                        print("[ImageConverterView] addHistoryRecord returned, popping navigation")
                         DispatchQueue.main.async {
                             showRotateView = false
                             showAssetPicker = false
@@ -149,8 +139,7 @@ struct ImageConverterView: View {
                             fileName: cropFileName,
                             thumbnail: croppedImage,
                             outputURL: outputURL,
-                            toolType: "Crop",
-                            context: modelContext
+                            toolType: "Crop"
                         )
                         DispatchQueue.main.async {
                             showCropView = false
@@ -166,15 +155,11 @@ struct ImageConverterView: View {
                         image: image,
                         fileName: resizeFileName
                     ) { resizedImage, outputURL in
-                        print("[ImageConverterView] onApply closure called")
-                        print("[ImageConverterView] resizedFileName: \(resizedImage)")
-                        print("[ImageConverterView] modelContext: \(outputURL)")
                         viewModel.addHistoryRecord(
                             fileName: resizeFileName,
                             thumbnail: resizedImage,
                             outputURL: outputURL,
-                            toolType: "Resize",
-                            context: modelContext
+                            toolType: "Resize"
                         )
                         DispatchQueue.main.async {
                             showResizeView = false
@@ -195,8 +180,7 @@ struct ImageConverterView: View {
                             fileName: outputURL.lastPathComponent,
                             thumbnail: compressedImage,
                             outputURL: outputURL,
-                            toolType: "Compress",
-                            context: modelContext
+                            toolType: "Compress"
                         )
                         DispatchQueue.main.async {
                             showCompressView = false
@@ -216,8 +200,7 @@ struct ImageConverterView: View {
                             fileName: "animated.gif",
                             thumbnail: thumbnail,
                             outputURL: outputURL,
-                            toolType: "GIF",
-                            context: modelContext
+                            toolType: "GIF"
                         )
                         DispatchQueue.main.async {
                             showGifView = false
@@ -237,8 +220,7 @@ struct ImageConverterView: View {
                             fileName: "stitched.png",
                             thumbnail: thumbnail,
                             outputURL: outputURL,
-                            toolType: "Stitch",
-                            context: modelContext
+                            toolType: "Stitch"
                         )
                         DispatchQueue.main.async {
                             showStitchView = false
@@ -380,7 +362,6 @@ struct ImageConverterView: View {
 
     @ViewBuilder
     private var historySection: some View {
-        let _ = print("[HistorySection] history.count = \(history.count)")
         if history.isEmpty {
             Spacer()
             VStack(spacing: 12) {
@@ -405,5 +386,5 @@ struct ImageConverterView: View {
 
 #Preview {
     ImageConverterView()
-        .modelContainer(for: ConversionRecord.self, inMemory: true)
+        .environmentObject(HistoryStore.shared)
 }

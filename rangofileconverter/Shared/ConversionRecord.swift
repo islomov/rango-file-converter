@@ -1,28 +1,27 @@
 import Foundation
-import SwiftData
 import UIKit
+import Combine
 
-enum ConversionStatus: String {
+enum ConversionStatus: String, Codable {
     case pending
     case converting
     case converted
     case failed
 }
 
-@Model
-final class ConversionRecord {
-    var id: UUID
+final class ConversionRecord: Identifiable, Codable, ObservableObject {
+    let id: UUID
     var sourceFileName: String
     var sourceFormat: String
     var targetFormatID: String
-    @Attribute(.externalStorage) var thumbnailData: Data?
+    var thumbnailData: Data?
     var statusRaw: String
     var date: Date
     var outputPath: String?
     var errorMessage: String?
     var toolType: String
-    var mediaCategory: String = "image"
-    var progress: Double = 0.0
+    var mediaCategory: String
+    var progress: Double
 
     init(
         id: UUID = UUID(),
@@ -48,26 +47,27 @@ final class ConversionRecord {
         self.errorMessage = errorMessage
         self.toolType = toolType
         self.mediaCategory = mediaCategory
+        self.progress = 0.0
     }
 
     // MARK: - Computed Helpers
 
-    @Transient var targetFormat: FormatDefinition {
+    var targetFormat: FormatDefinition {
         FormatRegistry.format(forExtension: targetFormatID)
             ?? FormatDefinition(id: targetFormatID, displayName: targetFormatID.uppercased(), fileExtension: targetFormatID, mediaType: .image, mimeType: nil)
     }
 
-    @Transient var thumbnail: UIImage? {
+    var thumbnail: UIImage? {
         guard let data = thumbnailData else { return nil }
         return UIImage(data: data)
     }
 
-    @Transient var outputURL: URL? {
+    var outputURL: URL? {
         guard let outputPath else { return nil }
         return Self.documentsDirectory.appendingPathComponent(outputPath)
     }
 
-    @Transient var status: ConversionStatus {
+    var status: ConversionStatus {
         get { ConversionStatus(rawValue: statusRaw) ?? .pending }
         set { statusRaw = newValue.rawValue }
     }

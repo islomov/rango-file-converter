@@ -44,7 +44,7 @@ struct MakeGifView: View {
         .navigationBarTitleDisplayMode(.inline)
         .onAppear { startTimer() }
         .onDisappear { stopTimer() }
-        .onChange(of: frameDelay) {
+        .onChange(of: frameDelay) { _ in
             restartTimer()
         }
     }

@@ -61,6 +61,12 @@ final class FFmpegConversionEngine: ConversionEngine {
             args += ["-t", formatTime(trim.upperBound - trim.lowerBound)]
         }
 
+        // GIF output uses filter_complex for palette optimization
+        if job.outputFormat.id == "gif" {
+            args += buildGifArgs(for: job)
+            return args
+        }
+
         // Build video/image filter chain
         var videoFilters: [String] = []
 
@@ -100,6 +106,19 @@ final class FFmpegConversionEngine: ConversionEngine {
         }
 
         return args
+    }
+
+    /// Builds FFmpeg args for high-quality GIF output using single-pass palette optimization.
+    private func buildGifArgs(for job: ConversionJob) -> [String] {
+        let fps = job.fps ?? 10
+        var filters = "fps=\(fps)"
+
+        if let scale = job.scale {
+            filters += ",scale=\(Int(scale.width)):-1:flags=lanczos"
+        }
+
+        let filterComplex = "[0:v] \(filters),split [a][b]; [a] palettegen [p]; [b][p] paletteuse"
+        return ["-filter_complex", filterComplex, "-loop", "0"]
     }
 
     /// Returns format-specific FFmpeg flags needed for certain output formats.

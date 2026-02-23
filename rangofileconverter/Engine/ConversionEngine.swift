@@ -12,6 +12,7 @@ struct ConversionJob: Identifiable {
     var trimRange: ClosedRange<TimeInterval>?
     var quality: Int?
     var progressFilePath: String?
+    var fps: Int?
 }
 
 /// Result of a completed conversion.

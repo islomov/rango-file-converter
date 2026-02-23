@@ -80,7 +80,7 @@ struct ImageCropView: View {
                                         .onAppear {
                                             imageFrame = imgGeo.frame(in: .named("cropCanvas"))
                                         }
-                                        .onChange(of: geo.size) {
+                                        .onChange(of: geo.size) { _ in
                                             imageFrame = imgGeo.frame(in: .named("cropCanvas"))
                                         }
                                 }
@@ -114,7 +114,7 @@ struct ImageCropView: View {
         .navigationTitle("Crop")
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
-            ToolbarItem(placement: .topBarTrailing) {
+            ToolbarItem(placement: .navigationBarTrailing) {
                 Button("Reset") {
                     withAnimation(.easeInOut(duration: 0.2)) {
                         cropRect = CGRect(x: 0.1, y: 0.1, width: 0.8, height: 0.8)

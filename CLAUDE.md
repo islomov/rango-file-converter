@@ -1,7 +1,7 @@
 # Rango — iOS File Converter
 
 ## Project Overview
-Rango is a universal file format converter iOS app (iOS 17+, Swift 5.9, SwiftUI) supporting 74 formats across 4 media categories. All processing is on-device.
+Rango is a universal file format converter iOS app (**iOS 16.6+**, Swift 5.9, SwiftUI) supporting 74 formats across 4 media categories. All processing is on-device.
 
 ## Supported Formats
 
@@ -31,8 +31,24 @@ DOC, DOCX, PDF, HTML, ODT, RTF, TXT
 - `RangoInfra/` — Firebase, file system, background tasks
 
 
+## iOS 16.6 Compatibility Rules
+The minimum deployment target is **iOS 16.6**. Do NOT use any iOS 17+ or iOS 18+ APIs:
+
+| Avoid (iOS 17+/18+) | Use Instead (iOS 16+) |
+|---|---|
+| `@Observable` | `ObservableObject` + `@Published` + `import Combine` |
+| `@State private var vm` (with Observable) | `@StateObject private var vm` (with ObservableObject) |
+| SwiftData (`@Model`, `ModelContainer`, `@Query`) | `Codable` classes + JSON file persistence (`HistoryStore`) |
+| `Tab("Label", systemImage:) { }` (iOS 18) | `.tabItem { Label("Label", systemImage:) }` |
+| `.onChange(of:) { oldValue, newValue in }` | `.onChange(of:) { newValue in }` (single param) |
+| `.toolbar { ToolbarItem(placement: .topBarTrailing) }` | `.toolbar { ToolbarItem(placement: .navigationBarTrailing) }` |
+| `#Predicate` | Manual filtering on arrays |
+
 ## Key Conventions
-- Views observe ViewModels via `@StateObject`
+- Views observe ViewModels via `@StateObject` / `@ObservedObject`
+- ViewModels are `ObservableObject` with `@Published` properties (requires `import Combine`)
+- History persistence uses `HistoryStore` (JSON-based singleton), not SwiftData
+- Pass `HistoryStore` to views via `.environmentObject()`
 - Domain layer is pure Swift with no framework imports
 - Conversion engines conform to `ConversionEngine` protocol (Actor-based)
 - `ConversionCoordinator` routes jobs to the correct engine by `MediaType`
@@ -40,7 +56,7 @@ DOC, DOCX, PDF, HTML, ODT, RTF, TXT
 - 22 formats use native iOS APIs; 52 require FFmpegKit
 
 ## Dependencies
-FFmpegKit (format conversion), SwiftData, Firebase, Kingfisher, swift-algorithms
+FFmpegKit (format conversion), Firebase, Kingfisher, swift-algorithms
 
 ## Performance Targets
 - Image < 2s, Video (1min 1080p) < 30s, Audio (5min) < 5s, Document < 3s

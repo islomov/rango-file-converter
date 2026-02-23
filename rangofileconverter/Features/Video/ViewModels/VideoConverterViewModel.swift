@@ -1,16 +1,17 @@
 import SwiftUI
-import SwiftData
 import AVFoundation
+import Combine
 
-@Observable
-final class VideoConverterViewModel {
-    var selectedThumbnail: UIImage?
-    var selectedFileName: String = ""
-    var selectedVideoURL: URL?
-    var isConverting = false
-    var showConversionDetail = false
+final class VideoConverterViewModel: ObservableObject {
+    @Published var selectedThumbnail: UIImage?
+    @Published var selectedFileName: String = ""
+    @Published var selectedVideoURL: URL?
+    @Published var isConverting = false
+    @Published var showConversionDetail = false
+    @Published var showGifDetail = false
 
     private let coordinator = ConversionCoordinator()
+    private let store = HistoryStore.shared
 
     func selectVideo(thumbnail: UIImage, fileName: String, fileURL: URL) {
         selectedThumbnail = thumbnail
@@ -19,7 +20,14 @@ final class VideoConverterViewModel {
         showConversionDetail = true
     }
 
-    func addHistoryRecord(fileName: String, thumbnail: UIImage?, outputURL: URL, toolType: String = "Convert", context: ModelContext) {
+    func selectVideoForGif(thumbnail: UIImage, fileName: String, fileURL: URL) {
+        selectedThumbnail = thumbnail
+        selectedFileName = fileName
+        selectedVideoURL = fileURL
+        showGifDetail = true
+    }
+
+    func addHistoryRecord(fileName: String, thumbnail: UIImage?, outputURL: URL, toolType: String = "Convert") {
         let ext = fileName.components(separatedBy: ".").last ?? "mp4"
         let formatDef = FormatRegistry.format(forExtension: ext)
 
@@ -40,8 +48,7 @@ final class VideoConverterViewModel {
             mediaCategory: "video"
         )
 
-        context.insert(record)
-        try? context.save()
+        store.add(record)
     }
 
     func compressVideo(
@@ -51,10 +58,9 @@ final class VideoConverterViewModel {
         quality: Int,
         resolutionHeight: Int?,
         preset: String,
-        outputFormat: String,
-        context: ModelContext
+        outputFormat: String
     ) async {
-        isConverting = true
+        await MainActor.run { isConverting = true }
 
         let sourceExt = fileName.components(separatedBy: ".").last?.uppercased() ?? "UNKNOWN"
         let thumbnailData = thumbnail?
@@ -71,10 +77,8 @@ final class VideoConverterViewModel {
             mediaCategory: "video"
         )
 
-        context.insert(record)
-        try? context.save()
+        await MainActor.run { store.add(record) }
 
-        // Probe input duration for progress tracking
         let totalDurationUs: Double = await {
             let asset = AVAsset(url: inputURL)
             if let cmDuration = try? await asset.load(.duration) {
@@ -92,7 +96,6 @@ final class VideoConverterViewModel {
             let shortID = UUID().uuidString.prefix(8)
             let outputURL = tempDir.appendingPathComponent("\(baseName)_\(shortID).\(outputFormat)")
 
-            // Progress file for FFmpeg to write to
             let progressFile = tempDir.appendingPathComponent("progress_\(shortID).txt")
 
             var args: [String] = []
@@ -114,20 +117,11 @@ final class VideoConverterViewModel {
 
             args += ["-c:a", "aac", "-b:a", "128k"]
 
-            // Start polling progress file
-            let pollingTask = Task.detached { [weak record] in
-                guard totalDurationUs > 0 else { return }
-                while !Task.isCancelled {
-                    try? await Task.sleep(for: .milliseconds(500))
-                    guard !Task.isCancelled else { break }
-
-                    let progress = Self.parseProgress(from: progressFile, totalDurationUs: totalDurationUs)
-                    await MainActor.run {
-                        record?.progress = progress
-                        try? context.save()
-                    }
-                }
-            }
+            let pollingTask = startProgressPolling(
+                progressFile: progressFile,
+                totalDurationUs: totalDurationUs,
+                record: record
+            )
 
             try await FFmpegWrapper.shared.convert(
                 input: inputURL,
@@ -139,42 +133,27 @@ final class VideoConverterViewModel {
             try? FileManager.default.removeItem(at: progressFile)
 
             let outputPath = ConversionRecord.persistOutput(from: outputURL)
-            record.progress = 1.0
-            record.status = .converted
-            record.outputPath = outputPath
+            await MainActor.run {
+                record.progress = 1.0
+                record.status = .converted
+                record.outputPath = outputPath
+                store.save()
+            }
         } catch {
-            record.status = .failed
-            record.errorMessage = error.localizedDescription
-        }
-
-        try? context.save()
-        isConverting = false
-    }
-
-    private static func parseProgress(from fileURL: URL, totalDurationUs: Double) -> Double {
-        guard let content = try? String(contentsOf: fileURL, encoding: .utf8) else { return 0 }
-
-        // FFmpeg writes multiple progress blocks. Find the last out_time_us value.
-        var lastOutTimeUs: Double = 0
-        for line in content.components(separatedBy: "\n").reversed() {
-            let trimmed = line.trimmingCharacters(in: .whitespaces)
-            if trimmed.hasPrefix("out_time_us=") {
-                let value = trimmed.dropFirst("out_time_us=".count)
-                if let us = Double(value), us > 0 {
-                    lastOutTimeUs = us
-                    break
-                }
+            await MainActor.run {
+                record.status = .failed
+                record.errorMessage = error.localizedDescription
+                store.save()
             }
         }
 
-        guard lastOutTimeUs > 0, totalDurationUs > 0 else { return 0 }
-        return min(lastOutTimeUs / totalDurationUs, 0.99)
+        await MainActor.run { isConverting = false }
     }
 
-    func convert(to format: FormatDefinition, context: ModelContext) async {
+    func convert(to format: FormatDefinition) async {
         guard let inputURL = selectedVideoURL else { return }
 
-        isConverting = true
+        await MainActor.run { isConverting = true }
 
         let sourceExt = selectedFileName.components(separatedBy: ".").last?.uppercased() ?? "UNKNOWN"
         let thumbnailData = selectedThumbnail?
@@ -190,8 +169,7 @@ final class VideoConverterViewModel {
             mediaCategory: "video"
         )
 
-        context.insert(record)
-        try? context.save()
+        await MainActor.run { store.add(record) }
 
         let totalDurationUs = await probeDurationUs(url: inputURL)
 
@@ -210,8 +188,7 @@ final class VideoConverterViewModel {
                 pollingTask = startProgressPolling(
                     progressFile: progressFile,
                     totalDurationUs: totalDurationUs,
-                    record: record,
-                    context: context
+                    record: record
                 )
             }
 
@@ -221,30 +198,35 @@ final class VideoConverterViewModel {
             try? FileManager.default.removeItem(at: progressFile)
 
             let outputPath = ConversionRecord.persistOutput(from: result.outputURL)
-            record.progress = 1.0
-            record.status = .converted
-            record.outputPath = outputPath
+            await MainActor.run {
+                record.progress = 1.0
+                record.status = .converted
+                record.outputPath = outputPath
+                store.save()
+            }
         } catch {
-            record.status = .failed
-            record.errorMessage = error.localizedDescription
+            await MainActor.run {
+                record.status = .failed
+                record.errorMessage = error.localizedDescription
+                store.save()
+            }
         }
 
-        try? context.save()
-
-        isConverting = false
-        selectedThumbnail = nil
-        selectedFileName = ""
-        selectedVideoURL = nil
+        await MainActor.run {
+            isConverting = false
+            selectedThumbnail = nil
+            selectedFileName = ""
+            selectedVideoURL = nil
+        }
     }
 
     func changeSpeed(
         inputURL: URL,
         fileName: String,
         thumbnail: UIImage?,
-        speed: Double,
-        context: ModelContext
+        speed: Double
     ) async {
-        isConverting = true
+        await MainActor.run { isConverting = true }
 
         let sourceExt = fileName.components(separatedBy: ".").last?.uppercased() ?? "UNKNOWN"
         let ext = fileName.components(separatedBy: ".").last?.lowercased() ?? "mp4"
@@ -263,11 +245,9 @@ final class VideoConverterViewModel {
             mediaCategory: "video"
         )
 
-        context.insert(record)
-        try? context.save()
+        await MainActor.run { store.add(record) }
 
         let totalDurationUs = await probeDurationUs(url: inputURL)
-        // Output duration changes with speed
         let outputDurationUs = totalDurationUs / speed
 
         do {
@@ -289,8 +269,7 @@ final class VideoConverterViewModel {
             let pollingTask = startProgressPolling(
                 progressFile: progressFile,
                 totalDurationUs: outputDurationUs,
-                record: record,
-                context: context
+                record: record
             )
 
             try await FFmpegWrapper.shared.convert(
@@ -303,16 +282,21 @@ final class VideoConverterViewModel {
             try? FileManager.default.removeItem(at: progressFile)
 
             let outputPath = ConversionRecord.persistOutput(from: outputURL)
-            record.progress = 1.0
-            record.status = .converted
-            record.outputPath = outputPath
+            await MainActor.run {
+                record.progress = 1.0
+                record.status = .converted
+                record.outputPath = outputPath
+                store.save()
+            }
         } catch {
-            record.status = .failed
-            record.errorMessage = error.localizedDescription
+            await MainActor.run {
+                record.status = .failed
+                record.errorMessage = error.localizedDescription
+                store.save()
+            }
         }
 
-        try? context.save()
-        isConverting = false
+        await MainActor.run { isConverting = false }
     }
 
     func clipVideo(
@@ -320,10 +304,9 @@ final class VideoConverterViewModel {
         fileName: String,
         thumbnail: UIImage?,
         startTime: Double,
-        endTime: Double,
-        context: ModelContext
+        endTime: Double
     ) async {
-        isConverting = true
+        await MainActor.run { isConverting = true }
 
         let sourceExt = fileName.components(separatedBy: ".").last?.uppercased() ?? "UNKNOWN"
         let ext = fileName.components(separatedBy: ".").last?.lowercased() ?? "mp4"
@@ -341,11 +324,8 @@ final class VideoConverterViewModel {
             mediaCategory: "video"
         )
 
-        context.insert(record)
-        try? context.save()
+        await MainActor.run { store.add(record) }
 
-        // Time clip uses -c copy (stream copy), so it's fast — no meaningful progress to track
-        // but we still set up the pattern for consistency
         do {
             let tempDir = FileManager.default.temporaryDirectory
                 .appendingPathComponent("rango_conversions", isDirectory: true)
@@ -365,16 +345,95 @@ final class VideoConverterViewModel {
             )
 
             let outputPath = ConversionRecord.persistOutput(from: outputURL)
-            record.progress = 1.0
-            record.status = .converted
-            record.outputPath = outputPath
+            await MainActor.run {
+                record.progress = 1.0
+                record.status = .converted
+                record.outputPath = outputPath
+                store.save()
+            }
         } catch {
-            record.status = .failed
-            record.errorMessage = error.localizedDescription
+            await MainActor.run {
+                record.status = .failed
+                record.errorMessage = error.localizedDescription
+                store.save()
+            }
         }
 
-        try? context.save()
-        isConverting = false
+        await MainActor.run { isConverting = false }
+    }
+
+    func convertToGif(fps: Int, width: Int) async {
+        guard let inputURL = selectedVideoURL else { return }
+        guard let gifFormat = FormatRegistry.format(forExtension: "gif") else { return }
+
+        await MainActor.run { isConverting = true }
+
+        let sourceExt = selectedFileName.components(separatedBy: ".").last?.uppercased() ?? "UNKNOWN"
+        let thumbnailData = selectedThumbnail?
+            .preparingThumbnail(of: CGSize(width: 80, height: 80))?
+            .jpegData(compressionQuality: 0.8)
+
+        let record = ConversionRecord(
+            sourceFileName: selectedFileName,
+            sourceFormat: sourceExt,
+            targetFormatID: gifFormat.id,
+            thumbnailData: thumbnailData,
+            status: .converting,
+            toolType: "GIF",
+            mediaCategory: "video"
+        )
+
+        await MainActor.run { store.add(record) }
+
+        let totalDurationUs = await probeDurationUs(url: inputURL)
+
+        do {
+            var job = ConversionJob(inputURL: inputURL, outputFormat: gifFormat)
+            job.fps = fps
+            job.scale = CGSize(width: width, height: -1)
+
+            let tempDir = FileManager.default.temporaryDirectory
+                .appendingPathComponent("rango_conversions", isDirectory: true)
+            try? FileManager.default.createDirectory(at: tempDir, withIntermediateDirectories: true)
+            let shortID = UUID().uuidString.prefix(8)
+            let progressFile = tempDir.appendingPathComponent("progress_\(shortID).txt")
+
+            var pollingTask: Task<Void, Never>?
+            if totalDurationUs > 0 {
+                job.progressFilePath = progressFile.path
+                pollingTask = startProgressPolling(
+                    progressFile: progressFile,
+                    totalDurationUs: totalDurationUs,
+                    record: record
+                )
+            }
+
+            let result = try await coordinator.convert(job: job)
+
+            pollingTask?.cancel()
+            try? FileManager.default.removeItem(at: progressFile)
+
+            let outputPath = ConversionRecord.persistOutput(from: result.outputURL)
+            await MainActor.run {
+                record.progress = 1.0
+                record.status = .converted
+                record.outputPath = outputPath
+                store.save()
+            }
+        } catch {
+            await MainActor.run {
+                record.status = .failed
+                record.errorMessage = error.localizedDescription
+                store.save()
+            }
+        }
+
+        await MainActor.run {
+            isConverting = false
+            selectedThumbnail = nil
+            selectedFileName = ""
+            selectedVideoURL = nil
+        }
     }
 
     // MARK: - Progress Helpers
@@ -390,10 +449,10 @@ final class VideoConverterViewModel {
     private func startProgressPolling(
         progressFile: URL,
         totalDurationUs: Double,
-        record: ConversionRecord,
-        context: ModelContext
+        record: ConversionRecord
     ) -> Task<Void, Never> {
-        Task.detached { [weak record] in
+        let store = self.store
+        return Task.detached { [weak record] in
             guard totalDurationUs > 0 else { return }
             while !Task.isCancelled {
                 try? await Task.sleep(for: .milliseconds(500))
@@ -402,7 +461,7 @@ final class VideoConverterViewModel {
                 let progress = Self.parseProgress(from: progressFile, totalDurationUs: totalDurationUs)
                 await MainActor.run {
                     record?.progress = progress
-                    try? context.save()
+                    store.save()
                 }
             }
         }
@@ -428,4 +487,22 @@ final class VideoConverterViewModel {
         return filters.isEmpty ? "atempo=1.0" : filters.joined(separator: ",")
     }
 
+    private static func parseProgress(from fileURL: URL, totalDurationUs: Double) -> Double {
+        guard let content = try? String(contentsOf: fileURL, encoding: .utf8) else { return 0 }
+
+        var lastOutTimeUs: Double = 0
+        for line in content.components(separatedBy: "\n").reversed() {
+            let trimmed = line.trimmingCharacters(in: .whitespaces)
+            if trimmed.hasPrefix("out_time_us=") {
+                let value = trimmed.dropFirst("out_time_us=".count)
+                if let us = Double(value), us > 0 {
+                    lastOutTimeUs = us
+                    break
+                }
+            }
+        }
+
+        guard lastOutTimeUs > 0, totalDurationUs > 0 else { return 0 }
+        return min(lastOutTimeUs / totalDurationUs, 0.99)
+    }
 }

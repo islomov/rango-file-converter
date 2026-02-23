@@ -46,7 +46,7 @@ struct VideoSpeedView: View {
         .navigationTitle("Speed Change")
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
-            ToolbarItem(placement: .topBarTrailing) {
+            ToolbarItem(placement: .navigationBarTrailing) {
                 Button("Reset") {
                     selectedSpeed = .double
                 }
@@ -58,7 +58,7 @@ struct VideoSpeedView: View {
         .onDisappear {
             cleanupPlayer()
         }
-        .onChange(of: selectedSpeed) {
+        .onChange(of: selectedSpeed) { _ in
             restartWithSpeed()
         }
     }

@@ -1,5 +1,4 @@
 import SwiftUI
-import SwiftData
 
 private enum VideoTab: String, CaseIterable {
     case tools = "Tools"
@@ -21,12 +20,13 @@ private let videoTools: [VideoTool] = [
     VideoTool(id: "merge", title: "Merge Videos", icon: "square.stack.3d.up", isAvailable: false),
     VideoTool(id: "ratio", title: "Video Ratio", icon: "aspectratio", isAvailable: false),
     VideoTool(id: "clip", title: "Video Clipping", icon: "scissors", isAvailable: false),
-    VideoTool(id: "gif", title: "Convert GIF", icon: "photo.stack", isAvailable: false),
+    VideoTool(id: "gif", title: "Convert GIF", icon: "photo.stack", isAvailable: true),
     VideoTool(id: "time_clip", title: "Video Time Clip", icon: "timeline.selection", isAvailable: true),
 ]
 
 struct VideoConverterView: View {
-    @State private var viewModel = VideoConverterViewModel()
+    @StateObject private var viewModel = VideoConverterViewModel()
+    @EnvironmentObject private var historyStore: HistoryStore
     @State private var selectedTab: VideoTab = .tools
     @State private var showComingSoon = false
     @State private var showVideoPicker = false
@@ -48,14 +48,9 @@ struct VideoConverterView: View {
     @State private var compressFileName: String = ""
     @State private var compressFileURL: URL?
 
-    @Environment(\.modelContext) private var modelContext
-    @Query(
-        filter: #Predicate<ConversionRecord> { record in
-            record.mediaCategory == "video"
-        },
-        sort: \ConversionRecord.date,
-        order: .reverse
-    ) private var history: [ConversionRecord]
+    private var history: [ConversionRecord] {
+        historyStore.records(for: "video")
+    }
 
     var body: some View {
         NavigationStack {
@@ -88,12 +83,30 @@ struct VideoConverterView: View {
                                 inputURL: url,
                                 fileName: speedFileName,
                                 thumbnail: thumbnail,
-                                speed: speed,
-                                context: modelContext
+                                speed: speed
                             )
                         }
                         DispatchQueue.main.async {
                             showSpeedView = false
+                            showVideoPicker = false
+                            selectedTab = .history
+                        }
+                    }
+                }
+            }
+            .navigationDestination(isPresented: $viewModel.showGifDetail) {
+                if let thumbnail = viewModel.selectedThumbnail,
+                   let fileURL = viewModel.selectedVideoURL {
+                    VideoToGifView(
+                        thumbnail: thumbnail,
+                        fileName: viewModel.selectedFileName,
+                        fileURL: fileURL
+                    ) { fps, width in
+                        Task {
+                            await viewModel.convertToGif(fps: fps, width: width)
+                        }
+                        DispatchQueue.main.async {
+                            viewModel.showGifDetail = false
                             showVideoPicker = false
                             selectedTab = .history
                         }
@@ -109,7 +122,7 @@ struct VideoConverterView: View {
                         fileURL: fileURL
                     ) { format in
                         Task {
-                            await viewModel.convert(to: format, context: modelContext)
+                            await viewModel.convert(to: format)
                         }
                         DispatchQueue.main.async {
                             viewModel.showConversionDetail = false
@@ -132,8 +145,7 @@ struct VideoConverterView: View {
                                 fileName: timeClipFileName,
                                 thumbnail: thumb,
                                 startTime: startTime,
-                                endTime: endTime,
-                                context: modelContext
+                                endTime: endTime
                             )
                         }
                         DispatchQueue.main.async {
@@ -159,8 +171,7 @@ struct VideoConverterView: View {
                                 quality: quality,
                                 resolutionHeight: resolutionHeight,
                                 preset: preset,
-                                outputFormat: format,
-                                context: modelContext
+                                outputFormat: format
                             )
                         }
                         DispatchQueue.main.async {
@@ -250,7 +261,7 @@ struct VideoConverterView: View {
         if tool.isAvailable {
             activeTool = tool.id
             switch tool.id {
-            case "convert", "time_clip", "speed", "compress":
+            case "convert", "time_clip", "speed", "compress", "gif":
                 showVideoPicker = true
             default:
                 break
@@ -264,6 +275,8 @@ struct VideoConverterView: View {
         switch activeTool {
         case "convert":
             viewModel.selectVideo(thumbnail: thumbnail, fileName: fileName, fileURL: url)
+        case "gif":
+            viewModel.selectVideoForGif(thumbnail: thumbnail, fileName: fileName, fileURL: url)
         case "time_clip":
             timeClipThumbnail = thumbnail
             timeClipFileName = fileName
@@ -310,5 +323,5 @@ struct VideoConverterView: View {
 
 #Preview {
     VideoConverterView()
-        .modelContainer(for: ConversionRecord.self, inMemory: true)
+        .environmentObject(HistoryStore.shared)
 }

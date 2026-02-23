@@ -85,10 +85,10 @@ struct ImageCompressView: View {
             loadOriginalSize()
             updateEstimatedSize()
         }
-        .onChange(of: quality) {
+        .onChange(of: quality) { _ in
             updateEstimatedSize()
         }
-        .onChange(of: selectedFormat) {
+        .onChange(of: selectedFormat) { _ in
             updateEstimatedSize()
         }
     }

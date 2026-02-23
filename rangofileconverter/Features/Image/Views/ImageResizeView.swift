@@ -94,7 +94,7 @@ struct ImageResizeView: View {
         .navigationTitle("Resize")
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
-            ToolbarItem(placement: .topBarTrailing) {
+            ToolbarItem(placement: .navigationBarTrailing) {
                 Button("Reset") {
                     width = originalWidth
                     height = originalHeight
@@ -233,7 +233,7 @@ struct ImageResizeView: View {
                 .keyboardType(.numberPad)
                 .textFieldStyle(.roundedBorder)
                 .font(.subheadline.monospacedDigit())
-                .onChange(of: value.wrappedValue) { oldValue, newValue in
+                .onChange(of: value.wrappedValue) { newValue in
                     guard lockAspectRatio, newValue > 0 else { return }
                     if field == .width && activeField != .height {
                         activeField = .width

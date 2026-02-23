@@ -1,13 +1,13 @@
 import SwiftUI
 import Photos
 import AVFoundation
+import Combine
 
-@Observable
-final class VideoLibraryViewModel {
-    var assets: [PHAsset] = []
-    var thumbnails: [String: UIImage] = [:]
-    var authorizationStatus: PHAuthorizationStatus = .notDetermined
-    var isLoading = false
+final class VideoLibraryViewModel: ObservableObject {
+    @Published var assets: [PHAsset] = []
+    @Published var thumbnails: [String: UIImage] = [:]
+    @Published var authorizationStatus: PHAuthorizationStatus = .notDetermined
+    @Published var isLoading = false
 
     private let imageManager = PHCachingImageManager()
     private let thumbnailSize = CGSize(width: 200, height: 200)

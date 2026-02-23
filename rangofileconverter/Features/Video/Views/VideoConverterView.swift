@@ -19,7 +19,6 @@ private let videoTools: [VideoTool] = [
     VideoTool(id: "speed", title: "Speed Change", icon: "gauge.with.dots.needle.33percent", isAvailable: true),
     VideoTool(id: "merge", title: "Merge Videos", icon: "square.stack.3d.up", isAvailable: true),
     VideoTool(id: "ratio", title: "Video Ratio", icon: "aspectratio", isAvailable: true),
-    VideoTool(id: "clip", title: "Video Clipping", icon: "scissors", isAvailable: false),
     VideoTool(id: "gif", title: "Convert GIF", icon: "photo.stack", isAvailable: true),
     VideoTool(id: "time_clip", title: "Video Time Clip", icon: "timeline.selection", isAvailable: true),
 ]
@@ -28,7 +27,6 @@ struct VideoConverterView: View {
     @StateObject private var viewModel = VideoConverterViewModel()
     @EnvironmentObject private var historyStore: HistoryStore
     @State private var selectedTab: VideoTab = .tools
-    @State private var showComingSoon = false
     @State private var showVideoPicker = false
     @State private var activeTool: String = "convert"
     @State private var showTimeClipView = false
@@ -249,11 +247,7 @@ struct VideoConverterView: View {
                     }
                 }
             }
-            .alert("Coming Soon", isPresented: $showComingSoon) {
-                Button("OK", role: .cancel) { }
-            } message: {
-                Text("This tool is not available yet. Stay tuned!")
-            }
+
         }
     }
 
@@ -307,36 +301,21 @@ struct VideoConverterView: View {
             Text(tool.title)
                 .font(.subheadline.weight(.medium))
         }
-        .foregroundStyle(tool.isAvailable ? .primary : .secondary)
+        .foregroundStyle(.primary)
         .frame(maxWidth: .infinity)
         .padding(.vertical, 24)
         .background(.quaternary, in: RoundedRectangle(cornerRadius: 12))
-        .overlay(alignment: .topTrailing) {
-            if !tool.isAvailable {
-                Text("Soon")
-                    .font(.caption2.weight(.semibold))
-                    .foregroundStyle(.white)
-                    .padding(.horizontal, 6)
-                    .padding(.vertical, 2)
-                    .background(.secondary, in: Capsule())
-                    .padding(8)
-            }
-        }
     }
 
     private func handleToolTap(_ tool: VideoTool) {
-        if tool.isAvailable {
-            activeTool = tool.id
-            switch tool.id {
-            case "convert", "time_clip", "speed", "compress", "gif", "extract_audio", "ratio":
-                showVideoPicker = true
-            case "merge":
-                showMergePicker = true
-            default:
-                break
-            }
-        } else {
-            showComingSoon = true
+        activeTool = tool.id
+        switch tool.id {
+        case "convert", "time_clip", "speed", "compress", "gif", "extract_audio", "ratio":
+            showVideoPicker = true
+        case "merge":
+            showMergePicker = true
+        default:
+            break
         }
     }
 

@@ -11,7 +11,7 @@ private enum VideoSource: String, CaseIterable {
 struct VideoPickerView: View {
     var onVideoSelected: (UIImage, String, URL) -> Void
 
-    @State private var videoVM = VideoLibraryViewModel()
+    @StateObject private var videoVM = VideoLibraryViewModel()
     @State private var selectedSource: VideoSource = .gallery
     @State private var showFilePicker = false
     @State private var isLoading = false
@@ -132,9 +132,6 @@ struct VideoPickerView: View {
                         Rectangle()
                             .fill(.quaternary)
                             .frame(width: geo.size.width, height: geo.size.width)
-                            .onAppear {
-                                videoVM.loadThumbnail(for: asset)
-                            }
                     }
 
                     HStack(spacing: 4) {
@@ -151,6 +148,9 @@ struct VideoPickerView: View {
                 }
             }
             .aspectRatio(1, contentMode: .fit)
+            .onAppear {
+                videoVM.loadThumbnail(for: asset)
+            }
         }
         .disabled(isLoading)
     }

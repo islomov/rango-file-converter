@@ -29,7 +29,7 @@ struct AssetPickerView: View {
         self.onMultipleSelected = onMultipleSelected
     }
 
-    @State private var photoVM = PhotoLibraryViewModel()
+    @StateObject private var photoVM = PhotoLibraryViewModel()
     @State private var selectedSource: AssetSource = .gallery
     @State private var showFilePicker = false
     @State private var isLoadingFullImage = false
@@ -173,9 +173,6 @@ struct AssetPickerView: View {
                         Rectangle()
                             .fill(.quaternary)
                             .frame(width: geo.size.width, height: geo.size.width)
-                            .onAppear {
-                                photoVM.loadThumbnail(for: asset)
-                            }
                     }
 
                     if isMultiSelect {
@@ -199,6 +196,9 @@ struct AssetPickerView: View {
                 }
             }
             .aspectRatio(1, contentMode: .fit)
+            .onAppear {
+                photoVM.loadThumbnail(for: asset)
+            }
         }
         .disabled(isLoadingFullImage)
     }

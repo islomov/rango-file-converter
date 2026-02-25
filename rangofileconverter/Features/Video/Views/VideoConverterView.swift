@@ -87,19 +87,15 @@ struct VideoConverterView: View {
                         fileName: speedFileName,
                         fileURL: url
                     ) { speed in
-                        Task {
-                            await viewModel.changeSpeed(
-                                inputURL: url,
-                                fileName: speedFileName,
-                                thumbnail: thumbnail,
-                                speed: speed
-                            )
-                        }
-                        DispatchQueue.main.async {
-                            showSpeedView = false
-                            showVideoPicker = false
-                            selectedTab = .history
-                        }
+                        viewModel.changeSpeed(
+                            inputURL: url,
+                            fileName: speedFileName,
+                            thumbnail: thumbnail,
+                            speed: speed
+                        )
+                        showSpeedView = false
+                        showVideoPicker = false
+                        selectedTab = .history
                     }
                 }
             }
@@ -111,14 +107,16 @@ struct VideoConverterView: View {
                         fileName: viewModel.selectedFileName,
                         fileURL: fileURL
                     ) { fps, width in
-                        Task {
-                            await viewModel.convertToGif(fps: fps, width: width)
-                        }
-                        DispatchQueue.main.async {
-                            viewModel.showGifDetail = false
-                            showVideoPicker = false
-                            selectedTab = .history
-                        }
+                        viewModel.convertToGif(
+                            inputURL: fileURL,
+                            fileName: viewModel.selectedFileName,
+                            thumbnail: thumbnail,
+                            fps: fps,
+                            width: width
+                        )
+                        viewModel.showGifDetail = false
+                        showVideoPicker = false
+                        selectedTab = .history
                     }
                 }
             }
@@ -130,14 +128,15 @@ struct VideoConverterView: View {
                         fileName: viewModel.selectedFileName,
                         fileURL: fileURL
                     ) { format in
-                        Task {
-                            await viewModel.convert(to: format)
-                        }
-                        DispatchQueue.main.async {
-                            viewModel.showConversionDetail = false
-                            showVideoPicker = false
-                            selectedTab = .history
-                        }
+                        viewModel.convert(
+                            inputURL: fileURL,
+                            fileName: viewModel.selectedFileName,
+                            thumbnail: thumbnail,
+                            to: format
+                        )
+                        viewModel.showConversionDetail = false
+                        showVideoPicker = false
+                        selectedTab = .history
                     }
                 }
             }
@@ -148,20 +147,16 @@ struct VideoConverterView: View {
                         thumbnail: thumb,
                         fileName: timeClipFileName
                     ) { startTime, endTime in
-                        Task {
-                            await viewModel.clipVideo(
-                                inputURL: url,
-                                fileName: timeClipFileName,
-                                thumbnail: thumb,
-                                startTime: startTime,
-                                endTime: endTime
-                            )
-                        }
-                        DispatchQueue.main.async {
-                            showTimeClipView = false
-                            showVideoPicker = false
-                            selectedTab = .history
-                        }
+                        viewModel.clipVideo(
+                            inputURL: url,
+                            fileName: timeClipFileName,
+                            thumbnail: thumb,
+                            startTime: startTime,
+                            endTime: endTime
+                        )
+                        showTimeClipView = false
+                        showVideoPicker = false
+                        selectedTab = .history
                     }
                 }
             }
@@ -172,22 +167,18 @@ struct VideoConverterView: View {
                         fileName: compressFileName,
                         fileURL: url
                     ) { quality, resolutionHeight, preset, format in
-                        Task {
-                            await viewModel.compressVideo(
-                                inputURL: url,
-                                fileName: compressFileName,
-                                thumbnail: thumbnail,
-                                quality: quality,
-                                resolutionHeight: resolutionHeight,
-                                preset: preset,
-                                outputFormat: format
-                            )
-                        }
-                        DispatchQueue.main.async {
-                            showCompressView = false
-                            showVideoPicker = false
-                            selectedTab = .history
-                        }
+                        viewModel.compressVideo(
+                            inputURL: url,
+                            fileName: compressFileName,
+                            thumbnail: thumbnail,
+                            quality: quality,
+                            resolutionHeight: resolutionHeight,
+                            preset: preset,
+                            outputFormat: format
+                        )
+                        showCompressView = false
+                        showVideoPicker = false
+                        selectedTab = .history
                     }
                 }
             }
@@ -199,14 +190,15 @@ struct VideoConverterView: View {
                         fileName: viewModel.selectedFileName,
                         fileURL: fileURL
                     ) { format in
-                        Task {
-                            await viewModel.extractAudio(to: format)
-                        }
-                        DispatchQueue.main.async {
-                            viewModel.showExtractAudioDetail = false
-                            showVideoPicker = false
-                            selectedTab = .history
-                        }
+                        viewModel.extractAudio(
+                            inputURL: fileURL,
+                            fileName: viewModel.selectedFileName,
+                            thumbnail: thumbnail,
+                            to: format
+                        )
+                        viewModel.showExtractAudioDetail = false
+                        showVideoPicker = false
+                        selectedTab = .history
                     }
                 }
             }
@@ -218,14 +210,18 @@ struct VideoConverterView: View {
                         fileName: viewModel.selectedFileName,
                         fileURL: fileURL
                     ) { aspectRatio, fitMode, cropPosition, cropScale in
-                        Task {
-                            await viewModel.convertRatio(aspectRatio: aspectRatio, fitMode: fitMode, cropPosition: cropPosition, cropScale: cropScale)
-                        }
-                        DispatchQueue.main.async {
-                            viewModel.showVideoRatio = false
-                            showVideoPicker = false
-                            selectedTab = .history
-                        }
+                        viewModel.convertRatio(
+                            inputURL: fileURL,
+                            fileName: viewModel.selectedFileName,
+                            thumbnail: thumbnail,
+                            aspectRatio: aspectRatio,
+                            fitMode: fitMode,
+                            cropPosition: cropPosition,
+                            cropScale: cropScale
+                        )
+                        viewModel.showVideoRatio = false
+                        showVideoPicker = false
+                        selectedTab = .history
                     }
                 }
             }
@@ -238,18 +234,14 @@ struct VideoConverterView: View {
             .navigationDestination(isPresented: $showMergeView) {
                 if !mergeVideos.isEmpty {
                     VideoMergeView(videos: mergeVideos) { outputExtension, thumbnail in
-                        Task {
-                            await viewModel.mergeVideos(
-                                inputs: mergeVideos.map(\.url),
-                                outputExtension: outputExtension,
-                                thumbnail: thumbnail
-                            )
-                        }
-                        DispatchQueue.main.async {
-                            showMergeView = false
-                            showMergePicker = false
-                            selectedTab = .history
-                        }
+                        viewModel.mergeVideos(
+                            inputs: mergeVideos.map(\.url),
+                            outputExtension: outputExtension,
+                            thumbnail: thumbnail
+                        )
+                        showMergeView = false
+                        showMergePicker = false
+                        selectedTab = .history
                     }
                 }
             }

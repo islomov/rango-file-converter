@@ -14,6 +14,7 @@ struct VideoMergeView: View {
     let onApply: (String, UIImage) -> Void
 
     @State private var outputFormat: MergeOutputFormat = .mp4
+    @State private var durations: [URL: String] = [:]
 
     var body: some View {
         VStack(spacing: 0) {
@@ -22,6 +23,7 @@ struct VideoMergeView: View {
         }
         .navigationTitle("Merge")
         .navigationBarTitleDisplayMode(.inline)
+        .task { await loadDurations() }
     }
 
     // MARK: - Video List
@@ -41,7 +43,7 @@ struct VideoMergeView: View {
                             .font(.subheadline.weight(.medium))
                             .lineLimit(1)
 
-                        Text(videoDuration(url: video.url))
+                        Text(durations[video.url] ?? "0:00")
                             .font(.caption)
                             .foregroundStyle(.secondary)
                     }
@@ -102,12 +104,17 @@ struct VideoMergeView: View {
 
     // MARK: - Helpers
 
-    private func videoDuration(url: URL) -> String {
-        let asset = AVAsset(url: url)
-        let duration = CMTimeGetSeconds(asset.duration)
-        guard duration.isFinite else { return "0:00" }
-        let minutes = Int(duration) / 60
-        let seconds = Int(duration) % 60
-        return String(format: "%d:%02d", minutes, seconds)
+    private func loadDurations() async {
+        for video in videos {
+            let asset = AVAsset(url: video.url)
+            if let cmDuration = try? await asset.load(.duration) {
+                let seconds = CMTimeGetSeconds(cmDuration)
+                if seconds.isFinite {
+                    let mins = Int(seconds) / 60
+                    let secs = Int(seconds) % 60
+                    durations[video.url] = String(format: "%d:%02d", mins, secs)
+                }
+            }
+        }
     }
 }

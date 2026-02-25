@@ -6,7 +6,6 @@ final class VideoConverterViewModel: ObservableObject {
     @Published var selectedThumbnail: UIImage?
     @Published var selectedFileName: String = ""
     @Published var selectedVideoURL: URL?
-    @Published var isConverting = false
     @Published var showConversionDetail = false
     @Published var showGifDetail = false
     @Published var showExtractAudioDetail = false
@@ -14,6 +13,7 @@ final class VideoConverterViewModel: ObservableObject {
 
     private let coordinator = ConversionCoordinator()
     private let store = HistoryStore.shared
+    private let taskManager = ConversionTaskManager.shared
 
     func selectVideo(thumbnail: UIImage, fileName: String, fileURL: URL) {
         selectedThumbnail = thumbnail
@@ -75,9 +75,7 @@ final class VideoConverterViewModel: ObservableObject {
         resolutionHeight: Int?,
         preset: String,
         outputFormat: String
-    ) async {
-        await MainActor.run { isConverting = true }
-
+    ) {
         let sourceExt = fileName.components(separatedBy: ".").last?.uppercased() ?? "UNKNOWN"
         let thumbnailData = thumbnail?
             .preparingThumbnail(of: CGSize(width: 80, height: 80))?
@@ -93,91 +91,99 @@ final class VideoConverterViewModel: ObservableObject {
             mediaCategory: "video"
         )
 
-        await MainActor.run { store.add(record) }
+        store.add(record)
 
-        let totalDurationUs: Double = await {
-            let asset = AVAsset(url: inputURL)
-            if let cmDuration = try? await asset.load(.duration) {
-                return CMTimeGetSeconds(cmDuration) * 1_000_000
-            }
-            return 0
-        }()
+        let task = Task.detached { [weak self] in
+            guard let self else { return }
+            defer { self.taskManager.remove(id: record.id) }
 
-        do {
-            let tempDir = FileManager.default.temporaryDirectory
-                .appendingPathComponent("rango_conversions", isDirectory: true)
-            try? FileManager.default.createDirectory(at: tempDir, withIntermediateDirectories: true)
+            let totalDurationUs: Double = await {
+                let asset = AVAsset(url: inputURL)
+                if let cmDuration = try? await asset.load(.duration) {
+                    return CMTimeGetSeconds(cmDuration) * 1_000_000
+                }
+                return 0
+            }()
 
-            let baseName = inputURL.deletingPathExtension().lastPathComponent
-            let shortID = UUID().uuidString.prefix(8)
-            let outputURL = tempDir.appendingPathComponent("\(baseName)_\(shortID).\(outputFormat)")
+            var pollingTask: Task<Void, Never>?
+            do {
+                guard !Task.isCancelled else {
+                    await MainActor.run { self.failRecord(record, error: "Cancelled") }
+                    return
+                }
 
-            let progressFile = tempDir.appendingPathComponent("progress_\(shortID).txt")
+                let tempDir = FileManager.default.temporaryDirectory
+                    .appendingPathComponent("rango_conversions", isDirectory: true)
+                try? FileManager.default.createDirectory(at: tempDir, withIntermediateDirectories: true)
 
-            var args: [String] = []
-            args += ["-progress", progressFile.path]
-            args += ["-c:v", "mpeg4"]
-            args += ["-q:v", String(quality)]
+                let baseName = inputURL.deletingPathExtension().lastPathComponent
+                let shortID = UUID().uuidString.prefix(8)
+                let outputURL = tempDir.appendingPathComponent("\(baseName)_\(shortID).\(outputFormat)")
 
-            switch preset {
-            case "ultrafast": args += ["-g", "300", "-bf", "0"]
-            case "fast": args += ["-g", "250", "-bf", "0"]
-            case "medium": args += ["-g", "150", "-bf", "2"]
-            case "slow": args += ["-g", "100", "-bf", "2", "-trellis", "2"]
-            default: break
-            }
+                let progressFile = tempDir.appendingPathComponent("progress_\(shortID).txt")
 
-            if let height = resolutionHeight {
-                args += ["-vf", "scale=-2:\(height)"]
-            }
+                var args: [String] = []
+                args += ["-progress", progressFile.path]
+                args += ["-c:v", "mpeg4"]
+                args += ["-q:v", String(quality)]
 
-            args += ["-c:a", "aac", "-b:a", "128k"]
+                switch preset {
+                case "ultrafast": args += ["-g", "300", "-bf", "0"]
+                case "fast": args += ["-g", "250", "-bf", "0"]
+                case "medium": args += ["-g", "150", "-bf", "2"]
+                case "slow": args += ["-g", "100", "-bf", "2", "-trellis", "2"]
+                default: break
+                }
 
-            let pollingTask = startProgressPolling(
-                progressFile: progressFile,
-                totalDurationUs: totalDurationUs,
-                record: record
-            )
+                if let height = resolutionHeight {
+                    args += ["-vf", "scale=-2:\(height)"]
+                }
 
-            try await FFmpegWrapper.shared.convert(
-                input: inputURL,
-                output: outputURL,
-                extraArgs: args
-            )
+                args += ["-c:a", "aac", "-b:a", "128k"]
 
-            pollingTask.cancel()
-            try? FileManager.default.removeItem(at: progressFile)
+                pollingTask = self.startProgressPolling(
+                    progressFile: progressFile,
+                    totalDurationUs: totalDurationUs,
+                    record: record
+                )
 
-            let outputPath = ConversionRecord.persistOutput(from: outputURL)
-            await MainActor.run {
-                record.progress = 1.0
-                record.status = .converted
-                record.outputPath = outputPath
-                store.save()
-            }
-        } catch {
-            await MainActor.run {
-                record.status = .failed
-                record.errorMessage = error.localizedDescription
-                store.save()
+                try await FFmpegWrapper.shared.convert(
+                    input: inputURL,
+                    output: outputURL,
+                    extraArgs: args
+                )
+
+                pollingTask?.cancel()
+                try? FileManager.default.removeItem(at: progressFile)
+
+                let outputPath = ConversionRecord.persistOutput(from: outputURL)
+                await MainActor.run {
+                    record.progress = 1.0
+                    record.status = .converted
+                    record.outputPath = outputPath
+                    self.store.save()
+                }
+            } catch {
+                pollingTask?.cancel()
+                await MainActor.run {
+                    record.status = .failed
+                    record.errorMessage = error.localizedDescription
+                    self.store.save()
+                }
             }
         }
 
-        await MainActor.run { isConverting = false }
+        taskManager.register(id: record.id, task: task)
     }
 
-    func convert(to format: FormatDefinition) async {
-        guard let inputURL = selectedVideoURL else { return }
-
-        await MainActor.run { isConverting = true }
-
-        let sourceExt = selectedFileName.components(separatedBy: ".").last?.uppercased() ?? "UNKNOWN"
-        let thumbnailData = selectedThumbnail?
+    func convert(inputURL: URL, fileName: String, thumbnail: UIImage?, to format: FormatDefinition) {
+        let sourceExt = fileName.components(separatedBy: ".").last?.uppercased() ?? "UNKNOWN"
+        let thumbnailData = thumbnail?
             .preparingThumbnail(of: CGSize(width: 80, height: 80))?
             .jpegData(compressionQuality: 0.8)
 
         let record = ConversionRecord(
-            sourceFileName: selectedFileName,
+            sourceFileName: fileName,
             sourceFormat: sourceExt,
             targetFormatID: format.id,
             thumbnailData: thumbnailData,
@@ -185,69 +191,72 @@ final class VideoConverterViewModel: ObservableObject {
             mediaCategory: "video"
         )
 
-        await MainActor.run { store.add(record) }
+        store.add(record)
 
-        let totalDurationUs = await probeDurationUs(url: inputURL)
+        let coordinator = self.coordinator
+        let task = Task.detached { [weak self] in
+            guard let self else { return }
+            defer { self.taskManager.remove(id: record.id) }
 
-        do {
-            var job = ConversionJob(inputURL: inputURL, outputFormat: format)
-
-            let tempDir = FileManager.default.temporaryDirectory
-                .appendingPathComponent("rango_conversions", isDirectory: true)
-            try? FileManager.default.createDirectory(at: tempDir, withIntermediateDirectories: true)
-            let shortID = UUID().uuidString.prefix(8)
-            let progressFile = tempDir.appendingPathComponent("progress_\(shortID).txt")
+            let totalDurationUs = await self.probeDurationUs(url: inputURL)
 
             var pollingTask: Task<Void, Never>?
-            if totalDurationUs > 0 {
-                job.progressFilePath = progressFile.path
-                pollingTask = startProgressPolling(
-                    progressFile: progressFile,
-                    totalDurationUs: totalDurationUs,
-                    record: record
-                )
-            }
+            do {
+                guard !Task.isCancelled else {
+                    await MainActor.run { self.failRecord(record, error: "Cancelled") }
+                    return
+                }
 
-            let result = try await coordinator.convert(job: job)
+                var job = ConversionJob(inputURL: inputURL, outputFormat: format)
 
-            pollingTask?.cancel()
-            try? FileManager.default.removeItem(at: progressFile)
+                let tempDir = FileManager.default.temporaryDirectory
+                    .appendingPathComponent("rango_conversions", isDirectory: true)
+                try? FileManager.default.createDirectory(at: tempDir, withIntermediateDirectories: true)
+                let shortID = UUID().uuidString.prefix(8)
+                let progressFile = tempDir.appendingPathComponent("progress_\(shortID).txt")
 
-            let outputPath = ConversionRecord.persistOutput(from: result.outputURL)
-            await MainActor.run {
-                record.progress = 1.0
-                record.status = .converted
-                record.outputPath = outputPath
-                store.save()
-            }
-        } catch {
-            await MainActor.run {
-                record.status = .failed
-                record.errorMessage = error.localizedDescription
-                store.save()
+                if totalDurationUs > 0 {
+                    job.progressFilePath = progressFile.path
+                    pollingTask = self.startProgressPolling(
+                        progressFile: progressFile,
+                        totalDurationUs: totalDurationUs,
+                        record: record
+                    )
+                }
+
+                let result = try await coordinator.convert(job: job)
+
+                pollingTask?.cancel()
+                try? FileManager.default.removeItem(at: progressFile)
+
+                let outputPath = ConversionRecord.persistOutput(from: result.outputURL)
+                await MainActor.run {
+                    record.progress = 1.0
+                    record.status = .converted
+                    record.outputPath = outputPath
+                    self.store.save()
+                }
+            } catch {
+                pollingTask?.cancel()
+                await MainActor.run {
+                    record.status = .failed
+                    record.errorMessage = error.localizedDescription
+                    self.store.save()
+                }
             }
         }
 
-        await MainActor.run {
-            isConverting = false
-            selectedThumbnail = nil
-            selectedFileName = ""
-            selectedVideoURL = nil
-        }
+        taskManager.register(id: record.id, task: task)
     }
 
-    func extractAudio(to format: FormatDefinition) async {
-        guard let inputURL = selectedVideoURL else { return }
-
-        await MainActor.run { isConverting = true }
-
-        let sourceExt = selectedFileName.components(separatedBy: ".").last?.uppercased() ?? "UNKNOWN"
-        let thumbnailData = selectedThumbnail?
+    func extractAudio(inputURL: URL, fileName: String, thumbnail: UIImage?, to format: FormatDefinition) {
+        let sourceExt = fileName.components(separatedBy: ".").last?.uppercased() ?? "UNKNOWN"
+        let thumbnailData = thumbnail?
             .preparingThumbnail(of: CGSize(width: 80, height: 80))?
             .jpegData(compressionQuality: 0.8)
 
         let record = ConversionRecord(
-            sourceFileName: selectedFileName,
+            sourceFileName: fileName,
             sourceFormat: sourceExt,
             targetFormatID: format.id,
             thumbnailData: thumbnailData,
@@ -256,56 +265,63 @@ final class VideoConverterViewModel: ObservableObject {
             mediaCategory: "video"
         )
 
-        await MainActor.run { store.add(record) }
+        store.add(record)
 
-        let totalDurationUs = await probeDurationUs(url: inputURL)
+        let coordinator = self.coordinator
+        let task = Task.detached { [weak self] in
+            guard let self else { return }
+            defer { self.taskManager.remove(id: record.id) }
 
-        do {
-            var job = ConversionJob(inputURL: inputURL, outputFormat: format)
-            job.stripVideo = true
-
-            let tempDir = FileManager.default.temporaryDirectory
-                .appendingPathComponent("rango_conversions", isDirectory: true)
-            try? FileManager.default.createDirectory(at: tempDir, withIntermediateDirectories: true)
-            let shortID = UUID().uuidString.prefix(8)
-            let progressFile = tempDir.appendingPathComponent("progress_\(shortID).txt")
+            let totalDurationUs = await self.probeDurationUs(url: inputURL)
 
             var pollingTask: Task<Void, Never>?
-            if totalDurationUs > 0 {
-                job.progressFilePath = progressFile.path
-                pollingTask = startProgressPolling(
-                    progressFile: progressFile,
-                    totalDurationUs: totalDurationUs,
-                    record: record
-                )
-            }
+            do {
+                guard !Task.isCancelled else {
+                    await MainActor.run { self.failRecord(record, error: "Cancelled") }
+                    return
+                }
 
-            let result = try await coordinator.convert(job: job)
+                var job = ConversionJob(inputURL: inputURL, outputFormat: format)
+                job.stripVideo = true
 
-            pollingTask?.cancel()
-            try? FileManager.default.removeItem(at: progressFile)
+                let tempDir = FileManager.default.temporaryDirectory
+                    .appendingPathComponent("rango_conversions", isDirectory: true)
+                try? FileManager.default.createDirectory(at: tempDir, withIntermediateDirectories: true)
+                let shortID = UUID().uuidString.prefix(8)
+                let progressFile = tempDir.appendingPathComponent("progress_\(shortID).txt")
 
-            let outputPath = ConversionRecord.persistOutput(from: result.outputURL)
-            await MainActor.run {
-                record.progress = 1.0
-                record.status = .converted
-                record.outputPath = outputPath
-                store.save()
-            }
-        } catch {
-            await MainActor.run {
-                record.status = .failed
-                record.errorMessage = error.localizedDescription
-                store.save()
+                if totalDurationUs > 0 {
+                    job.progressFilePath = progressFile.path
+                    pollingTask = self.startProgressPolling(
+                        progressFile: progressFile,
+                        totalDurationUs: totalDurationUs,
+                        record: record
+                    )
+                }
+
+                let result = try await coordinator.convert(job: job)
+
+                pollingTask?.cancel()
+                try? FileManager.default.removeItem(at: progressFile)
+
+                let outputPath = ConversionRecord.persistOutput(from: result.outputURL)
+                await MainActor.run {
+                    record.progress = 1.0
+                    record.status = .converted
+                    record.outputPath = outputPath
+                    self.store.save()
+                }
+            } catch {
+                pollingTask?.cancel()
+                await MainActor.run {
+                    record.status = .failed
+                    record.errorMessage = error.localizedDescription
+                    self.store.save()
+                }
             }
         }
 
-        await MainActor.run {
-            isConverting = false
-            selectedThumbnail = nil
-            selectedFileName = ""
-            selectedVideoURL = nil
-        }
+        taskManager.register(id: record.id, task: task)
     }
 
     func changeSpeed(
@@ -313,9 +329,7 @@ final class VideoConverterViewModel: ObservableObject {
         fileName: String,
         thumbnail: UIImage?,
         speed: Double
-    ) async {
-        await MainActor.run { isConverting = true }
-
+    ) {
         let sourceExt = fileName.components(separatedBy: ".").last?.uppercased() ?? "UNKNOWN"
         let ext = fileName.components(separatedBy: ".").last?.lowercased() ?? "mp4"
         let outputExt = (ext.isEmpty || ext == "mov") ? "mp4" : ext
@@ -333,58 +347,70 @@ final class VideoConverterViewModel: ObservableObject {
             mediaCategory: "video"
         )
 
-        await MainActor.run { store.add(record) }
+        store.add(record)
 
-        let totalDurationUs = await probeDurationUs(url: inputURL)
-        let outputDurationUs = totalDurationUs / speed
+        let task = Task.detached { [weak self] in
+            guard let self else { return }
+            defer { self.taskManager.remove(id: record.id) }
 
-        do {
-            let tempDir = FileManager.default.temporaryDirectory
-                .appendingPathComponent("rango_conversions", isDirectory: true)
-            try? FileManager.default.createDirectory(at: tempDir, withIntermediateDirectories: true)
+            let totalDurationUs = await self.probeDurationUs(url: inputURL)
+            let outputDurationUs = totalDurationUs / speed
 
-            let shortID = UUID().uuidString.prefix(8)
-            let outputURL = tempDir.appendingPathComponent("speed_\(shortID).\(outputExt)")
-            let progressFile = tempDir.appendingPathComponent("progress_\(shortID).txt")
+            var pollingTask: Task<Void, Never>?
+            do {
+                guard !Task.isCancelled else {
+                    await MainActor.run { self.failRecord(record, error: "Cancelled") }
+                    return
+                }
 
-            let videoFilter = "setpts=PTS/\(speed)"
-            let audioFilter = Self.buildAtempoFilter(for: speed)
+                let tempDir = FileManager.default.temporaryDirectory
+                    .appendingPathComponent("rango_conversions", isDirectory: true)
+                try? FileManager.default.createDirectory(at: tempDir, withIntermediateDirectories: true)
 
-            var args: [String] = []
-            args += ["-progress", progressFile.path]
-            args += ["-filter:v", videoFilter, "-filter:a", audioFilter]
+                let shortID = UUID().uuidString.prefix(8)
+                let outputURL = tempDir.appendingPathComponent("speed_\(shortID).\(outputExt)")
+                let progressFile = tempDir.appendingPathComponent("progress_\(shortID).txt")
 
-            let pollingTask = startProgressPolling(
-                progressFile: progressFile,
-                totalDurationUs: outputDurationUs,
-                record: record
-            )
+                let videoFilter = "setpts=PTS/\(speed)"
+                let audioFilter = Self.buildAtempoFilter(for: speed)
 
-            try await FFmpegWrapper.shared.convert(
-                input: inputURL,
-                output: outputURL,
-                extraArgs: args
-            )
+                var args: [String] = []
+                args += ["-progress", progressFile.path]
+                args += ["-filter:v", videoFilter, "-filter:a", audioFilter]
 
-            pollingTask.cancel()
-            try? FileManager.default.removeItem(at: progressFile)
+                pollingTask = self.startProgressPolling(
+                    progressFile: progressFile,
+                    totalDurationUs: outputDurationUs,
+                    record: record
+                )
 
-            let outputPath = ConversionRecord.persistOutput(from: outputURL)
-            await MainActor.run {
-                record.progress = 1.0
-                record.status = .converted
-                record.outputPath = outputPath
-                store.save()
-            }
-        } catch {
-            await MainActor.run {
-                record.status = .failed
-                record.errorMessage = error.localizedDescription
-                store.save()
+                try await FFmpegWrapper.shared.convert(
+                    input: inputURL,
+                    output: outputURL,
+                    extraArgs: args
+                )
+
+                pollingTask?.cancel()
+                try? FileManager.default.removeItem(at: progressFile)
+
+                let outputPath = ConversionRecord.persistOutput(from: outputURL)
+                await MainActor.run {
+                    record.progress = 1.0
+                    record.status = .converted
+                    record.outputPath = outputPath
+                    self.store.save()
+                }
+            } catch {
+                pollingTask?.cancel()
+                await MainActor.run {
+                    record.status = .failed
+                    record.errorMessage = error.localizedDescription
+                    self.store.save()
+                }
             }
         }
 
-        await MainActor.run { isConverting = false }
+        taskManager.register(id: record.id, task: task)
     }
 
     func clipVideo(
@@ -393,9 +419,7 @@ final class VideoConverterViewModel: ObservableObject {
         thumbnail: UIImage?,
         startTime: Double,
         endTime: Double
-    ) async {
-        await MainActor.run { isConverting = true }
-
+    ) {
         let sourceExt = fileName.components(separatedBy: ".").last?.uppercased() ?? "UNKNOWN"
         let ext = fileName.components(separatedBy: ".").last?.lowercased() ?? "mp4"
         let thumbnailData = thumbnail?
@@ -412,57 +436,64 @@ final class VideoConverterViewModel: ObservableObject {
             mediaCategory: "video"
         )
 
-        await MainActor.run { store.add(record) }
+        store.add(record)
 
-        do {
-            let tempDir = FileManager.default.temporaryDirectory
-                .appendingPathComponent("rango_conversions", isDirectory: true)
-            try? FileManager.default.createDirectory(at: tempDir, withIntermediateDirectories: true)
+        let task = Task.detached { [weak self] in
+            guard let self else { return }
+            defer { self.taskManager.remove(id: record.id) }
 
-            let shortID = UUID().uuidString.prefix(8)
-            let outputURL = tempDir.appendingPathComponent("clip_\(shortID).\(ext)")
+            do {
+                guard !Task.isCancelled else {
+                    await MainActor.run { self.failRecord(record, error: "Cancelled") }
+                    return
+                }
 
-            try await FFmpegWrapper.shared.convert(
-                input: inputURL,
-                output: outputURL,
-                extraArgs: [
-                    "-ss", String(format: "%.3f", startTime),
-                    "-to", String(format: "%.3f", endTime),
-                    "-c", "copy"
-                ]
-            )
+                let tempDir = FileManager.default.temporaryDirectory
+                    .appendingPathComponent("rango_conversions", isDirectory: true)
+                try? FileManager.default.createDirectory(at: tempDir, withIntermediateDirectories: true)
 
-            let outputPath = ConversionRecord.persistOutput(from: outputURL)
-            await MainActor.run {
-                record.progress = 1.0
-                record.status = .converted
-                record.outputPath = outputPath
-                store.save()
-            }
-        } catch {
-            await MainActor.run {
-                record.status = .failed
-                record.errorMessage = error.localizedDescription
-                store.save()
+                let shortID = UUID().uuidString.prefix(8)
+                let outputURL = tempDir.appendingPathComponent("clip_\(shortID).\(ext)")
+
+                try await FFmpegWrapper.shared.convert(
+                    input: inputURL,
+                    output: outputURL,
+                    extraArgs: [
+                        "-ss", String(format: "%.3f", startTime),
+                        "-to", String(format: "%.3f", endTime),
+                        "-c", "copy"
+                    ]
+                )
+
+                let outputPath = ConversionRecord.persistOutput(from: outputURL)
+                await MainActor.run {
+                    record.progress = 1.0
+                    record.status = .converted
+                    record.outputPath = outputPath
+                    self.store.save()
+                }
+            } catch {
+                await MainActor.run {
+                    record.status = .failed
+                    record.errorMessage = error.localizedDescription
+                    self.store.save()
+                }
             }
         }
 
-        await MainActor.run { isConverting = false }
+        taskManager.register(id: record.id, task: task)
     }
 
-    func convertToGif(fps: Int, width: Int) async {
-        guard let inputURL = selectedVideoURL else { return }
+    func convertToGif(inputURL: URL, fileName: String, thumbnail: UIImage?, fps: Int, width: Int) {
         guard let gifFormat = FormatRegistry.format(forExtension: "gif") else { return }
 
-        await MainActor.run { isConverting = true }
-
-        let sourceExt = selectedFileName.components(separatedBy: ".").last?.uppercased() ?? "UNKNOWN"
-        let thumbnailData = selectedThumbnail?
+        let sourceExt = fileName.components(separatedBy: ".").last?.uppercased() ?? "UNKNOWN"
+        let thumbnailData = thumbnail?
             .preparingThumbnail(of: CGSize(width: 80, height: 80))?
             .jpegData(compressionQuality: 0.8)
 
         let record = ConversionRecord(
-            sourceFileName: selectedFileName,
+            sourceFileName: fileName,
             sourceFormat: sourceExt,
             targetFormatID: gifFormat.id,
             thumbnailData: thumbnailData,
@@ -471,57 +502,64 @@ final class VideoConverterViewModel: ObservableObject {
             mediaCategory: "video"
         )
 
-        await MainActor.run { store.add(record) }
+        store.add(record)
 
-        let totalDurationUs = await probeDurationUs(url: inputURL)
+        let coordinator = self.coordinator
+        let task = Task.detached { [weak self] in
+            guard let self else { return }
+            defer { self.taskManager.remove(id: record.id) }
 
-        do {
-            var job = ConversionJob(inputURL: inputURL, outputFormat: gifFormat)
-            job.fps = fps
-            job.scale = CGSize(width: width, height: -1)
-
-            let tempDir = FileManager.default.temporaryDirectory
-                .appendingPathComponent("rango_conversions", isDirectory: true)
-            try? FileManager.default.createDirectory(at: tempDir, withIntermediateDirectories: true)
-            let shortID = UUID().uuidString.prefix(8)
-            let progressFile = tempDir.appendingPathComponent("progress_\(shortID).txt")
+            let totalDurationUs = await self.probeDurationUs(url: inputURL)
 
             var pollingTask: Task<Void, Never>?
-            if totalDurationUs > 0 {
-                job.progressFilePath = progressFile.path
-                pollingTask = startProgressPolling(
-                    progressFile: progressFile,
-                    totalDurationUs: totalDurationUs,
-                    record: record
-                )
-            }
+            do {
+                guard !Task.isCancelled else {
+                    await MainActor.run { self.failRecord(record, error: "Cancelled") }
+                    return
+                }
 
-            let result = try await coordinator.convert(job: job)
+                var job = ConversionJob(inputURL: inputURL, outputFormat: gifFormat)
+                job.fps = fps
+                job.scale = CGSize(width: width, height: -1)
 
-            pollingTask?.cancel()
-            try? FileManager.default.removeItem(at: progressFile)
+                let tempDir = FileManager.default.temporaryDirectory
+                    .appendingPathComponent("rango_conversions", isDirectory: true)
+                try? FileManager.default.createDirectory(at: tempDir, withIntermediateDirectories: true)
+                let shortID = UUID().uuidString.prefix(8)
+                let progressFile = tempDir.appendingPathComponent("progress_\(shortID).txt")
 
-            let outputPath = ConversionRecord.persistOutput(from: result.outputURL)
-            await MainActor.run {
-                record.progress = 1.0
-                record.status = .converted
-                record.outputPath = outputPath
-                store.save()
-            }
-        } catch {
-            await MainActor.run {
-                record.status = .failed
-                record.errorMessage = error.localizedDescription
-                store.save()
+                if totalDurationUs > 0 {
+                    job.progressFilePath = progressFile.path
+                    pollingTask = self.startProgressPolling(
+                        progressFile: progressFile,
+                        totalDurationUs: totalDurationUs,
+                        record: record
+                    )
+                }
+
+                let result = try await coordinator.convert(job: job)
+
+                pollingTask?.cancel()
+                try? FileManager.default.removeItem(at: progressFile)
+
+                let outputPath = ConversionRecord.persistOutput(from: result.outputURL)
+                await MainActor.run {
+                    record.progress = 1.0
+                    record.status = .converted
+                    record.outputPath = outputPath
+                    self.store.save()
+                }
+            } catch {
+                pollingTask?.cancel()
+                await MainActor.run {
+                    record.status = .failed
+                    record.errorMessage = error.localizedDescription
+                    self.store.save()
+                }
             }
         }
 
-        await MainActor.run {
-            isConverting = false
-            selectedThumbnail = nil
-            selectedFileName = ""
-            selectedVideoURL = nil
-        }
+        taskManager.register(id: record.id, task: task)
     }
 
     // MARK: - Merge Videos
@@ -530,9 +568,7 @@ final class VideoConverterViewModel: ObservableObject {
         inputs: [URL],
         outputExtension: String,
         thumbnail: UIImage?
-    ) async {
-        await MainActor.run { isConverting = true }
-
+    ) {
         let thumbnailData = thumbnail?
             .preparingThumbnail(of: CGSize(width: 80, height: 80))?
             .jpegData(compressionQuality: 0.8)
@@ -547,79 +583,89 @@ final class VideoConverterViewModel: ObservableObject {
             mediaCategory: "video"
         )
 
-        await MainActor.run { store.add(record) }
+        store.add(record)
 
-        // Sum durations across all inputs for progress tracking
-        var totalDurationUs: Double = 0
-        for url in inputs {
-            totalDurationUs += await probeDurationUs(url: url)
-        }
+        let task = Task.detached { [weak self] in
+            guard let self else { return }
+            defer { self.taskManager.remove(id: record.id) }
 
-        do {
-            let mergeEngine = FFmpegMergeEngine()
-            let tempDir = FileManager.default.temporaryDirectory
-                .appendingPathComponent("rango_conversions", isDirectory: true)
-            try? FileManager.default.createDirectory(at: tempDir, withIntermediateDirectories: true)
-            let shortID = UUID().uuidString.prefix(8)
-            let progressFile = tempDir.appendingPathComponent("progress_\(shortID).txt")
+            // Sum durations across all inputs for progress tracking
+            var totalDurationUs: Double = 0
+            for url in inputs {
+                totalDurationUs += await self.probeDurationUs(url: url)
+            }
 
             var pollingTask: Task<Void, Never>?
-            if totalDurationUs > 0 {
-                pollingTask = startProgressPolling(
-                    progressFile: progressFile,
-                    totalDurationUs: totalDurationUs,
-                    record: record
+            do {
+                guard !Task.isCancelled else {
+                    await MainActor.run { self.failRecord(record, error: "Cancelled") }
+                    return
+                }
+
+                let mergeEngine = FFmpegMergeEngine()
+                let tempDir = FileManager.default.temporaryDirectory
+                    .appendingPathComponent("rango_conversions", isDirectory: true)
+                try? FileManager.default.createDirectory(at: tempDir, withIntermediateDirectories: true)
+                let shortID = UUID().uuidString.prefix(8)
+                let progressFile = tempDir.appendingPathComponent("progress_\(shortID).txt")
+
+                if totalDurationUs > 0 {
+                    pollingTask = self.startProgressPolling(
+                        progressFile: progressFile,
+                        totalDurationUs: totalDurationUs,
+                        record: record
+                    )
+                }
+
+                let outputURL = try await mergeEngine.merge(
+                    inputs: inputs,
+                    outputExtension: outputExtension,
+                    progressFilePath: progressFile.path
                 )
-            }
 
-            let outputURL = try await mergeEngine.merge(
-                inputs: inputs,
-                outputExtension: outputExtension,
-                progressFilePath: progressFile.path
-            )
+                pollingTask?.cancel()
+                try? FileManager.default.removeItem(at: progressFile)
 
-            pollingTask?.cancel()
-            try? FileManager.default.removeItem(at: progressFile)
-
-            let outputPath = ConversionRecord.persistOutput(from: outputURL)
-            await MainActor.run {
-                record.progress = 1.0
-                record.status = .converted
-                record.outputPath = outputPath
-                store.save()
-            }
-        } catch {
-            await MainActor.run {
-                record.status = .failed
-                record.errorMessage = error.localizedDescription
-                store.save()
+                let outputPath = ConversionRecord.persistOutput(from: outputURL)
+                await MainActor.run {
+                    record.progress = 1.0
+                    record.status = .converted
+                    record.outputPath = outputPath
+                    self.store.save()
+                }
+            } catch {
+                pollingTask?.cancel()
+                await MainActor.run {
+                    record.status = .failed
+                    record.errorMessage = error.localizedDescription
+                    self.store.save()
+                }
             }
         }
 
-        await MainActor.run { isConverting = false }
+        taskManager.register(id: record.id, task: task)
     }
 
     func convertRatio(
+        inputURL: URL,
+        fileName: String,
+        thumbnail: UIImage?,
         aspectRatio: (width: Int, height: Int),
         fitMode: RatioFitMode,
         cropPosition: CGPoint? = nil,
         cropScale: CGFloat? = nil
-    ) async {
-        guard let inputURL = selectedVideoURL else { return }
-
-        await MainActor.run { isConverting = true }
-
-        let sourceExt = selectedFileName.components(separatedBy: ".").last?.lowercased() ?? "mp4"
+    ) {
+        let sourceExt = fileName.components(separatedBy: ".").last?.lowercased() ?? "mp4"
         let outputFormat = FormatRegistry.format(forExtension: sourceExt)
             ?? FormatRegistry.videoFormats.first(where: { $0.id == "mp4" })!
 
         let sourceExtUpper = sourceExt.uppercased()
-        let thumbnailData = selectedThumbnail?
+        let thumbnailData = thumbnail?
             .preparingThumbnail(of: CGSize(width: 80, height: 80))?
             .jpegData(compressionQuality: 0.8)
 
         let record = ConversionRecord(
-            sourceFileName: selectedFileName,
+            sourceFileName: fileName,
             sourceFormat: sourceExtUpper,
             targetFormatID: outputFormat.id,
             thumbnailData: thumbnailData,
@@ -628,59 +674,74 @@ final class VideoConverterViewModel: ObservableObject {
             mediaCategory: "video"
         )
 
-        await MainActor.run { store.add(record) }
+        store.add(record)
 
-        let totalDurationUs = await probeDurationUs(url: inputURL)
+        let coordinator = self.coordinator
+        let task = Task.detached { [weak self] in
+            guard let self else { return }
+            defer { self.taskManager.remove(id: record.id) }
 
-        do {
-            var job = ConversionJob(inputURL: inputURL, outputFormat: outputFormat)
-            job.aspectRatio = aspectRatio
-            job.ratioFitMode = fitMode
-            job.cropPosition = cropPosition
-            job.cropScale = cropScale
-
-            let tempDir = FileManager.default.temporaryDirectory
-                .appendingPathComponent("rango_conversions", isDirectory: true)
-            try? FileManager.default.createDirectory(at: tempDir, withIntermediateDirectories: true)
-            let shortID = UUID().uuidString.prefix(8)
-            let progressFile = tempDir.appendingPathComponent("progress_\(shortID).txt")
+            let totalDurationUs = await self.probeDurationUs(url: inputURL)
 
             var pollingTask: Task<Void, Never>?
-            if totalDurationUs > 0 {
-                job.progressFilePath = progressFile.path
-                pollingTask = startProgressPolling(
-                    progressFile: progressFile,
-                    totalDurationUs: totalDurationUs,
-                    record: record
-                )
-            }
+            do {
+                guard !Task.isCancelled else {
+                    await MainActor.run { self.failRecord(record, error: "Cancelled") }
+                    return
+                }
 
-            let result = try await coordinator.convert(job: job)
+                var job = ConversionJob(inputURL: inputURL, outputFormat: outputFormat)
+                job.aspectRatio = aspectRatio
+                job.ratioFitMode = fitMode
+                job.cropPosition = cropPosition
+                job.cropScale = cropScale
 
-            pollingTask?.cancel()
-            try? FileManager.default.removeItem(at: progressFile)
+                let tempDir = FileManager.default.temporaryDirectory
+                    .appendingPathComponent("rango_conversions", isDirectory: true)
+                try? FileManager.default.createDirectory(at: tempDir, withIntermediateDirectories: true)
+                let shortID = UUID().uuidString.prefix(8)
+                let progressFile = tempDir.appendingPathComponent("progress_\(shortID).txt")
 
-            let outputPath = ConversionRecord.persistOutput(from: result.outputURL)
-            await MainActor.run {
-                record.progress = 1.0
-                record.status = .converted
-                record.outputPath = outputPath
-                store.save()
-            }
-        } catch {
-            await MainActor.run {
-                record.status = .failed
-                record.errorMessage = error.localizedDescription
-                store.save()
+                if totalDurationUs > 0 {
+                    job.progressFilePath = progressFile.path
+                    pollingTask = self.startProgressPolling(
+                        progressFile: progressFile,
+                        totalDurationUs: totalDurationUs,
+                        record: record
+                    )
+                }
+
+                let result = try await coordinator.convert(job: job)
+
+                pollingTask?.cancel()
+                try? FileManager.default.removeItem(at: progressFile)
+
+                let outputPath = ConversionRecord.persistOutput(from: result.outputURL)
+                await MainActor.run {
+                    record.progress = 1.0
+                    record.status = .converted
+                    record.outputPath = outputPath
+                    self.store.save()
+                }
+            } catch {
+                pollingTask?.cancel()
+                await MainActor.run {
+                    record.status = .failed
+                    record.errorMessage = error.localizedDescription
+                    self.store.save()
+                }
             }
         }
 
-        await MainActor.run {
-            isConverting = false
-            selectedThumbnail = nil
-            selectedFileName = ""
-            selectedVideoURL = nil
-        }
+        taskManager.register(id: record.id, task: task)
+    }
+
+    // MARK: - Helpers
+
+    private func failRecord(_ record: ConversionRecord, error: String) {
+        record.status = .failed
+        record.errorMessage = error
+        store.save()
     }
 
     // MARK: - Progress Helpers

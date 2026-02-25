@@ -242,8 +242,8 @@ struct VideoTimeClipView: View {
             isPlaying = false
         } else {
             // Always start from startTime
-            player.seek(to: CMTime(seconds: startTime, preferredTimescale: 600), toleranceBefore: .zero, toleranceAfter: .zero) { _ in
-                player.play()
+            player.seek(to: CMTime(seconds: startTime, preferredTimescale: 600), toleranceBefore: .zero, toleranceAfter: .zero) { [weak player] _ in
+                player?.play()
                 isPlaying = true
             }
         }

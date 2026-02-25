@@ -345,33 +345,58 @@ struct AssetPickerView: View {
     private func handleFileImport(_ result: Result<[URL], Error>) {
         guard case .success(let urls) = result else { return }
 
-        if isMultiSelect {
-            var results: [(UIImage, String, URL)] = []
-            for url in urls {
-                guard url.startAccessingSecurityScopedResource() else { continue }
+        isLoadingFullImage = true
+        let isMulti = isMultiSelect
+        let min = minCount
+
+        Task.detached(priority: .userInitiated) {
+            if isMulti {
+                var results: [(UIImage, String, URL)] = []
+                for url in urls {
+                    guard url.startAccessingSecurityScopedResource() else { continue }
+                    defer { url.stopAccessingSecurityScopedResource() }
+                    let tempURL = FileManager.default.temporaryDirectory
+                        .appendingPathComponent(url.lastPathComponent)
+                    try? FileManager.default.removeItem(at: tempURL)
+                    guard (try? FileManager.default.copyItem(at: url, to: tempURL)) != nil else { continue }
+                    guard let data = try? Data(contentsOf: tempURL),
+                          let image = UIImage(data: data) else { continue }
+                    results.append((image, url.lastPathComponent, tempURL))
+                }
+                await MainActor.run {
+                    isLoadingFullImage = false
+                    if results.count >= min {
+                        onMultipleSelected?(results)
+                    }
+                }
+            } else {
+                guard let url = urls.first else {
+                    await MainActor.run { isLoadingFullImage = false }
+                    return
+                }
+                guard url.startAccessingSecurityScopedResource() else {
+                    await MainActor.run { isLoadingFullImage = false }
+                    return
+                }
                 defer { url.stopAccessingSecurityScopedResource() }
                 let tempURL = FileManager.default.temporaryDirectory
                     .appendingPathComponent(url.lastPathComponent)
                 try? FileManager.default.removeItem(at: tempURL)
-                guard (try? FileManager.default.copyItem(at: url, to: tempURL)) != nil else { continue }
+                guard (try? FileManager.default.copyItem(at: url, to: tempURL)) != nil else {
+                    await MainActor.run { isLoadingFullImage = false }
+                    return
+                }
                 guard let data = try? Data(contentsOf: tempURL),
-                      let image = UIImage(data: data) else { continue }
-                results.append((image, url.lastPathComponent, tempURL))
+                      let image = UIImage(data: data) else {
+                    await MainActor.run { isLoadingFullImage = false }
+                    return
+                }
+                let name = url.lastPathComponent
+                await MainActor.run {
+                    isLoadingFullImage = false
+                    onImageSelected?(image, name, tempURL)
+                }
             }
-            if results.count >= minCount {
-                onMultipleSelected?(results)
-            }
-        } else {
-            guard let url = urls.first else { return }
-            guard url.startAccessingSecurityScopedResource() else { return }
-            defer { url.stopAccessingSecurityScopedResource() }
-            let tempURL = FileManager.default.temporaryDirectory
-                .appendingPathComponent(url.lastPathComponent)
-            try? FileManager.default.removeItem(at: tempURL)
-            guard (try? FileManager.default.copyItem(at: url, to: tempURL)) != nil else { return }
-            guard let data = try? Data(contentsOf: tempURL),
-                  let image = UIImage(data: data) else { return }
-            onImageSelected?(image, url.lastPathComponent, tempURL)
         }
     }
 }

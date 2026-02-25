@@ -8,7 +8,7 @@ struct AudioDetailView: View {
     private static let supportedAudioFormats = FormatRegistry.audioFormats
 
     @State private var targetFormat: FormatDefinition = FormatRegistry.audioFormats[0] // MP3
-    @State private var isConverting = false
+    @State private var fileSizeText: String = ""
 
     var body: some View {
         ScrollView {
@@ -37,7 +37,7 @@ struct AudioDetailView: View {
                 VStack(alignment: .leading, spacing: 8) {
                     Text(fileName)
                         .font(.headline)
-                    Text(formattedFileSize)
+                    Text(fileSizeText)
                         .font(.subheadline)
                         .foregroundStyle(.secondary)
                 }
@@ -62,36 +62,31 @@ struct AudioDetailView: View {
 
                 // Convert button
                 Button {
-                    isConverting = true
                     onConvert(targetFormat)
                 } label: {
-                    if isConverting {
-                        ProgressView()
-                            .frame(maxWidth: .infinity)
-                            .padding(.vertical, 14)
-                    } else {
-                        Text("Convert")
-                            .font(.headline)
-                            .frame(maxWidth: .infinity)
-                            .padding(.vertical, 14)
-                    }
+                    Text("Convert")
+                        .font(.headline)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 14)
                 }
                 .buttonStyle(.borderedProminent)
-                .disabled(isConverting)
             }
             .padding(20)
         }
         .navigationTitle("Audio Conversion")
         .navigationBarTitleDisplayMode(.inline)
+        .task {
+            let path = fileURL.path
+            let size = await Task.detached(priority: .utility) {
+                guard let attrs = try? FileManager.default.attributesOfItem(atPath: path),
+                      let bytes = attrs[.size] as? Int64 else { return "" }
+                return ByteCountFormatter.string(fromByteCount: bytes, countStyle: .file)
+            }.value
+            fileSizeText = size
+        }
     }
 
     private var sourceExtension: String {
         fileName.components(separatedBy: ".").last ?? ""
-    }
-
-    private var formattedFileSize: String {
-        guard let attrs = try? FileManager.default.attributesOfItem(atPath: fileURL.path),
-              let size = attrs[.size] as? Int64 else { return "" }
-        return ByteCountFormatter.string(fromByteCount: size, countStyle: .file)
     }
 }

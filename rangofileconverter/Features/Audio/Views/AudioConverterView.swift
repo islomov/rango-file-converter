@@ -75,14 +75,14 @@ struct AudioConverterView: View {
                         fileName: viewModel.selectedFileName,
                         fileURL: fileURL
                     ) { format in
-                        Task {
-                            await viewModel.convert(to: format)
-                        }
-                        DispatchQueue.main.async {
-                            viewModel.showConversionDetail = false
-                            showAudioPicker = false
-                            selectedTab = .history
-                        }
+                        viewModel.convert(
+                            inputURL: fileURL,
+                            fileName: viewModel.selectedFileName,
+                            to: format
+                        )
+                        viewModel.showConversionDetail = false
+                        showAudioPicker = false
+                        selectedTab = .history
                     }
                 }
             }

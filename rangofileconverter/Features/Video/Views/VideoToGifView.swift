@@ -16,12 +16,7 @@ struct VideoToGifView: View {
     @State private var timer: Timer?
     @State private var isExtracting = false
     @State private var extractionTask: Task<Void, Never>?
-
-    private var fileSize: String {
-        guard let attrs = try? FileManager.default.attributesOfItem(atPath: fileURL.path),
-              let size = attrs[.size] as? Int64 else { return "" }
-        return ByteCountFormatter.string(fromByteCount: size, countStyle: .file)
-    }
+    @State private var fileSizeText: String = ""
 
     /// Max frames to extract for preview (keeps it snappy)
     private let maxPreviewFrames = 30
@@ -38,7 +33,7 @@ struct VideoToGifView: View {
                         Text(fileName)
                             .font(.subheadline.weight(.medium))
                             .lineLimit(1)
-                        Text(fileSize)
+                        Text(fileSizeText)
                             .font(.caption)
                             .foregroundStyle(.secondary)
                     }
@@ -104,6 +99,15 @@ struct VideoToGifView: View {
         .navigationTitle("Convert GIF")
         .navigationBarTitleDisplayMode(.inline)
         .onAppear { extractFrames() }
+        .task {
+            let path = fileURL.path
+            let size = await Task.detached(priority: .utility) {
+                guard let attrs = try? FileManager.default.attributesOfItem(atPath: path),
+                      let bytes = attrs[.size] as? Int64 else { return "" }
+                return ByteCountFormatter.string(fromByteCount: bytes, countStyle: .file)
+            }.value
+            fileSizeText = size
+        }
         .onDisappear {
             stopTimer()
             extractionTask?.cancel()
@@ -194,6 +198,7 @@ struct VideoToGifView: View {
             guard !Task.isCancelled, !extracted.isEmpty else { return }
 
             await MainActor.run {
+                guard !Task.isCancelled else { return }
                 frames = extracted
                 currentFrameIndex = 0
                 isExtracting = false
@@ -205,6 +210,7 @@ struct VideoToGifView: View {
     // MARK: - Timer
 
     private func startTimer() {
+        stopTimer()
         guard !frames.isEmpty else { return }
         let interval = 1.0 / fps
         timer = Timer.scheduledTimer(withTimeInterval: interval, repeats: true) { _ in

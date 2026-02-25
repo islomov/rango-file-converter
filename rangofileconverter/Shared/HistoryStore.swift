@@ -25,14 +25,29 @@ final class HistoryStore: ObservableObject {
             .sorted { $0.date > $1.date }
     }
 
+    private static let maxRecords = 500
+
     // MARK: - Mutations
 
     func add(_ record: ConversionRecord) {
         records.insert(record, at: 0)
+        pruneIfNeeded()
         save()
     }
 
+    private func pruneIfNeeded() {
+        guard records.count > Self.maxRecords else { return }
+        let overflow = records[Self.maxRecords...]
+        for record in overflow {
+            if let outputURL = record.outputURL {
+                try? FileManager.default.removeItem(at: outputURL)
+            }
+        }
+        records.removeSubrange(Self.maxRecords...)
+    }
+
     func remove(_ record: ConversionRecord) {
+        ConversionTaskManager.shared.cancel(id: record.id)
         if let outputURL = record.outputURL {
             try? FileManager.default.removeItem(at: outputURL)
         }
@@ -43,6 +58,7 @@ final class HistoryStore: ObservableObject {
     func removeAll(for mediaCategory: String? = nil) {
         let toRemove = mediaCategory.map { records(for: $0) } ?? records
         for record in toRemove {
+            ConversionTaskManager.shared.cancel(id: record.id)
             if let outputURL = record.outputURL {
                 try? FileManager.default.removeItem(at: outputURL)
             }
@@ -94,13 +110,20 @@ final class HistoryStore: ObservableObject {
         return total
     }
 
+    private let saveQueue = DispatchQueue(label: "com.rango.historystore.save", qos: .utility)
+
     func save() {
         objectWillChange.send()
-        do {
-            let data = try encoder.encode(records)
-            try data.write(to: fileURL, options: .atomic)
-        } catch {
-            print("[HistoryStore] Save failed: \(error)")
+        let snapshot = records
+        let encoder = self.encoder
+        let url = self.fileURL
+        saveQueue.async {
+            do {
+                let data = try encoder.encode(snapshot)
+                try data.write(to: url, options: .atomic)
+            } catch {
+                print("[HistoryStore] Save failed: \(error)")
+            }
         }
     }
 

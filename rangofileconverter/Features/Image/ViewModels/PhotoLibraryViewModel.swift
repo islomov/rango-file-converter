@@ -10,6 +10,11 @@ final class PhotoLibraryViewModel: ObservableObject {
 
     private let imageManager = PHCachingImageManager()
     private let thumbnailSize = CGSize(width: 200, height: 200)
+    private static let maxCachedThumbnails = 200
+
+    deinit {
+        imageManager.stopCachingImagesForAllAssets()
+    }
 
     func requestAccessAndFetch() {
         let status = PHPhotoLibrary.authorizationStatus(for: .readWrite)
@@ -31,17 +36,21 @@ final class PhotoLibraryViewModel: ObservableObject {
 
     func fetchAssets() {
         isLoading = true
-        let options = PHFetchOptions()
-        options.sortDescriptors = [NSSortDescriptor(key: "creationDate", ascending: false)]
-        options.predicate = NSPredicate(format: "mediaType == %d", PHAssetMediaType.image.rawValue)
+        DispatchQueue.global(qos: .userInitiated).async { [weak self] in
+            let options = PHFetchOptions()
+            options.sortDescriptors = [NSSortDescriptor(key: "creationDate", ascending: false)]
+            options.predicate = NSPredicate(format: "mediaType == %d", PHAssetMediaType.image.rawValue)
 
-        let result = PHAsset.fetchAssets(with: options)
-        var fetched: [PHAsset] = []
-        result.enumerateObjects { asset, _, _ in
-            fetched.append(asset)
+            let result = PHAsset.fetchAssets(with: options)
+            var fetched: [PHAsset] = []
+            result.enumerateObjects { asset, _, _ in
+                fetched.append(asset)
+            }
+            DispatchQueue.main.async {
+                self?.assets = fetched
+                self?.isLoading = false
+            }
         }
-        assets = fetched
-        isLoading = false
     }
 
     func loadThumbnail(for asset: PHAsset) {
@@ -60,7 +69,11 @@ final class PhotoLibraryViewModel: ObservableObject {
         ) { [weak self] image, _ in
             if let image {
                 DispatchQueue.main.async {
-                    self?.thumbnails[id] = image
+                    guard let self else { return }
+                    if self.thumbnails.count >= Self.maxCachedThumbnails {
+                        self.thumbnails.removeAll(keepingCapacity: true)
+                    }
+                    self.thumbnails[id] = image
                 }
             }
         }

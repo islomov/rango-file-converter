@@ -57,9 +57,25 @@ final class ConversionRecord: Identifiable, Codable, ObservableObject {
             ?? FormatDefinition(id: targetFormatID, displayName: targetFormatID.uppercased(), fileExtension: targetFormatID, mediaType: .image, mimeType: nil)
     }
 
+    private var _cachedThumbnail: UIImage?
+    private var _thumbnailDataHash: Int?
+
     var thumbnail: UIImage? {
         guard let data = thumbnailData else { return nil }
-        return UIImage(data: data)
+        let hash = data.hashValue
+        if let cached = _cachedThumbnail, _thumbnailDataHash == hash {
+            return cached
+        }
+        let image = UIImage(data: data)
+        _cachedThumbnail = image
+        _thumbnailDataHash = hash
+        return image
+    }
+
+    // Exclude cache from Codable
+    private enum CodingKeys: String, CodingKey {
+        case id, sourceFileName, sourceFormat, targetFormatID, thumbnailData
+        case statusRaw, date, outputPath, errorMessage, toolType, mediaCategory, progress
     }
 
     var outputURL: URL? {

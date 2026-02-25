@@ -17,6 +17,8 @@ struct HistoryResultSheet: View {
     @State private var fileSize: String?
     @State private var fileDimensions: String?
     @State private var fileDuration: String?
+    @State private var fileInfoTask: Task<Void, Never>?
+    @State private var imageLoadTask: Task<Void, Never>?
 
     var body: some View {
         VStack(spacing: 20) {
@@ -43,6 +45,10 @@ struct HistoryResultSheet: View {
         .onDisappear {
             audioPlayer?.pause()
             audioPlayer = nil
+            fileInfoTask?.cancel()
+            fileInfoTask = nil
+            imageLoadTask?.cancel()
+            imageLoadTask = nil
         }
         .alert("Saved", isPresented: $showSaveSuccess) {
             Button("OK") { }
@@ -138,6 +144,7 @@ struct HistoryResultSheet: View {
                 .foregroundStyle(.secondary)
 
             Button(role: .destructive) {
+                ConversionTaskManager.shared.cancel(id: record.id)
                 record.status = .failed
                 record.errorMessage = "Cancelled by user"
                 historyStore.save()
@@ -228,22 +235,25 @@ struct HistoryResultSheet: View {
     private func loadFileInfo() {
         guard let outputURL = record.outputURL else { return }
 
-        // File size
-        if let attrs = try? FileManager.default.attributesOfItem(atPath: outputURL.path),
-           let bytes = attrs[.size] as? Int64 {
-            fileSize = ByteCountFormatter.string(fromByteCount: bytes, countStyle: .file)
-        }
-
         // Dimensions & duration from AVAsset (works for video and audio)
         let asset = AVAsset(url: outputURL)
-        Task {
+        fileInfoTask = Task.detached(priority: .userInitiated) {
+            // File size (moved off main thread)
+            if let attrs = try? FileManager.default.attributesOfItem(atPath: outputURL.path),
+               let bytes = attrs[.size] as? Int64 {
+                let formatted = ByteCountFormatter.string(fromByteCount: bytes, countStyle: .file)
+                await MainActor.run { fileSize = formatted }
+            }
+            guard !Task.isCancelled else { return }
             if let track = try? await asset.loadTracks(withMediaType: .video).first {
+                guard !Task.isCancelled else { return }
                 if let size = try? await track.load(.naturalSize) {
                     let w = Int(abs(size.width))
                     let h = Int(abs(size.height))
                     await MainActor.run { fileDimensions = "\(w) x \(h)" }
                 }
             }
+            guard !Task.isCancelled else { return }
             if let duration = try? await asset.load(.duration) {
                 let seconds = CMTimeGetSeconds(duration)
                 if seconds.isFinite && seconds > 0 {
@@ -348,7 +358,13 @@ struct HistoryResultSheet: View {
                 }
             }
             .padding(.vertical, 8)
-            .onReceive(NotificationCenter.default.publisher(for: .AVPlayerItemDidPlayToEndTime)) { _ in
+            .onReceive(
+                NotificationCenter.default.publisher(for: .AVPlayerItemDidPlayToEndTime)
+                    .filter { [weak audioPlayer] notification in
+                        guard let item = notification.object as? AVPlayerItem else { return false }
+                        return item === audioPlayer?.currentItem
+                    }
+            ) { _ in
                 isPlayingAudio = false
             }
         } else {
@@ -391,14 +407,16 @@ struct HistoryResultSheet: View {
     private static let maxPreviewPixels: CGFloat = 100_000_000
 
     private func loadImage(url: URL) {
-        DispatchQueue.global(qos: .userInitiated).async {
+        imageLoadTask?.cancel()
+        imageLoadTask = Task.detached(priority: .userInitiated) {
             // Check file size
             if let attrs = try? FileManager.default.attributesOfItem(atPath: url.path),
                let bytes = attrs[.size] as? Int64,
                bytes > Self.maxPreviewFileSize {
-                DispatchQueue.main.async { previewTooLarge = true }
+                await MainActor.run { previewTooLarge = true }
                 return
             }
+            guard !Task.isCancelled else { return }
 
             // Check pixel dimensions
             let sourceOptions: [CFString: Any] = [kCGImageSourceShouldCache: false]
@@ -408,9 +426,10 @@ struct HistoryResultSheet: View {
                let w = props[kCGImagePropertyPixelWidth] as? CGFloat,
                let h = props[kCGImagePropertyPixelHeight] as? CGFloat,
                w * h > Self.maxPreviewPixels {
-                DispatchQueue.main.async { previewTooLarge = true }
+                await MainActor.run { previewTooLarge = true }
                 return
             }
+            guard !Task.isCancelled else { return }
 
             // Use ImageIO to downsample for preview, avoiding GPU memory limits
             let maxPixelSize: CGFloat = 1920
@@ -422,7 +441,8 @@ struct HistoryResultSheet: View {
             ]
             guard let cgImage = CGImageSourceCreateThumbnailAtIndex(source, 0, downsampleOptions as CFDictionary) else { return }
             let image = UIImage(cgImage: cgImage)
-            DispatchQueue.main.async {
+            guard !Task.isCancelled else { return }
+            await MainActor.run {
                 outputImage = image
             }
         }
@@ -582,12 +602,27 @@ private struct VideoPlayerView: UIViewControllerRepresentable {
     }
 
     func updateUIViewController(_ controller: AVPlayerViewController, context: Context) {}
+
+    static func dismantleUIViewController(_ controller: AVPlayerViewController, coordinator: ()) {
+        controller.player?.pause()
+        controller.player = nil
+        try? AVAudioSession.sharedInstance().setActive(false, options: .notifyOthersOnDeactivation)
+    }
 }
 
 // MARK: - Animated GIF View
 
 private struct AnimatedGIFView: UIViewRepresentable {
     let url: URL
+
+    private static let maxFrames = 150
+
+    class Coordinator {
+        var loadTask: Task<Void, Never>?
+        weak var imageView: UIImageView?
+    }
+
+    func makeCoordinator() -> Coordinator { Coordinator() }
 
     func makeUIView(context: Context) -> UIView {
         let container = UIView()
@@ -603,15 +638,19 @@ private struct AnimatedGIFView: UIViewRepresentable {
             imageView.bottomAnchor.constraint(equalTo: container.bottomAnchor),
         ])
 
-        DispatchQueue.global(qos: .userInitiated).async {
+        context.coordinator.imageView = imageView
+        let maxFrames = Self.maxFrames
+
+        context.coordinator.loadTask = Task.detached(priority: .userInitiated) {
             guard let data = try? Data(contentsOf: url),
                   let source = CGImageSourceCreateWithData(data as CFData, nil) else { return }
 
-            let count = CGImageSourceGetCount(source)
+            let count = min(CGImageSourceGetCount(source), maxFrames)
             var images: [UIImage] = []
             var totalDuration: Double = 0
 
             for i in 0..<count {
+                guard !Task.isCancelled else { return }
                 guard let cgImage = CGImageSourceCreateImageAtIndex(source, i, nil) else { continue }
                 images.append(UIImage(cgImage: cgImage))
 
@@ -626,11 +665,12 @@ private struct AnimatedGIFView: UIViewRepresentable {
                 }
             }
 
-            DispatchQueue.main.async {
-                imageView.animationImages = images
-                imageView.animationDuration = totalDuration
-                imageView.animationRepeatCount = 0
-                imageView.startAnimating()
+            guard !Task.isCancelled else { return }
+            await MainActor.run { [weak imageView] in
+                imageView?.animationImages = images
+                imageView?.animationDuration = totalDuration
+                imageView?.animationRepeatCount = 0
+                imageView?.startAnimating()
             }
         }
 
@@ -638,4 +678,11 @@ private struct AnimatedGIFView: UIViewRepresentable {
     }
 
     func updateUIView(_ uiView: UIView, context: Context) {}
+
+    static func dismantleUIView(_ uiView: UIView, coordinator: Coordinator) {
+        coordinator.loadTask?.cancel()
+        coordinator.loadTask = nil
+        coordinator.imageView?.stopAnimating()
+        coordinator.imageView?.animationImages = nil
+    }
 }

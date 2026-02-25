@@ -28,6 +28,7 @@ struct AudioConverterView: View {
     @State private var selectedTab: AudioTab = .tools
     @State private var showAudioPicker = false
     @State private var showComingSoon = false
+    @State private var showSettings = false
 
     private var history: [ConversionRecord] {
         historyStore.records(for: "audio")
@@ -98,12 +99,14 @@ struct AudioConverterView: View {
             Text("Audio")
                 .font(.title.bold())
             Spacer()
-            Button {
-                // TODO: open settings
-            } label: {
+            Button { showSettings = true } label: {
                 Image(systemName: "gearshape")
                     .font(.title3)
                     .foregroundStyle(.primary)
+            }
+            .sheet(isPresented: $showSettings) {
+                SettingsView()
+                    .environmentObject(historyStore)
             }
         }
         .padding(.horizontal, 16)

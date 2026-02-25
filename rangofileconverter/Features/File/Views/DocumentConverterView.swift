@@ -21,6 +21,7 @@ struct DocumentConverterView: View {
     @EnvironmentObject private var historyStore: HistoryStore
     @State private var selectedTab: DocumentTab = .tools
     @State private var showComingSoon = false
+    @State private var showSettings = false
 
     private var history: [ConversionRecord] {
         historyStore.records(for: "document")
@@ -53,12 +54,14 @@ struct DocumentConverterView: View {
             Text("Document")
                 .font(.title.bold())
             Spacer()
-            Button {
-                // TODO: open settings
-            } label: {
+            Button { showSettings = true } label: {
                 Image(systemName: "gearshape")
                     .font(.title3)
                     .foregroundStyle(.primary)
+            }
+            .sheet(isPresented: $showSettings) {
+                SettingsView()
+                    .environmentObject(historyStore)
             }
         }
         .padding(.horizontal, 16)

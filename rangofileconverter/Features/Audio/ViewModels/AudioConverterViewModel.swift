@@ -14,6 +14,11 @@ final class AudioConverterViewModel: ObservableObject {
     @Published var extractVideoURL: URL?
     @Published var extractFileName: String = ""
 
+    // Compress tool state
+    @Published var showCompressDetail = false
+    @Published var compressFileName: String = ""
+    @Published var compressFileURL: URL?
+
     private let coordinator = ConversionCoordinator()
     private let store = HistoryStore.shared
     private let taskManager = ConversionTaskManager.shared
@@ -213,6 +218,150 @@ final class AudioConverterViewModel: ObservableObject {
                 try? FileManager.default.removeItem(at: progressFile)
 
                 let outputPath = ConversionRecord.persistOutput(from: result.outputURL)
+                await MainActor.run {
+                    record.progress = 1.0
+                    record.status = .converted
+                    record.outputPath = outputPath
+                    self.store.save()
+                }
+            } catch {
+                pollingTask?.cancel()
+                await MainActor.run {
+                    record.status = .failed
+                    record.errorMessage = error.localizedDescription
+                    self.store.save()
+                }
+            }
+        }
+
+        taskManager.register(id: record.id, task: task)
+    }
+
+    // MARK: - Compress Audio
+
+    func selectAudioForCompress(fileName: String, fileURL: URL) {
+        let ext = fileName.components(separatedBy: ".").last?.lowercased() ?? ""
+        if Self.videoExtensions.contains(ext) {
+            // Extract audio first, then show compress detail
+            isExtracting = true
+            extractionTask?.cancel()
+            extractionTask = Task { [weak self] in
+                do {
+                    let tempDir = FileManager.default.temporaryDirectory
+                        .appendingPathComponent("rango_audio_extract", isDirectory: true)
+                    try? FileManager.default.createDirectory(at: tempDir, withIntermediateDirectories: true)
+
+                    let baseName = fileURL.deletingPathExtension().lastPathComponent
+                    let shortID = UUID().uuidString.prefix(8)
+                    let outputURL = tempDir.appendingPathComponent("\(baseName)_\(shortID).wav")
+
+                    try await FFmpegWrapper.shared.convert(
+                        input: fileURL,
+                        output: outputURL,
+                        extraArgs: ["-vn", "-acodec", "pcm_s16le"]
+                    )
+
+                    let audioFileName = "\(baseName).wav"
+                    await MainActor.run { [weak self] in
+                        guard let self, !Task.isCancelled else { return }
+                        self.isExtracting = false
+                        self.compressFileName = audioFileName
+                        self.compressFileURL = outputURL
+                        self.showCompressDetail = true
+                    }
+                } catch {
+                    await MainActor.run { [weak self] in
+                        self?.isExtracting = false
+                    }
+                }
+            }
+        } else {
+            compressFileName = fileName
+            compressFileURL = fileURL
+            showCompressDetail = true
+        }
+    }
+
+    func compressAudio(
+        inputURL: URL,
+        fileName: String,
+        bitrate: Int,
+        sampleRate: Int?,
+        outputFormat: String
+    ) {
+        let sourceExt = fileName.components(separatedBy: ".").last?.uppercased() ?? "UNKNOWN"
+
+        let record = ConversionRecord(
+            sourceFileName: fileName,
+            sourceFormat: sourceExt,
+            targetFormatID: outputFormat,
+            thumbnailData: nil,
+            status: .converting,
+            toolType: "Compress",
+            mediaCategory: "audio"
+        )
+
+        store.add(record)
+
+        let task = Task.detached { [weak self] in
+            guard let self else { return }
+            defer { self.taskManager.remove(id: record.id) }
+
+            let totalDurationUs = await self.probeDurationUs(url: inputURL)
+
+            var pollingTask: Task<Void, Never>?
+            do {
+                guard !Task.isCancelled else {
+                    await MainActor.run { self.failRecord(record, error: "Cancelled") }
+                    return
+                }
+
+                let tempDir = FileManager.default.temporaryDirectory
+                    .appendingPathComponent("rango_conversions", isDirectory: true)
+                try? FileManager.default.createDirectory(at: tempDir, withIntermediateDirectories: true)
+
+                let baseName = inputURL.deletingPathExtension().lastPathComponent
+                let shortID = UUID().uuidString.prefix(8)
+                let outputURL = tempDir.appendingPathComponent("\(baseName)_\(shortID).\(outputFormat)")
+
+                let progressFile = tempDir.appendingPathComponent("progress_\(shortID).txt")
+
+                var args: [String] = []
+                args += ["-progress", progressFile.path]
+
+                // Codec and bitrate based on format
+                switch outputFormat {
+                case "flac":
+                    args += ["-c:a", "flac"]
+                case "wav":
+                    args += ["-c:a", "pcm_s16le"]
+                default:
+                    args += ["-b:a", "\(bitrate)k"]
+                }
+
+                // Sample rate
+                if let sampleRate = sampleRate {
+                    args += ["-ar", String(sampleRate)]
+                }
+
+                if totalDurationUs > 0 {
+                    pollingTask = self.startProgressPolling(
+                        progressFile: progressFile,
+                        totalDurationUs: totalDurationUs,
+                        record: record
+                    )
+                }
+
+                try await FFmpegWrapper.shared.convert(
+                    input: inputURL,
+                    output: outputURL,
+                    extraArgs: args
+                )
+
+                pollingTask?.cancel()
+                try? FileManager.default.removeItem(at: progressFile)
+
+                let outputPath = ConversionRecord.persistOutput(from: outputURL)
                 await MainActor.run {
                     record.progress = 1.0
                     record.status = .converted

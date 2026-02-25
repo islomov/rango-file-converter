@@ -16,7 +16,7 @@ private struct AudioTool: Identifiable, Hashable {
 private let audioTools: [AudioTool] = [
     AudioTool(id: "convert", title: "Format Conversion", subtitle: "Any conversion of multiple formats", icon: "arrow.triangle.2.circlepath", isAvailable: true),
     AudioTool(id: "extract", title: "Extract Audio", subtitle: "Extract audio from video", icon: "music.note", isAvailable: true),
-    AudioTool(id: "compress", title: "Audio Compression", subtitle: "Custom compression", icon: "arrow.down.right.and.arrow.up.left", isAvailable: false),
+    AudioTool(id: "compress", title: "Audio Compression", subtitle: "Custom compression", icon: "arrow.down.right.and.arrow.up.left", isAvailable: true),
     AudioTool(id: "speed", title: "Audio Speed Change", subtitle: "0.1 to 5 times free adjustment", icon: "gauge.with.dots.needle.33percent", isAvailable: false),
     AudioTool(id: "merge", title: "Combined Audios", subtitle: "Easily merge multiple audios", icon: "square.stack.3d.up", isAvailable: false),
     AudioTool(id: "crop", title: "Audio Cropping", subtitle: "Capture and retain audio clips", icon: "scissors", isAvailable: false),
@@ -28,6 +28,7 @@ struct AudioConverterView: View {
     @State private var selectedTab: AudioTab = .tools
     @State private var showAudioPicker = false
     @State private var showExtractVideoPicker = false
+    @State private var showCompressPicker = false
     @State private var showComingSoon = false
     @State private var showSettings = false
 
@@ -90,6 +91,46 @@ struct AudioConverterView: View {
             .navigationDestination(isPresented: $showExtractVideoPicker) {
                 VideoPickerView { thumbnail, fileName, url in
                     viewModel.selectVideoForExtractAudio(thumbnail: thumbnail, fileName: fileName, fileURL: url)
+                }
+            }
+            .navigationDestination(isPresented: $showCompressPicker) {
+                ZStack {
+                    AudioPickerView { fileName, url in
+                        viewModel.selectAudioForCompress(fileName: fileName, fileURL: url)
+                    }
+
+                    if viewModel.isExtracting {
+                        Color.black.opacity(0.4)
+                            .ignoresSafeArea()
+                        VStack(spacing: 16) {
+                            ProgressView()
+                                .scaleEffect(1.5)
+                            Text("Extracting audio...")
+                                .font(.headline)
+                                .foregroundStyle(.white)
+                        }
+                        .padding(32)
+                        .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 16))
+                    }
+                }
+            }
+            .navigationDestination(isPresented: $viewModel.showCompressDetail) {
+                if let fileURL = viewModel.compressFileURL {
+                    AudioCompressView(
+                        fileName: viewModel.compressFileName,
+                        fileURL: fileURL
+                    ) { bitrate, sampleRate, format in
+                        viewModel.compressAudio(
+                            inputURL: fileURL,
+                            fileName: viewModel.compressFileName,
+                            bitrate: bitrate,
+                            sampleRate: sampleRate,
+                            outputFormat: format
+                        )
+                        viewModel.showCompressDetail = false
+                        showCompressPicker = false
+                        selectedTab = .history
+                    }
                 }
             }
             .navigationDestination(isPresented: $viewModel.showExtractAudioDetail) {
@@ -197,6 +238,8 @@ struct AudioConverterView: View {
                 showAudioPicker = true
             case "extract":
                 showExtractVideoPicker = true
+            case "compress":
+                showCompressPicker = true
             default:
                 break
             }

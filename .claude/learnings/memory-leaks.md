@@ -1,65 +1,48 @@
-# Memory Leak Patterns & Prevention in Swift/SwiftUI
+# Memory & Resource Management in Rango (Swift/SwiftUI)
 
-## 1. Uncancelled Tasks on View Disappear
-
-**Pattern:** `Task { }` or `Task.detached { }` created in button actions or `onAppear` without storing the handle.
-
-**Problem:** The task runs independently of the view lifecycle. If the user navigates away, the task continues holding references to captured state, view models, and large data (images, AVAssets).
-
-**Fix:** Store the task handle in `@State` and cancel in `.onDisappear`:
-```swift
-@State private var myTask: Task<Void, Never>?
-
-Button {
-    myTask = Task {
-        await doWork()
-        guard !Task.isCancelled else { return }
-        // update state only if not cancelled
-    }
-}
-.onDisappear { myTask?.cancel() }
-```
+This guide covers memory leak prevention, resource cleanup, and proper task management aligned with the fire-and-forget conversion architecture.
 
 ---
 
-## 2. Strong `self` Capture in ViewModel Tasks
+## 1. Fire-and-Forget Task Lifecycle
 
-**Pattern:** `Task { self.someProperty = value }` inside an `ObservableObject` method.
+Conversion tasks run independently of views via `ConversionTaskManager`. They are NOT tied to any screen — the view dismisses immediately and the task runs in the background.
 
-**Problem:** The task retains `self` (the ViewModel) until it completes. If the view that owns the ViewModel is dismissed, the ViewModel stays alive.
+**Rules:**
+- ViewModel methods are **synchronous** — they spawn `Task.detached` internally and return immediately
+- Tasks register with `ConversionTaskManager.shared.register(id:task:)` for cancellation
+- Tasks clean up with `defer { taskManager.remove(id: record.id) }` on completion
+- Use `[weak self]` in all `Task.detached` closures to avoid retaining the ViewModel
+- Check `Task.isCancelled` before expensive operations (image loading, FFmpeg calls)
+- Pass all needed data as **parameters** — never read `@Published` properties inside `Task.detached` (race condition if user starts another conversion)
 
-**Fix:** Use `[weak self]` in both the task and the `MainActor.run` block:
 ```swift
-Task { [weak self] in
-    let result = await doWork()
-    await MainActor.run { [weak self] in
-        guard let self, !Task.isCancelled else { return }
-        self.result = result
+func processRotation(fileURL: URL, fileName: String, rotation: Double, flipH: Bool, flipV: Bool) {
+    let record = makeRecord(fileName: fileName, fileURL: fileURL, toolType: "Rotate")
+    store.add(record)
+
+    let task = Task.detached { [weak self] in
+        guard let self else { return }
+        defer { self.taskManager.remove(id: record.id) }
+        guard !Task.isCancelled else {
+            await MainActor.run { self.failRecord(record, error: "Cancelled") }
+            return
+        }
+        // ... do work ...
     }
+    taskManager.register(id: record.id, task: task)
 }
 ```
 
 ---
 
-## 3. Timer Race Conditions with Async Code
+## 2. Resource Cleanup When Views Are Killed
 
-**Pattern:** `Timer.scheduledTimer` started inside `Task.detached` → `MainActor.run`, while `stopTimer()` is called in `onDisappear`.
+When a SwiftUI view disappears, all media resources it created must be freed. Failure to do so leaks AVPlayers, audio sessions, image data, and task handles.
 
-**Problem:** If the detached task completes after `onDisappear` fires, `startTimer()` creates an orphan timer that never gets invalidated. The timer closure holds strong references to captured state (e.g., arrays of `UIImage`).
+### AVPlayer / AVPlayerViewController
 
-**Fix:**
-1. Always call `stopTimer()` at the start of `startTimer()` to prevent doubles
-2. Add `guard !Task.isCancelled` inside the `MainActor.run` block before calling `startTimer()`
-
----
-
-## 4. Missing `dismantleUIViewController` / `dismantleUIView`
-
-**Pattern:** `UIViewControllerRepresentable` or `UIViewRepresentable` that creates `AVPlayer`, `UIImageView` with animation, or activates `AVAudioSession`.
-
-**Problem:** Resources created in `makeUIViewController`/`makeUIView` are not cleaned up when SwiftUI removes the view. `AVPlayer` keeps playing, `UIImageView` keeps animating with all frames in memory, `AVAudioSession` stays active.
-
-**Fix:** Always implement the static `dismantle` method:
+Always implement `dismantleUIViewController`:
 ```swift
 static func dismantleUIViewController(_ vc: AVPlayerViewController, coordinator: ()) {
     vc.player?.pause()
@@ -68,107 +51,79 @@ static func dismantleUIViewController(_ vc: AVPlayerViewController, coordinator:
 }
 ```
 
----
-
-## 5. Unbounded In-Memory Caches
-
-**Pattern:** Dictionaries like `[String: UIImage]` that grow with every thumbnail loaded, or singleton arrays that accumulate records with embedded data.
-
-**Problem:** On devices with thousands of photos, decoded thumbnails (200x200x4 bytes each) can consume hundreds of MB. No eviction means memory grows monotonically.
-
-**Fix:**
-- Cap the dictionary size and clear when exceeded
-- Call `PHCachingImageManager.stopCachingImagesForAllAssets()` in `deinit`
-- For singletons, set a `maxRecords` limit and prune oldest entries on insert
-
----
-
-## 6. DispatchQueue.global Without Cancellation
-
-**Pattern:** `DispatchQueue.global().async { ... DispatchQueue.main.async { self.state = value } }`
-
-**Problem:** GCD work items cannot be cancelled. If the view is dismissed while the background work runs, the closure holds strong references until completion, then writes to state of a dismissed view.
-
-**Fix:** Replace with `Task.detached` which supports cancellation:
+For views with `@State private var audioPlayer: AVPlayer?`, clean up in `.onDisappear`:
 ```swift
-myTask = Task.detached(priority: .userInitiated) {
-    let result = await doWork()
-    guard !Task.isCancelled else { return }
-    await MainActor.run { state = result }
+.onDisappear {
+    audioPlayer?.pause()
+    audioPlayer = nil
 }
 ```
 
+### Animated GIF Views (UIViewRepresentable)
+
+GIF frames are decoded into `[UIImage]` arrays that can consume tens of MB. Always:
+- Cap frame count: `let count = min(CGImageSourceGetCount(source), 150)`
+- Use `Task.detached` for loading (not `DispatchQueue.global`) so it can be cancelled
+- Store the load task in a `Coordinator` and cancel in `dismantleUIView`:
+
+```swift
+static func dismantleUIView(_ uiView: UIView, coordinator: Coordinator) {
+    coordinator.loadTask?.cancel()
+    coordinator.loadTask = nil
+    coordinator.imageView?.stopAnimating()
+    coordinator.imageView?.animationImages = nil  // Free all decoded frames
+}
+```
+
+### Task Handles in Views
+
+Any `Task` created for preview loading, file info fetching, etc. must be stored and cancelled:
+```swift
+@State private var fileInfoTask: Task<Void, Never>?
+@State private var imageLoadTask: Task<Void, Never>?
+
+.onDisappear {
+    fileInfoTask?.cancel()
+    fileInfoTask = nil
+    imageLoadTask?.cancel()
+    imageLoadTask = nil
+}
+```
+
+### PHCachingImageManager
+
+Call `stopCachingImagesForAllAssets()` in ViewModel `deinit` or view `onDisappear`.
+
 ---
 
-## 7. Polling Tasks Not Cancelled on Error Paths
+## 3. Polling Tasks: Cancel on ALL Paths
 
-**Pattern:** `pollingTask?.cancel()` only on the success path after `try await coordinator.convert(job:)`.
+FFmpeg progress polling runs every 500ms inside conversion tasks. It must be cancelled in **both** success and error paths:
 
-**Problem:** On conversion failure, the catch block does not cancel the polling task. The polling task continues running every 500ms indefinitely, doing file I/O and calling `store.save()`.
-
-**Fix:** Always cancel polling tasks in both success and error paths:
 ```swift
+var pollingTask: Task<Void, Never>?
+do {
+    pollingTask = startProgressPolling(...)
+    let result = try await coordinator.convert(job: job)
+    pollingTask?.cancel()  // Success path
+    // ...
 } catch {
-    pollingTask?.cancel()  // Don't forget this!
-    // handle error...
+    pollingTask?.cancel()  // Error path — don't forget!
+    // ...
 }
 ```
 
 ---
 
-## 8. AVPlayer Seek Closures
+## 4. Main Thread Blocking Prevention
 
-**Pattern:** `player.seek(to:completionHandler:)` where the closure references `player` directly.
+### File I/O Off Main Thread
 
-**Problem:** AVPlayer retains the completion closure until seek finishes. The closure retains the player, creating a temporary retain cycle. If `cleanupPlayer()` sets `player = nil` during a seek, the player stays alive until the seek infrastructure releases the closure.
+Never call `FileManager` methods from view body, `onAppear`, or computed properties:
+- `attributesOfItem(atPath:)` — use `.task` + `Task.detached`
+- `Data(contentsOf:)` — use `Task.detached`
+- `copyItem`, `moveItem`, `removeItem` — use background queue
 
-**Fix:** Capture player weakly in seek completion handlers:
-```swift
-player.seek(to: .zero) { [weak player] _ in
-    player?.play()
-}
-```
-
----
-
-## 9. GIF Frame Loading
-
-**Problem:** Loading all GIF frames into `[UIImage]` at once with no cap. A 100-frame GIF = tens of MB of uncompressed bitmaps.
-
-**Fix:**
-- Cap frame count: `let count = min(CGImageSourceGetCount(source), maxFrames)`
-- Use `Task.detached` instead of `DispatchQueue.global` for cancellation support
-- In `dismantleUIView`, call `imageView.stopAnimating()` and set `animationImages = nil`
-
----
-
-## 10. Unscoped NotificationCenter Observers
-
-**Pattern:** `.onReceive(NotificationCenter.default.publisher(for: .AVPlayerItemDidPlayToEndTime)) { _ in ... }`
-
-**Problem:** Fires for *any* AVPlayerItem globally, not just the owned one.
-
-**Fix:** Filter by the specific player item:
-```swift
-.onReceive(
-    NotificationCenter.default.publisher(for: .AVPlayerItemDidPlayToEndTime)
-        .filter { notification in
-            (notification.object as? AVPlayerItem) === audioPlayer?.currentItem
-        }
-) { _ in ... }
-```
-
----
-
----
-
-## 11. Synchronous File I/O on Main Thread
-
-**Pattern:** `FileManager.default.attributesOfItem(atPath:)`, `Data(contentsOf:)`, `UIImage(data:)`, or `CGImageSource` calls executed directly from SwiftUI view body, `onAppear`, or computed properties.
-
-**Problem:** File system calls block the main thread. Image decoding (especially large images) can take 100ms+. `attributesOfItem` does stat() syscalls. When called from SwiftUI computed properties, these run on every re-render.
-
-**Fix:** Move to `@State` properties loaded in `.task` or `Task.detached`:
 ```swift
 @State private var fileSizeText = ""
 
@@ -183,15 +138,9 @@ player.seek(to: .zero) { [weak player] _ in
 }
 ```
 
----
+### PHAsset.fetchAssets Off Main Thread
 
-## 12. PHAsset.fetchAssets on Main Thread
-
-**Pattern:** `PHAsset.fetchAssets(with:)` + `enumerateObjects` called directly from `onAppear` or view model init.
-
-**Problem:** For libraries with thousands of assets, fetching and enumerating blocks the main thread for hundreds of milliseconds.
-
-**Fix:** Wrap in `DispatchQueue.global(qos: .userInitiated).async` and dispatch results back to main:
+For libraries with thousands of assets, fetch on background thread:
 ```swift
 func fetchAssets() {
     isLoading = true
@@ -207,15 +156,9 @@ func fetchAssets() {
 }
 ```
 
----
+### HistoryStore.save() on Background Queue
 
-## 13. JSON Serialization in HistoryStore.save()
-
-**Pattern:** `encoder.encode(records)` + `data.write(to:)` called synchronously on main thread, especially from polling tasks that call `store.save()` every 500ms.
-
-**Problem:** With 500 records including thumbnail data, JSON encoding can take 50ms+ and disk writes add more. When called from MainActor.run blocks during progress polling, this freezes UI repeatedly.
-
-**Fix:** Snapshot the data and encode/write on a dedicated serial queue:
+With 500 records + thumbnail data, JSON encoding blocks main thread. Snapshot and encode on a serial queue:
 ```swift
 private let saveQueue = DispatchQueue(label: "com.rango.historystore.save", qos: .utility)
 
@@ -231,13 +174,11 @@ func save() {
 
 ---
 
-## 14. ConversionRecord.thumbnail Decoding Every Render
+## 5. Image Decoding & Caching
 
-**Pattern:** Computed property `var thumbnail: UIImage? { UIImage(data: thumbnailData) }` called from SwiftUI view body.
+### Thumbnail Caching in ConversionRecord
 
-**Problem:** `UIImage(data:)` decodes the image data every single time the view re-renders. For a list of records, this means N decodes per scroll frame.
-
-**Fix:** Cache the decoded UIImage with a hash check:
+Never decode thumbnails in computed properties — they run every render:
 ```swift
 private var _cachedThumbnail: UIImage?
 private var _thumbnailDataHash: Int?
@@ -253,22 +194,96 @@ var thumbnail: UIImage? {
 }
 ```
 
+Exclude cache fields from `Codable` with a `CodingKeys` enum.
+
+### Preview Image Loading
+
+Use ImageIO downsampling instead of loading full-resolution images for previews:
+```swift
+static func loadPreviewImage(from url: URL, maxPixelSize: CGFloat = 1200) -> UIImage? {
+    let options: [CFString: Any] = [kCGImageSourceShouldCache: false]
+    guard let source = CGImageSourceCreateWithURL(url as CFURL, options as CFDictionary) else { return nil }
+    let downsampleOptions: [CFString: Any] = [
+        kCGImageSourceCreateThumbnailFromImageAlways: true,
+        kCGImageSourceShouldCacheImmediately: true,
+        kCGImageSourceCreateThumbnailWithTransform: true,
+        kCGImageSourceThumbnailMaxPixelSize: maxPixelSize
+    ]
+    guard let cgImage = CGImageSourceCreateThumbnailAtIndex(source, 0, downsampleOptions as CFDictionary) else { return nil }
+    return UIImage(cgImage: cgImage)
+}
+```
+
+### Large Image Safety
+
+Before loading full preview, check file size and pixel dimensions:
+```swift
+private static let maxPreviewFileSize: Int64 = 50 * 1024 * 1024  // 50 MB
+private static let maxPreviewPixels: CGFloat = 100_000_000         // 100 MP
+```
+
+---
+
+## 6. AVPlayer Seek Closures
+
+Capture player weakly to avoid temporary retain cycles during seeks:
+```swift
+player.seek(to: .zero) { [weak player] _ in
+    player?.play()
+}
+```
+
+---
+
+## 7. NotificationCenter Observer Scoping
+
+Filter by the specific player item to avoid responding to unrelated events:
+```swift
+.onReceive(
+    NotificationCenter.default.publisher(for: .AVPlayerItemDidPlayToEndTime)
+        .filter { [weak audioPlayer] notification in
+            (notification.object as? AVPlayerItem) === audioPlayer?.currentItem
+        }
+) { _ in isPlayingAudio = false }
+```
+
+---
+
+## 8. Cancellation from History
+
+`ConversionTaskManager.shared.cancel(id:)` is called from:
+- **HistoryResultSheet** Cancel button — cancels the task, marks record as failed
+- **HistoryStore.remove()** — cancels task before deleting output file
+- **HistoryStore.removeAll()** — cancels all tasks in the category being cleared
+
 ---
 
 ## Quick Checklist for New Code
 
-- [ ] Every `Task { }` in a view has a stored handle and `.onDisappear { task?.cancel() }`
-- [ ] Every `[weak self]` in ViewModel closures
-- [ ] Every `UIViewRepresentable` has `dismantleUIView` if it creates resources
-- [ ] Every `UIViewControllerRepresentable` has `dismantleUIViewController` if it creates players
-- [ ] Every polling/background task is cancelled on both success AND error paths
-- [ ] Image caches have size limits
-- [ ] `PHCachingImageManager` calls `stopCachingImagesForAllAssets()` in `deinit`
-- [ ] GIF loading has frame count caps
-- [ ] `DispatchQueue.global` blocks are replaced with cancellable `Task.detached`
-- [ ] `AVPlayer.seek` closures use `[weak player]`
-- [ ] No `FileManager` calls (`attributesOfItem`, `copyItem`, `removeItem`) from view body or computed properties
-- [ ] No `Data(contentsOf:)` or `UIImage(data:)` on main thread for user-selected files
+### Fire-and-Forget Tasks
+- [ ] ViewModel method is **synchronous** (not `async`)
+- [ ] All data passed as **parameters** (not read from `@Published` properties)
+- [ ] `Task.detached` with `[weak self]` capture
+- [ ] `defer { taskManager.remove(id:) }` in every task
+- [ ] `Task.isCancelled` checks before expensive work
+- [ ] Task registered with `taskManager.register(id:task:)`
+- [ ] View callback calls method directly + navigates to history (no `Task {}` wrapper)
+
+### Resource Cleanup on View Kill
+- [ ] `AVPlayer` paused and set to nil in `dismantleUIViewController` or `.onDisappear`
+- [ ] `AVAudioSession` deactivated when player is released
+- [ ] GIF `animationImages` set to nil in `dismantleUIView`
+- [ ] All `@State` task handles cancelled in `.onDisappear`
+- [ ] `PHCachingImageManager.stopCachingImagesForAllAssets()` in cleanup
+
+### Main Thread Safety
+- [ ] No `FileManager` calls from view body or computed properties
+- [ ] No `Data(contentsOf:)` or `UIImage(data:)` on main thread
 - [ ] `PHAsset.fetchAssets` runs on background thread
 - [ ] `HistoryStore.save()` encodes + writes on background queue
-- [ ] Computed properties that decode data (thumbnails) are cached
+
+### Polling & Background Tasks
+- [ ] Polling tasks cancelled on **both** success AND error paths
+- [ ] Polling loop checks `Task.isCancelled` before sleeping
+- [ ] Thumbnail computed properties are cached (not decoded every render)
+- [ ] Image caches have size limits

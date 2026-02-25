@@ -19,7 +19,7 @@ private let audioTools: [AudioTool] = [
     AudioTool(id: "compress", title: "Audio Compression", subtitle: "Custom compression", icon: "arrow.down.right.and.arrow.up.left", isAvailable: true),
     AudioTool(id: "speed", title: "Audio Speed Change", subtitle: "0.1 to 5 times free adjustment", icon: "gauge.with.dots.needle.33percent", isAvailable: false),
     AudioTool(id: "merge", title: "Combined Audios", subtitle: "Easily merge multiple audios", icon: "square.stack.3d.up", isAvailable: false),
-    AudioTool(id: "crop", title: "Audio Cropping", subtitle: "Capture and retain audio clips", icon: "scissors", isAvailable: false),
+    AudioTool(id: "crop", title: "Audio Cropping", subtitle: "Capture and retain audio clips", icon: "scissors", isAvailable: true),
 ]
 
 struct AudioConverterView: View {
@@ -31,6 +31,10 @@ struct AudioConverterView: View {
     @State private var showCompressPicker = false
     @State private var showComingSoon = false
     @State private var showSettings = false
+    @State private var showCropPicker = false
+    @State private var showCropView = false
+    @State private var cropFileName: String = ""
+    @State private var cropFileURL: URL?
 
     private var history: [ConversionRecord] {
         historyStore.records(for: "audio")
@@ -153,6 +157,31 @@ struct AudioConverterView: View {
                     }
                 }
             }
+            .navigationDestination(isPresented: $showCropPicker) {
+                AudioPickerView { fileName, url in
+                    cropFileName = fileName
+                    cropFileURL = url
+                    showCropView = true
+                }
+            }
+            .navigationDestination(isPresented: $showCropView) {
+                if let url = cropFileURL {
+                    AudioCropView(
+                        fileURL: url,
+                        fileName: cropFileName
+                    ) { startTime, endTime in
+                        viewModel.cropAudio(
+                            inputURL: url,
+                            fileName: cropFileName,
+                            startTime: startTime,
+                            endTime: endTime
+                        )
+                        showCropView = false
+                        showCropPicker = false
+                        selectedTab = .history
+                    }
+                }
+            }
             .alert("Coming Soon", isPresented: $showComingSoon) {
                 Button("OK", role: .cancel) { }
             } message: {
@@ -240,6 +269,8 @@ struct AudioConverterView: View {
                 showExtractVideoPicker = true
             case "compress":
                 showCompressPicker = true
+            case "crop":
+                showCropPicker = true
             default:
                 break
             }

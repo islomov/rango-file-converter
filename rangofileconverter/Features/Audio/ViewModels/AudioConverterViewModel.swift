@@ -445,6 +445,81 @@ final class AudioConverterViewModel: ObservableObject {
         taskManager.register(id: record.id, task: task)
     }
 
+    // MARK: - Merge Audios
+
+    func mergeAudios(inputs: [URL], outputExtension: String) {
+        let record = ConversionRecord(
+            sourceFileName: "merged.\(outputExtension)",
+            sourceFormat: outputExtension.uppercased(),
+            targetFormatID: outputExtension.lowercased(),
+            thumbnailData: nil,
+            status: .converting,
+            toolType: "Merge",
+            mediaCategory: "audio"
+        )
+
+        store.add(record)
+
+        let task = Task.detached { [weak self] in
+            guard let self else { return }
+            defer { self.taskManager.remove(id: record.id) }
+
+            var totalDurationUs: Double = 0
+            for url in inputs {
+                totalDurationUs += await self.probeDurationUs(url: url)
+            }
+
+            var pollingTask: Task<Void, Never>?
+            do {
+                guard !Task.isCancelled else {
+                    await MainActor.run { self.failRecord(record, error: "Cancelled") }
+                    return
+                }
+
+                let mergeEngine = FFmpegMergeEngine()
+                let tempDir = FileManager.default.temporaryDirectory
+                    .appendingPathComponent("rango_conversions", isDirectory: true)
+                try? FileManager.default.createDirectory(at: tempDir, withIntermediateDirectories: true)
+                let shortID = UUID().uuidString.prefix(8)
+                let progressFile = tempDir.appendingPathComponent("progress_\(shortID).txt")
+
+                if totalDurationUs > 0 {
+                    pollingTask = self.startProgressPolling(
+                        progressFile: progressFile,
+                        totalDurationUs: totalDurationUs,
+                        record: record
+                    )
+                }
+
+                let outputURL = try await mergeEngine.mergeAudio(
+                    inputs: inputs,
+                    outputExtension: outputExtension,
+                    progressFilePath: progressFile.path
+                )
+
+                pollingTask?.cancel()
+                try? FileManager.default.removeItem(at: progressFile)
+
+                let outputPath = ConversionRecord.persistOutput(from: outputURL)
+                await MainActor.run {
+                    record.progress = 1.0
+                    record.status = .converted
+                    record.outputPath = outputPath
+                    self.store.save()
+                }
+            } catch {
+                pollingTask?.cancel()
+                await MainActor.run {
+                    record.status = .failed
+                    record.errorMessage = error.localizedDescription
+                    self.store.save()
+                }
+            }
+        }
+
+        taskManager.register(id: record.id, task: task)
+    }
+
     private func failRecord(_ record: ConversionRecord, error: String) {
         record.status = .failed
         record.errorMessage = error

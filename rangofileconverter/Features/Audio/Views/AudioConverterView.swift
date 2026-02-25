@@ -18,7 +18,7 @@ private let audioTools: [AudioTool] = [
     AudioTool(id: "extract", title: "Extract Audio", subtitle: "Extract audio from video", icon: "music.note", isAvailable: true),
     AudioTool(id: "compress", title: "Audio Compression", subtitle: "Custom compression", icon: "arrow.down.right.and.arrow.up.left", isAvailable: true),
     AudioTool(id: "speed", title: "Audio Speed Change", subtitle: "0.1 to 5 times free adjustment", icon: "gauge.with.dots.needle.33percent", isAvailable: false),
-    AudioTool(id: "merge", title: "Combined Audios", subtitle: "Easily merge multiple audios", icon: "square.stack.3d.up", isAvailable: false),
+    AudioTool(id: "merge", title: "Combined Audios", subtitle: "Easily merge multiple audios", icon: "square.stack.3d.up", isAvailable: true),
     AudioTool(id: "crop", title: "Audio Cropping", subtitle: "Capture and retain audio clips", icon: "scissors", isAvailable: true),
 ]
 
@@ -35,6 +35,11 @@ struct AudioConverterView: View {
     @State private var showCropView = false
     @State private var cropFileName: String = ""
     @State private var cropFileURL: URL?
+
+    // Merge tool state
+    @State private var showMergePicker = false
+    @State private var showMergeView = false
+    @State private var mergeAudios: [MergeAudioItem] = []
 
     private var history: [ConversionRecord] {
         historyStore.records(for: "audio")
@@ -182,6 +187,25 @@ struct AudioConverterView: View {
                     }
                 }
             }
+            .navigationDestination(isPresented: $showMergePicker) {
+                AudioMergePickerView { results in
+                    mergeAudios = results.map { MergeAudioItem(fileName: $0.fileName, url: $0.url) }
+                    showMergeView = true
+                }
+            }
+            .navigationDestination(isPresented: $showMergeView) {
+                if !mergeAudios.isEmpty {
+                    AudioMergeView(audios: mergeAudios) { outputExtension in
+                        viewModel.mergeAudios(
+                            inputs: mergeAudios.map(\.url),
+                            outputExtension: outputExtension
+                        )
+                        showMergeView = false
+                        showMergePicker = false
+                        selectedTab = .history
+                    }
+                }
+            }
             .alert("Coming Soon", isPresented: $showComingSoon) {
                 Button("OK", role: .cancel) { }
             } message: {
@@ -271,6 +295,8 @@ struct AudioConverterView: View {
                 showCompressPicker = true
             case "crop":
                 showCropPicker = true
+            case "merge":
+                showMergePicker = true
             default:
                 break
             }

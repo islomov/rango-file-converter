@@ -3,12 +3,11 @@ import SwiftUI
 struct ImageDetailView: View {
     let fileURL: URL
     let fileName: String
-    let onConvert: (FormatDefinition) async -> Void
+    let onConvert: (FormatDefinition) -> Void
 
     @State private var previewImage: UIImage?
     @State private var targetFormat: FormatDefinition = FormatRegistry.imageFormats[1] // JPEG
-    @State private var isConverting = false
-    @Environment(\.dismiss) private var dismiss
+    @State private var fileSizeText: String = ""
 
     var body: some View {
         ScrollView {
@@ -28,7 +27,7 @@ struct ImageDetailView: View {
                 VStack(alignment: .leading, spacing: 8) {
                     Text(fileName)
                         .font(.headline)
-                    Text(formattedFileSize)
+                    Text(fileSizeText)
                         .font(.subheadline)
                         .foregroundStyle(.secondary)
                 }
@@ -51,41 +50,36 @@ struct ImageDetailView: View {
                 }
 
                 Button {
-                    isConverting = true
-                    Task {
-                        await onConvert(targetFormat)
-                        isConverting = false
-                        dismiss()
-                    }
+                    onConvert(targetFormat)
                 } label: {
-                    if isConverting {
-                        ProgressView()
-                            .frame(maxWidth: .infinity)
-                            .padding(.vertical, 14)
-                    } else {
-                        Text("Convert")
-                            .font(.headline)
-                            .frame(maxWidth: .infinity)
-                            .padding(.vertical, 14)
-                    }
+                    Text("Convert")
+                        .font(.headline)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 14)
                 }
                 .buttonStyle(.borderedProminent)
-                .disabled(isConverting)
             }
             .padding(20)
         }
         .navigationTitle("Convert Image")
         .navigationBarTitleDisplayMode(.inline)
-        .onAppear {
-            previewImage = ImageConverterViewModel.loadPreviewImage(from: fileURL)
+        .task {
+            let url = fileURL
+            let result = await Task.detached(priority: .userInitiated) {
+                let image = ImageConverterViewModel.loadPreviewImage(from: url)
+                let size: String
+                if let attrs = try? FileManager.default.attributesOfItem(atPath: url.path),
+                   let bytes = attrs[.size] as? Int64 {
+                    let formatter = ByteCountFormatter()
+                    formatter.countStyle = .file
+                    size = formatter.string(fromByteCount: bytes)
+                } else {
+                    size = ""
+                }
+                return (image, size)
+            }.value
+            previewImage = result.0
+            fileSizeText = result.1
         }
-    }
-
-    private var formattedFileSize: String {
-        guard let attrs = try? FileManager.default.attributesOfItem(atPath: fileURL.path),
-              let size = attrs[.size] as? Int64 else { return "" }
-        let formatter = ByteCountFormatter()
-        formatter.countStyle = .file
-        return formatter.string(fromByteCount: size)
     }
 }

@@ -278,8 +278,8 @@ struct VideoSpeedView: View {
             let current = CMTimeGetSeconds(player.currentTime())
             let total = player.currentItem?.duration.seconds ?? 0
             if current.isFinite && total.isFinite && current >= total - 0.2 {
-                player.seek(to: .zero, toleranceBefore: .zero, toleranceAfter: .zero) { _ in
-                    player.rate = Float(selectedSpeed.rawValue)
+                player.seek(to: .zero, toleranceBefore: .zero, toleranceAfter: .zero) { [weak player] _ in
+                    player?.rate = Float(selectedSpeed.rawValue)
                     isPlaying = true
                 }
             } else {
@@ -293,8 +293,8 @@ struct VideoSpeedView: View {
         guard let player else { return }
         player.pause()
         isPlaying = false
-        player.seek(to: .zero, toleranceBefore: .zero, toleranceAfter: .zero) { _ in
-            player.rate = Float(selectedSpeed.rawValue)
+        player.seek(to: .zero, toleranceBefore: .zero, toleranceAfter: .zero) { [weak player] _ in
+            player?.rate = Float(selectedSpeed.rawValue)
             isPlaying = true
         }
     }

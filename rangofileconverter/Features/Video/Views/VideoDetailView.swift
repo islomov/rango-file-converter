@@ -10,6 +10,7 @@ struct VideoDetailView: View {
     private static let supportedVideoFormats = FormatRegistry.videoFormats.filter { !unsupportedFormats.contains($0.id) }
 
     @State private var targetFormat: FormatDefinition = FormatRegistry.videoFormats[0] // MP4
+    @State private var fileSizeText: String = ""
 
     var body: some View {
         ScrollView {
@@ -30,7 +31,7 @@ struct VideoDetailView: View {
                 VStack(alignment: .leading, spacing: 8) {
                     Text(fileName)
                         .font(.headline)
-                    Text(formattedFileSize)
+                    Text(fileSizeText)
                         .font(.subheadline)
                         .foregroundStyle(.secondary)
                 }
@@ -66,11 +67,14 @@ struct VideoDetailView: View {
         }
         .navigationTitle("Convert Video")
         .navigationBarTitleDisplayMode(.inline)
-    }
-
-    private var formattedFileSize: String {
-        guard let attrs = try? FileManager.default.attributesOfItem(atPath: fileURL.path),
-              let size = attrs[.size] as? Int64 else { return "" }
-        return ByteCountFormatter.string(fromByteCount: size, countStyle: .file)
+        .task {
+            let path = fileURL.path
+            let size = await Task.detached(priority: .utility) {
+                guard let attrs = try? FileManager.default.attributesOfItem(atPath: path),
+                      let bytes = attrs[.size] as? Int64 else { return "" }
+                return ByteCountFormatter.string(fromByteCount: bytes, countStyle: .file)
+            }.value
+            fileSizeText = size
+        }
     }
 }

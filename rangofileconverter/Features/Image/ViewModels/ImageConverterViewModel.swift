@@ -7,11 +7,11 @@ import webp
 final class ImageConverterViewModel: ObservableObject {
     @Published var selectedFileName: String = ""
     @Published var selectedFileURL: URL?
-    @Published var isConverting = false
     @Published var showConversionDetail = false
 
     private let coordinator = ConversionCoordinator()
     private let store = HistoryStore.shared
+    private let taskManager = ConversionTaskManager.shared
 
     func selectImage(_ image: UIImage, fileName: String, fileURL: URL) {
         selectedFileName = fileName
@@ -19,48 +19,54 @@ final class ImageConverterViewModel: ObservableObject {
         showConversionDetail = true
     }
 
-    func convert(to format: FormatDefinition) async {
-        guard let inputURL = selectedFileURL else { return }
-
-        await MainActor.run { isConverting = true }
-
-        let sourceExt = selectedFileName.components(separatedBy: ".").last?.uppercased() ?? "UNKNOWN"
+    func convert(inputURL: URL, fileName: String, to format: FormatDefinition) {
+        let sourceExt = fileName.components(separatedBy: ".").last?.uppercased() ?? "UNKNOWN"
         let thumbnailData = Self.loadThumbnail(from: inputURL)?
             .jpegData(compressionQuality: 0.8)
 
         let record = ConversionRecord(
-            sourceFileName: selectedFileName,
+            sourceFileName: fileName,
             sourceFormat: sourceExt,
             targetFormatID: format.id,
             thumbnailData: thumbnailData,
             status: .converting
         )
 
-        await MainActor.run { store.add(record) }
+        store.add(record)
 
-        do {
-            let job = ConversionJob(inputURL: inputURL, outputFormat: format)
-            let result = try await coordinator.convert(job: job)
+        let coordinator = self.coordinator
+        let task = Task.detached { [weak self] in
+            guard let self else { return }
+            defer { self.taskManager.remove(id: record.id) }
 
-            let outputPath = ConversionRecord.persistOutput(from: result.outputURL)
-            await MainActor.run {
-                record.status = .converted
-                record.outputPath = outputPath
-                store.save()
-            }
-        } catch {
-            await MainActor.run {
-                record.status = .failed
-                record.errorMessage = error.localizedDescription
-                store.save()
+            do {
+                guard !Task.isCancelled else {
+                    await MainActor.run { self.failRecord(record, error: "Cancelled") }
+                    return
+                }
+                let job = ConversionJob(inputURL: inputURL, outputFormat: format)
+                let result = try await coordinator.convert(job: job)
+
+                guard !Task.isCancelled else {
+                    await MainActor.run { self.failRecord(record, error: "Cancelled") }
+                    return
+                }
+                let outputPath = ConversionRecord.persistOutput(from: result.outputURL)
+                await MainActor.run {
+                    record.status = .converted
+                    record.outputPath = outputPath
+                    self.store.save()
+                }
+            } catch {
+                await MainActor.run {
+                    record.status = .failed
+                    record.errorMessage = error.localizedDescription
+                    self.store.save()
+                }
             }
         }
 
-        await MainActor.run {
-            isConverting = false
-            selectedFileName = ""
-            selectedFileURL = nil
-        }
+        taskManager.register(id: record.id, task: task)
     }
 
     // MARK: - Image Loading Helpers
@@ -101,7 +107,7 @@ final class ImageConverterViewModel: ObservableObject {
         loadPreviewImage(from: url, maxPixelSize: 80)
     }
 
-    // MARK: - Async Processing Methods (non-blocking)
+    // MARK: - Fire-and-Forget Processing Methods
 
     private func makeRecord(fileName: String, fileURL: URL, toolType: String) -> ConversionRecord {
         let ext = fileName.components(separatedBy: ".").last ?? "png"
@@ -134,20 +140,37 @@ final class ImageConverterViewModel: ObservableObject {
 
     // MARK: Rotate
 
-    func processRotation(fileURL: URL, fileName: String, rotation: Double, flipH: Bool, flipV: Bool) async {
+    func processRotation(fileURL: URL, fileName: String, rotation: Double, flipH: Bool, flipV: Bool) {
         let record = makeRecord(fileName: fileName, fileURL: fileURL, toolType: "Rotate")
-        await MainActor.run { store.add(record) }
+        store.add(record)
 
-        guard let image = Self.loadFullImage(from: fileURL) else {
-            await MainActor.run { failRecord(record, error: "Failed to load image") }
-            return
+        let task = Task.detached { [weak self] in
+            guard let self else { return }
+            defer { self.taskManager.remove(id: record.id) }
+
+            guard !Task.isCancelled else {
+                await MainActor.run { self.failRecord(record, error: "Cancelled") }
+                return
+            }
+
+            guard let image = Self.loadFullImage(from: fileURL) else {
+                await MainActor.run { self.failRecord(record, error: "Failed to load image") }
+                return
+            }
+
+            guard !Task.isCancelled else {
+                await MainActor.run { self.failRecord(record, error: "Cancelled") }
+                return
+            }
+
+            if let (_, url) = Self.renderRotatedImage(image: image, fileName: fileName, rotation: rotation, flipH: flipH, flipV: flipV) {
+                await MainActor.run { self.completeRecord(record, outputURL: url) }
+            } else {
+                await MainActor.run { self.failRecord(record, error: "Failed to render rotated image") }
+            }
         }
 
-        if let (_, url) = Self.renderRotatedImage(image: image, fileName: fileName, rotation: rotation, flipH: flipH, flipV: flipV) {
-            await MainActor.run { completeRecord(record, outputURL: url) }
-        } else {
-            await MainActor.run { failRecord(record, error: "Failed to render rotated image") }
-        }
+        taskManager.register(id: record.id, task: task)
     }
 
     static func renderRotatedImage(image: UIImage, fileName: String, rotation: Double, flipH: Bool, flipV: Bool) -> (UIImage, URL)? {
@@ -203,20 +226,37 @@ final class ImageConverterViewModel: ObservableObject {
 
     // MARK: Crop
 
-    func processCrop(fileURL: URL, fileName: String, cropRect: CGRect) async {
+    func processCrop(fileURL: URL, fileName: String, cropRect: CGRect) {
         let record = makeRecord(fileName: fileName, fileURL: fileURL, toolType: "Crop")
-        await MainActor.run { store.add(record) }
+        store.add(record)
 
-        guard let image = Self.loadFullImage(from: fileURL) else {
-            await MainActor.run { failRecord(record, error: "Failed to load image") }
-            return
+        let task = Task.detached { [weak self] in
+            guard let self else { return }
+            defer { self.taskManager.remove(id: record.id) }
+
+            guard !Task.isCancelled else {
+                await MainActor.run { self.failRecord(record, error: "Cancelled") }
+                return
+            }
+
+            guard let image = Self.loadFullImage(from: fileURL) else {
+                await MainActor.run { self.failRecord(record, error: "Failed to load image") }
+                return
+            }
+
+            guard !Task.isCancelled else {
+                await MainActor.run { self.failRecord(record, error: "Cancelled") }
+                return
+            }
+
+            if let (_, url) = Self.renderCroppedImage(image: image, fileName: fileName, cropRect: cropRect) {
+                await MainActor.run { self.completeRecord(record, outputURL: url) }
+            } else {
+                await MainActor.run { self.failRecord(record, error: "Failed to render cropped image") }
+            }
         }
 
-        if let (_, url) = Self.renderCroppedImage(image: image, fileName: fileName, cropRect: cropRect) {
-            await MainActor.run { completeRecord(record, outputURL: url) }
-        } else {
-            await MainActor.run { failRecord(record, error: "Failed to render cropped image") }
-        }
+        taskManager.register(id: record.id, task: task)
     }
 
     static func renderCroppedImage(image: UIImage, fileName: String, cropRect: CGRect) -> (UIImage, URL)? {
@@ -258,20 +298,37 @@ final class ImageConverterViewModel: ObservableObject {
 
     // MARK: Resize
 
-    func processResize(fileURL: URL, fileName: String, width: Int, height: Int) async {
+    func processResize(fileURL: URL, fileName: String, width: Int, height: Int) {
         let record = makeRecord(fileName: fileName, fileURL: fileURL, toolType: "Resize")
-        await MainActor.run { store.add(record) }
+        store.add(record)
 
-        guard let image = Self.loadFullImage(from: fileURL) else {
-            await MainActor.run { failRecord(record, error: "Failed to load image") }
-            return
+        let task = Task.detached { [weak self] in
+            guard let self else { return }
+            defer { self.taskManager.remove(id: record.id) }
+
+            guard !Task.isCancelled else {
+                await MainActor.run { self.failRecord(record, error: "Cancelled") }
+                return
+            }
+
+            guard let image = Self.loadFullImage(from: fileURL) else {
+                await MainActor.run { self.failRecord(record, error: "Failed to load image") }
+                return
+            }
+
+            guard !Task.isCancelled else {
+                await MainActor.run { self.failRecord(record, error: "Cancelled") }
+                return
+            }
+
+            if let (_, url) = Self.renderResizedImage(image: image, fileName: fileName, width: width, height: height) {
+                await MainActor.run { self.completeRecord(record, outputURL: url) }
+            } else {
+                await MainActor.run { self.failRecord(record, error: "Failed to render resized image") }
+            }
         }
 
-        if let (_, url) = Self.renderResizedImage(image: image, fileName: fileName, width: width, height: height) {
-            await MainActor.run { completeRecord(record, outputURL: url) }
-        } else {
-            await MainActor.run { failRecord(record, error: "Failed to render resized image") }
-        }
+        taskManager.register(id: record.id, task: task)
     }
 
     static func renderResizedImage(image: UIImage, fileName: String, width: Int, height: Int) -> (UIImage, URL)? {
@@ -303,40 +360,53 @@ final class ImageConverterViewModel: ObservableObject {
 
     // MARK: Compress
 
-    func processCompress(fileURL: URL, fileName: String, formatExtension: String, quality: Double) async {
+    func processCompress(fileURL: URL, fileName: String, formatExtension: String, quality: Double) {
         let outputFileName = "compressed_\(UUID().uuidString.prefix(8)).\(formatExtension)"
         let record = makeRecord(fileName: outputFileName, fileURL: fileURL, toolType: "Compress")
-        await MainActor.run { store.add(record) }
+        store.add(record)
 
-        let usesFFmpeg = (formatExtension == "jp2" || formatExtension == "tiff")
+        let coordinator = self.coordinator
+        let task = Task.detached { [weak self] in
+            guard let self else { return }
+            defer { self.taskManager.remove(id: record.id) }
 
-        if usesFFmpeg {
-            guard let formatDef = FormatRegistry.format(forExtension: formatExtension) else {
-                await MainActor.run { failRecord(record, error: "Unknown format: \(formatExtension)") }
+            guard !Task.isCancelled else {
+                await MainActor.run { self.failRecord(record, error: "Cancelled") }
                 return
             }
-            var job = ConversionJob(inputURL: fileURL, outputFormat: formatDef)
-            let isLossy = !(formatExtension == "png" || formatExtension == "tiff")
-            if isLossy {
-                job.quality = Int(quality)
-            }
-            do {
-                let result = try await coordinator.convert(job: job)
-                await MainActor.run { completeRecord(record, outputURL: result.outputURL) }
-            } catch {
-                await MainActor.run { failRecord(record, error: error.localizedDescription) }
-            }
-        } else {
-            guard let image = Self.loadFullImage(from: fileURL) else {
-                await MainActor.run { failRecord(record, error: "Failed to load image") }
-                return
-            }
-            if let (_, url) = Self.renderCompressedNative(image: image, formatExtension: formatExtension, quality: quality, outputFileName: outputFileName) {
-                await MainActor.run { completeRecord(record, outputURL: url) }
+
+            let usesFFmpeg = (formatExtension == "jp2" || formatExtension == "tiff")
+
+            if usesFFmpeg {
+                guard let formatDef = FormatRegistry.format(forExtension: formatExtension) else {
+                    await MainActor.run { self.failRecord(record, error: "Unknown format: \(formatExtension)") }
+                    return
+                }
+                var job = ConversionJob(inputURL: fileURL, outputFormat: formatDef)
+                let isLossy = !(formatExtension == "png" || formatExtension == "tiff")
+                if isLossy {
+                    job.quality = Int(quality)
+                }
+                do {
+                    let result = try await coordinator.convert(job: job)
+                    await MainActor.run { self.completeRecord(record, outputURL: result.outputURL) }
+                } catch {
+                    await MainActor.run { self.failRecord(record, error: error.localizedDescription) }
+                }
             } else {
-                await MainActor.run { failRecord(record, error: "Failed to compress image") }
+                guard let image = Self.loadFullImage(from: fileURL) else {
+                    await MainActor.run { self.failRecord(record, error: "Failed to load image") }
+                    return
+                }
+                if let (_, url) = Self.renderCompressedNative(image: image, formatExtension: formatExtension, quality: quality, outputFileName: outputFileName) {
+                    await MainActor.run { self.completeRecord(record, outputURL: url) }
+                } else {
+                    await MainActor.run { self.failRecord(record, error: "Failed to compress image") }
+                }
             }
         }
+
+        taskManager.register(id: record.id, task: task)
     }
 
     static func renderCompressedNative(image: UIImage, formatExtension: String, quality: Double, outputFileName: String) -> (UIImage, URL)? {
@@ -403,7 +473,7 @@ final class ImageConverterViewModel: ObservableObject {
 
     // MARK: GIF
 
-    func processGif(fileURLs: [URL], fileNames: [String], frameDelay: Double, loopForever: Bool) async {
+    func processGif(fileURLs: [URL], fileNames: [String], frameDelay: Double, loopForever: Bool) {
         let thumbnailData = Self.loadThumbnail(from: fileURLs[0])?
             .jpegData(compressionQuality: 0.8)
         let record = ConversionRecord(
@@ -414,13 +484,25 @@ final class ImageConverterViewModel: ObservableObject {
             status: .converting,
             toolType: "GIF"
         )
-        await MainActor.run { store.add(record) }
+        store.add(record)
 
-        if let url = Self.renderGIF(fileURLs: fileURLs, frameDelay: frameDelay, loopForever: loopForever) {
-            await MainActor.run { completeRecord(record, outputURL: url) }
-        } else {
-            await MainActor.run { failRecord(record, error: "Failed to create GIF") }
+        let task = Task.detached { [weak self] in
+            guard let self else { return }
+            defer { self.taskManager.remove(id: record.id) }
+
+            guard !Task.isCancelled else {
+                await MainActor.run { self.failRecord(record, error: "Cancelled") }
+                return
+            }
+
+            if let url = Self.renderGIF(fileURLs: fileURLs, frameDelay: frameDelay, loopForever: loopForever) {
+                await MainActor.run { self.completeRecord(record, outputURL: url) }
+            } else {
+                await MainActor.run { self.failRecord(record, error: "Failed to create GIF") }
+            }
         }
+
+        taskManager.register(id: record.id, task: task)
     }
 
     static func renderGIF(fileURLs: [URL], frameDelay: Double, loopForever: Bool) -> URL? {
@@ -475,7 +557,7 @@ final class ImageConverterViewModel: ObservableObject {
 
     // MARK: Stitch
 
-    func processStitch(fileURLs: [URL], layout: String, background: String, gap: CGFloat) async {
+    func processStitch(fileURLs: [URL], layout: String, background: String, gap: CGFloat) {
         let thumbnailData = Self.loadThumbnail(from: fileURLs[0])?
             .jpegData(compressionQuality: 0.8)
         let record = ConversionRecord(
@@ -486,13 +568,25 @@ final class ImageConverterViewModel: ObservableObject {
             status: .converting,
             toolType: "Stitch"
         )
-        await MainActor.run { store.add(record) }
+        store.add(record)
 
-        if let url = Self.renderStitch(fileURLs: fileURLs, layout: layout, background: background, gap: gap) {
-            await MainActor.run { completeRecord(record, outputURL: url) }
-        } else {
-            await MainActor.run { failRecord(record, error: "Failed to stitch images") }
+        let task = Task.detached { [weak self] in
+            guard let self else { return }
+            defer { self.taskManager.remove(id: record.id) }
+
+            guard !Task.isCancelled else {
+                await MainActor.run { self.failRecord(record, error: "Cancelled") }
+                return
+            }
+
+            if let url = Self.renderStitch(fileURLs: fileURLs, layout: layout, background: background, gap: gap) {
+                await MainActor.run { self.completeRecord(record, outputURL: url) }
+            } else {
+                await MainActor.run { self.failRecord(record, error: "Failed to stitch images") }
+            }
         }
+
+        taskManager.register(id: record.id, task: task)
     }
 
     static func renderStitch(fileURLs: [URL], layout: String, background: String, gap: CGFloat) -> URL? {

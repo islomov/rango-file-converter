@@ -95,7 +95,10 @@ struct ImageConverterView: View {
                         fileURL: url,
                         fileName: viewModel.selectedFileName
                     ) { format in
-                        await viewModel.convert(to: format)
+                        viewModel.convert(inputURL: url, fileName: viewModel.selectedFileName, to: format)
+                        viewModel.showConversionDetail = false
+                        showAssetPicker = false
+                        toolFileURL = nil
                         selectedTab = .history
                     }
                 }
@@ -106,23 +109,17 @@ struct ImageConverterView: View {
                         fileURL: url,
                         fileName: toolFileName
                     ) { rotation, flipH, flipV in
-                        let capturedURL = url
-                        let capturedName = toolFileName
-                        Task {
-                            await viewModel.processRotation(
-                                fileURL: capturedURL,
-                                fileName: capturedName,
-                                rotation: rotation,
-                                flipH: flipH,
-                                flipV: flipV
-                            )
-                        }
-                        DispatchQueue.main.async {
-                            showRotateView = false
-                            showAssetPicker = false
-                            toolFileURL = nil
-                            selectedTab = .history
-                        }
+                        viewModel.processRotation(
+                            fileURL: url,
+                            fileName: toolFileName,
+                            rotation: rotation,
+                            flipH: flipH,
+                            flipV: flipV
+                        )
+                        showRotateView = false
+                        showAssetPicker = false
+                        toolFileURL = nil
+                        selectedTab = .history
                     }
                 }
             }
@@ -132,21 +129,15 @@ struct ImageConverterView: View {
                         fileURL: url,
                         fileName: toolFileName
                     ) { cropRect in
-                        let capturedURL = url
-                        let capturedName = toolFileName
-                        Task {
-                            await viewModel.processCrop(
-                                fileURL: capturedURL,
-                                fileName: capturedName,
-                                cropRect: cropRect
-                            )
-                        }
-                        DispatchQueue.main.async {
-                            showCropView = false
-                            showAssetPicker = false
-                            toolFileURL = nil
-                            selectedTab = .history
-                        }
+                        viewModel.processCrop(
+                            fileURL: url,
+                            fileName: toolFileName,
+                            cropRect: cropRect
+                        )
+                        showCropView = false
+                        showAssetPicker = false
+                        toolFileURL = nil
+                        selectedTab = .history
                     }
                 }
             }
@@ -156,22 +147,16 @@ struct ImageConverterView: View {
                         fileURL: url,
                         fileName: toolFileName
                     ) { width, height in
-                        let capturedURL = url
-                        let capturedName = toolFileName
-                        Task {
-                            await viewModel.processResize(
-                                fileURL: capturedURL,
-                                fileName: capturedName,
-                                width: width,
-                                height: height
-                            )
-                        }
-                        DispatchQueue.main.async {
-                            showResizeView = false
-                            showAssetPicker = false
-                            toolFileURL = nil
-                            selectedTab = .history
-                        }
+                        viewModel.processResize(
+                            fileURL: url,
+                            fileName: toolFileName,
+                            width: width,
+                            height: height
+                        )
+                        showResizeView = false
+                        showAssetPicker = false
+                        toolFileURL = nil
+                        selectedTab = .history
                     }
                 }
             }
@@ -181,22 +166,16 @@ struct ImageConverterView: View {
                         fileURL: url,
                         fileName: toolFileName
                     ) { formatExt, quality in
-                        let capturedURL = url
-                        let capturedName = toolFileName
-                        Task {
-                            await viewModel.processCompress(
-                                fileURL: capturedURL,
-                                fileName: capturedName,
-                                formatExtension: formatExt,
-                                quality: quality
-                            )
-                        }
-                        DispatchQueue.main.async {
-                            showCompressView = false
-                            showAssetPicker = false
-                            toolFileURL = nil
-                            selectedTab = .history
-                        }
+                        viewModel.processCompress(
+                            fileURL: url,
+                            fileName: toolFileName,
+                            formatExtension: formatExt,
+                            quality: quality
+                        )
+                        showCompressView = false
+                        showAssetPicker = false
+                        toolFileURL = nil
+                        selectedTab = .history
                     }
                 }
             }
@@ -206,23 +185,17 @@ struct ImageConverterView: View {
                         fileURLs: gifFileURLs,
                         fileNames: gifFileNames
                     ) { frameDelay, loopForever in
-                        let capturedURLs = gifFileURLs
-                        let capturedNames = gifFileNames
-                        Task {
-                            await viewModel.processGif(
-                                fileURLs: capturedURLs,
-                                fileNames: capturedNames,
-                                frameDelay: frameDelay,
-                                loopForever: loopForever
-                            )
-                        }
-                        DispatchQueue.main.async {
-                            showGifView = false
-                            showGifPicker = false
-                            gifFileURLs = []
-                            gifFileNames = []
-                            selectedTab = .history
-                        }
+                        viewModel.processGif(
+                            fileURLs: gifFileURLs,
+                            fileNames: gifFileNames,
+                            frameDelay: frameDelay,
+                            loopForever: loopForever
+                        )
+                        showGifView = false
+                        showGifPicker = false
+                        gifFileURLs = []
+                        gifFileNames = []
+                        selectedTab = .history
                     }
                 }
             }
@@ -232,22 +205,17 @@ struct ImageConverterView: View {
                         fileURLs: stitchFileURLs,
                         fileNames: stitchFileNames
                     ) { layout, background in
-                        let capturedURLs = stitchFileURLs
-                        Task {
-                            await viewModel.processStitch(
-                                fileURLs: capturedURLs,
-                                layout: layout,
-                                background: background,
-                                gap: 16
-                            )
-                        }
-                        DispatchQueue.main.async {
-                            showStitchView = false
-                            showStitchPicker = false
-                            stitchFileURLs = []
-                            stitchFileNames = []
-                            selectedTab = .history
-                        }
+                        viewModel.processStitch(
+                            fileURLs: stitchFileURLs,
+                            layout: layout,
+                            background: background,
+                            gap: 16
+                        )
+                        showStitchView = false
+                        showStitchPicker = false
+                        stitchFileURLs = []
+                        stitchFileNames = []
+                        selectedTab = .history
                     }
                 }
             }

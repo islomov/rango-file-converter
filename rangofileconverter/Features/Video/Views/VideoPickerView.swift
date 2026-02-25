@@ -217,16 +217,27 @@ struct VideoPickerView: View {
     private func handleFileImport(_ result: Result<[URL], Error>) {
         guard case .success(let urls) = result, let url = urls.first else { return }
         guard url.startAccessingSecurityScopedResource() else { return }
-        defer { url.stopAccessingSecurityScopedResource() }
 
-        let tempURL = FileManager.default.temporaryDirectory
-            .appendingPathComponent(url.lastPathComponent)
-        try? FileManager.default.removeItem(at: tempURL)
-        guard (try? FileManager.default.copyItem(at: url, to: tempURL)) != nil else { return }
+        isLoading = true
+        let name = url.lastPathComponent
 
-        let thumbnail = VideoLibraryViewModel.generateThumbnail(from: tempURL)
-            ?? UIImage(systemName: "video")!
+        Task.detached(priority: .userInitiated) {
+            defer { url.stopAccessingSecurityScopedResource() }
+            let tempURL = FileManager.default.temporaryDirectory
+                .appendingPathComponent(name)
+            try? FileManager.default.removeItem(at: tempURL)
+            guard (try? FileManager.default.copyItem(at: url, to: tempURL)) != nil else {
+                await MainActor.run { isLoading = false }
+                return
+            }
 
-        onVideoSelected(thumbnail, url.lastPathComponent, tempURL)
+            let thumbnail = VideoLibraryViewModel.generateThumbnail(from: tempURL)
+                ?? UIImage(systemName: "video")!
+
+            await MainActor.run {
+                isLoading = false
+                onVideoSelected(thumbnail, name, tempURL)
+            }
+        }
     }
 }

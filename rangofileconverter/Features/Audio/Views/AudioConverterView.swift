@@ -41,6 +41,7 @@ struct AudioConverterView: View {
     @State private var showMergePicker = false
     @State private var showMergeView = false
     @State private var mergeAudios: [MergeAudioItem] = []
+    @State private var selectedRecord: ConversionRecord?
 
     private var history: [ConversionRecord] {
         historyStore.records(for: "audio")
@@ -363,10 +364,19 @@ struct AudioConverterView: View {
         } else {
             List {
                 ForEach(history) { record in
-                    HistoryRowView(record: record)
+                    Button {
+                        selectedRecord = record
+                    } label: {
+                        HistoryRowView(record: record)
+                    }
+                    .buttonStyle(.plain)
                 }
             }
             .listStyle(.plain)
+            .sheet(item: $selectedRecord) { record in
+                HistoryResultSheet(record: record)
+                    .environmentObject(historyStore)
+            }
         }
     }
 }

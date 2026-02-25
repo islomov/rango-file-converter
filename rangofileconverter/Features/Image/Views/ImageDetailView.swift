@@ -1,10 +1,11 @@
 import SwiftUI
 
 struct ImageDetailView: View {
-    let image: UIImage
+    let fileURL: URL
     let fileName: String
     let onConvert: (FormatDefinition) async -> Void
 
+    @State private var previewImage: UIImage?
     @State private var targetFormat: FormatDefinition = FormatRegistry.imageFormats[1] // JPEG
     @State private var isConverting = false
     @Environment(\.dismiss) private var dismiss
@@ -12,12 +13,17 @@ struct ImageDetailView: View {
     var body: some View {
         ScrollView {
             VStack(spacing: 24) {
-                Image(uiImage: image)
-                    .resizable()
-                    .aspectRatio(contentMode: .fit)
-                    .frame(maxHeight: 350)
-                    .clipShape(RoundedRectangle(cornerRadius: 12))
-                    .shadow(color: .black.opacity(0.1), radius: 8, y: 4)
+                if let previewImage {
+                    Image(uiImage: previewImage)
+                        .resizable()
+                        .aspectRatio(contentMode: .fit)
+                        .frame(maxHeight: 350)
+                        .clipShape(RoundedRectangle(cornerRadius: 12))
+                        .shadow(color: .black.opacity(0.1), radius: 8, y: 4)
+                } else {
+                    ProgressView()
+                        .frame(height: 350)
+                }
 
                 VStack(alignment: .leading, spacing: 8) {
                     Text(fileName)
@@ -70,12 +76,16 @@ struct ImageDetailView: View {
         }
         .navigationTitle("Convert Image")
         .navigationBarTitleDisplayMode(.inline)
+        .onAppear {
+            previewImage = ImageConverterViewModel.loadPreviewImage(from: fileURL)
+        }
     }
 
     private var formattedFileSize: String {
-        guard let data = image.jpegData(compressionQuality: 1.0) else { return "" }
+        guard let attrs = try? FileManager.default.attributesOfItem(atPath: fileURL.path),
+              let size = attrs[.size] as? Int64 else { return "" }
         let formatter = ByteCountFormatter()
         formatter.countStyle = .file
-        return formatter.string(fromByteCount: Int64(data.count))
+        return formatter.string(fromByteCount: size)
     }
 }

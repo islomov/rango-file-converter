@@ -21,43 +21,31 @@ private enum StitchBackground: String, CaseIterable {
 }
 
 struct ImageStitchView: View {
-    let images: [UIImage]
+    let fileURLs: [URL]
     let fileNames: [String]
-    let onApply: (UIImage, URL) async -> Void
+    let onApply: (String, String) -> Void
 
     @State private var layout: StitchLayout = .horizontal
     @State private var background: StitchBackground = .white
-    @State private var isApplying = false
     @State private var previewImage: UIImage?
+    @State private var previewFrames: [UIImage] = []
+    @State private var imageSizes: [CGSize] = []
 
     private let gap: CGFloat = 8
 
     var body: some View {
-        ZStack {
-            VStack(spacing: 0) {
-                Spacer()
-                preview
-                Spacer()
-                controls
-            }
-            .allowsHitTesting(!isApplying)
-
-            if isApplying {
-                Color.black.opacity(0.4)
-                    .ignoresSafeArea()
-                VStack(spacing: 16) {
-                    ProgressView()
-                        .scaleEffect(1.5)
-                        .tint(.white)
-                    Text("Stitching...")
-                        .font(.headline)
-                        .foregroundStyle(.white)
-                }
-            }
+        VStack(spacing: 0) {
+            Spacer()
+            preview
+            Spacer()
+            controls
         }
         .navigationTitle("Stitch")
         .navigationBarTitleDisplayMode(.inline)
-        .onAppear { updatePreview() }
+        .onAppear {
+            loadPreviews()
+            updatePreview()
+        }
         .onChange(of: layout) { _ in updatePreview() }
         .onChange(of: background) { _ in updatePreview() }
     }
@@ -79,7 +67,7 @@ struct ImageStitchView: View {
             }
 
             if let size = previewImage?.size {
-                Text("\(images.count) images · \(Int(size.width))×\(Int(size.height))")
+                Text("\(fileURLs.count) images \u{00B7} \(Int(size.width))\u{00D7}\(Int(size.height))")
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }
@@ -114,73 +102,53 @@ struct ImageStitchView: View {
             }
 
             HStack {
-                Text("\(images.count) images")
+                Text("\(fileURLs.count) images")
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
                 Spacer()
             }
 
             Button {
-                isApplying = true
-                Task {
-                    if let (result, url) = renderStitch(preview: false) {
-                        await onApply(result, url)
-                    }
-                    isApplying = false
-                }
+                onApply(layout.rawValue, background.rawValue)
             } label: {
-                if isApplying {
-                    ProgressView()
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, 14)
-                } else {
-                    Text("Stitch Images")
-                        .font(.headline)
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, 14)
-                }
+                Text("Stitch Images")
+                    .font(.headline)
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 14)
             }
             .buttonStyle(.borderedProminent)
             .tint(.mint)
-            .disabled(isApplying)
         }
         .padding(20)
         .background(.bar)
     }
 
-    // MARK: - Rendering
+    // MARK: - Preview Loading & Rendering
 
-    private func updatePreview() {
-        previewImage = renderStitch(preview: true)?.0
+    private func loadPreviews() {
+        previewFrames = fileURLs.compactMap { url in
+            ImageConverterViewModel.loadPreviewImage(from: url, maxPixelSize: 400)
+        }
+        imageSizes = previewFrames.map(\.size)
     }
 
-    private func renderStitch(preview: Bool) -> (UIImage, URL)? {
-        guard !images.isEmpty else { return nil }
+    private func updatePreview() {
+        previewImage = renderPreview()
+    }
 
-        let scale: CGFloat = preview ? 0.25 : 1.0
-        let scaledGap = gap * (preview ? 1 : 2)
-
-        let scaledImages: [UIImage] = images.map { img in
-            if preview {
-                let newSize = CGSize(width: img.size.width * scale, height: img.size.height * scale)
-                let renderer = UIGraphicsImageRenderer(size: newSize)
-                return renderer.image { _ in
-                    img.draw(in: CGRect(origin: .zero, size: newSize))
-                }
-            }
-            return img
-        }
+    private func renderPreview() -> UIImage? {
+        guard !previewFrames.isEmpty, imageSizes.count == previewFrames.count else { return nil }
 
         let canvasSize: CGSize
         let drawRects: [CGRect]
 
         switch layout {
         case .horizontal:
-            (canvasSize, drawRects) = layoutHorizontal(scaledImages, gap: scaledGap)
+            (canvasSize, drawRects) = layoutHorizontal(imageSizes, gap: gap)
         case .vertical:
-            (canvasSize, drawRects) = layoutVertical(scaledImages, gap: scaledGap)
+            (canvasSize, drawRects) = layoutVertical(imageSizes, gap: gap)
         case .grid:
-            (canvasSize, drawRects) = layoutGrid(scaledImages, gap: scaledGap)
+            (canvasSize, drawRects) = layoutGrid(imageSizes, gap: gap)
         }
 
         let format = UIGraphicsImageRendererFormat()
@@ -188,95 +156,70 @@ struct ImageStitchView: View {
         format.opaque = background != .transparent
 
         let renderer = UIGraphicsImageRenderer(size: canvasSize, format: format)
-        let result = renderer.image { ctx in
+        return renderer.image { ctx in
             background.color.setFill()
             ctx.fill(CGRect(origin: .zero, size: canvasSize))
 
-            for (i, rect) in drawRects.enumerated() where i < scaledImages.count {
-                let img = scaledImages[i]
+            for (i, rect) in drawRects.enumerated() where i < previewFrames.count {
+                let img = previewFrames[i]
                 let fitted = aspectFitRect(imageSize: img.size, in: rect)
                 img.draw(in: fitted)
             }
         }
-
-        if preview {
-            return (result, URL(fileURLWithPath: ""))
-        }
-
-        let outputName = "stitch_\(UUID().uuidString.prefix(8)).png"
-        let outputURL = FileManager.default.temporaryDirectory
-            .appendingPathComponent("rango_conversions", isDirectory: true)
-            .appendingPathComponent(outputName)
-
-        try? FileManager.default.createDirectory(
-            at: outputURL.deletingLastPathComponent(),
-            withIntermediateDirectories: true
-        )
-
-        guard let data = result.pngData() else { return nil }
-        do {
-            try data.write(to: outputURL)
-        } catch {
-            return nil
-        }
-
-        return (result, outputURL)
     }
 
     // MARK: - Layout Calculations
 
-    private func layoutHorizontal(_ images: [UIImage], gap: CGFloat) -> (CGSize, [CGRect]) {
-        let maxHeight = images.map(\.size.height).max() ?? 0
+    private func layoutHorizontal(_ sizes: [CGSize], gap: CGFloat) -> (CGSize, [CGRect]) {
+        let maxHeight = sizes.map(\.height).max() ?? 0
         var rects: [CGRect] = []
         var x: CGFloat = 0
 
-        for img in images {
-            let scale = maxHeight / img.size.height
-            let w = img.size.width * scale
+        for size in sizes {
+            let scale = maxHeight / size.height
+            let w = size.width * scale
             rects.append(CGRect(x: x, y: 0, width: w, height: maxHeight))
             x += w + gap
         }
 
-        let totalWidth = x - (images.isEmpty ? 0 : gap)
+        let totalWidth = x - (sizes.isEmpty ? 0 : gap)
         return (CGSize(width: totalWidth, height: maxHeight), rects)
     }
 
-    private func layoutVertical(_ images: [UIImage], gap: CGFloat) -> (CGSize, [CGRect]) {
-        let maxWidth = images.map(\.size.width).max() ?? 0
+    private func layoutVertical(_ sizes: [CGSize], gap: CGFloat) -> (CGSize, [CGRect]) {
+        let maxWidth = sizes.map(\.width).max() ?? 0
         var rects: [CGRect] = []
         var y: CGFloat = 0
 
-        for img in images {
-            let scale = maxWidth / img.size.width
-            let h = img.size.height * scale
+        for size in sizes {
+            let scale = maxWidth / size.width
+            let h = size.height * scale
             rects.append(CGRect(x: 0, y: y, width: maxWidth, height: h))
             y += h + gap
         }
 
-        let totalHeight = y - (images.isEmpty ? 0 : gap)
+        let totalHeight = y - (sizes.isEmpty ? 0 : gap)
         return (CGSize(width: maxWidth, height: totalHeight), rects)
     }
 
-    private func layoutGrid(_ images: [UIImage], gap: CGFloat) -> (CGSize, [CGRect]) {
-        let count = images.count
+    private func layoutGrid(_ sizes: [CGSize], gap: CGFloat) -> (CGSize, [CGRect]) {
+        let count = sizes.count
         let cols = Int(ceil(sqrt(Double(count))))
         let rows = Int(ceil(Double(count) / Double(cols)))
 
-        let maxW = images.map(\.size.width).max() ?? 0
-        let maxH = images.map(\.size.height).max() ?? 0
+        let maxW = sizes.map(\.width).max() ?? 0
+        let maxH = sizes.map(\.height).max() ?? 0
 
-        let cellW = maxW
-        let cellH = maxH
-        let totalWidth = CGFloat(cols) * cellW + CGFloat(cols - 1) * gap
-        let totalHeight = CGFloat(rows) * cellH + CGFloat(rows - 1) * gap
+        let totalWidth = CGFloat(cols) * maxW + CGFloat(cols - 1) * gap
+        let totalHeight = CGFloat(rows) * maxH + CGFloat(rows - 1) * gap
 
         var rects: [CGRect] = []
         for i in 0..<count {
             let col = i % cols
             let row = i / cols
-            let x = CGFloat(col) * (cellW + gap)
-            let y = CGFloat(row) * (cellH + gap)
-            rects.append(CGRect(x: x, y: y, width: cellW, height: cellH))
+            let x = CGFloat(col) * (maxW + gap)
+            let y = CGFloat(row) * (maxH + gap)
+            rects.append(CGRect(x: x, y: y, width: maxW, height: maxH))
         }
 
         return (CGSize(width: totalWidth, height: totalHeight), rects)

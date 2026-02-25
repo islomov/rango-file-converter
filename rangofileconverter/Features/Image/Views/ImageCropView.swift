@@ -50,28 +50,29 @@ private enum HandlePosition: Int, CaseIterable {
 }
 
 struct ImageCropView: View {
-    let image: UIImage
+    let fileURL: URL
     let fileName: String
-    let onApply: (UIImage, URL) async -> Void
+    let onApply: (CGRect) -> Void
 
+    @State private var previewImage: UIImage?
+    @State private var imageSize: CGSize = .zero
     @State private var cropRect = CGRect(x: 0.1, y: 0.1, width: 0.8, height: 0.8)
     @State private var selectedRatio: AspectRatio = .free
-    @State private var isApplying = false
     @State private var imageFrame: CGRect = .zero
 
-    private var isPortrait: Bool { image.size.height > image.size.width }
+    private var isPortrait: Bool { imageSize.height > imageSize.width }
 
-    // Drag state — single gesture approach to avoid handle overlap issues
+    // Drag state
     @State private var activeHandle: HandlePosition?
     @State private var isDraggingRect = false
     @State private var dragStartRect: CGRect = .zero
 
     var body: some View {
-        ZStack {
-            VStack(spacing: 0) {
-                GeometryReader { geo in
-                    ZStack {
-                        Image(uiImage: image)
+        VStack(spacing: 0) {
+            GeometryReader { geo in
+                ZStack {
+                    if let previewImage {
+                        Image(uiImage: previewImage)
                             .resizable()
                             .aspectRatio(contentMode: .fit)
                             .background(
@@ -85,31 +86,19 @@ struct ImageCropView: View {
                                         }
                                 }
                             )
-
-                        if imageFrame.width > 0 {
-                            cropOverlay
-                        }
+                    } else {
+                        ProgressView()
                     }
-                    .frame(width: geo.size.width, height: geo.size.height)
-                    .coordinateSpace(name: "cropCanvas")
-                }
 
-                controls
-            }
-            .allowsHitTesting(!isApplying)
-
-            if isApplying {
-                Color.black.opacity(0.4)
-                    .ignoresSafeArea()
-                VStack(spacing: 16) {
-                    ProgressView()
-                        .scaleEffect(1.5)
-                        .tint(.white)
-                    Text("Cropping...")
-                        .font(.headline)
-                        .foregroundStyle(.white)
+                    if imageFrame.width > 0 {
+                        cropOverlay
+                    }
                 }
+                .frame(width: geo.size.width, height: geo.size.height)
+                .coordinateSpace(name: "cropCanvas")
             }
+
+            controls
         }
         .navigationTitle("Crop")
         .navigationBarTitleDisplayMode(.inline)
@@ -121,17 +110,19 @@ struct ImageCropView: View {
                         selectedRatio = .free
                     }
                 }
-                .disabled(isApplying)
             }
+        }
+        .onAppear {
+            imageSize = ImageConverterViewModel.imageDimensions(from: fileURL) ?? .zero
+            previewImage = ImageConverterViewModel.loadPreviewImage(from: fileURL)
         }
     }
 
-    // MARK: - Crop Overlay (single gesture handles everything)
+    // MARK: - Crop Overlay
 
     private var cropOverlay: some View {
         let viewRect = toViewRect(cropRect)
         return ZStack {
-            // Dim area outside crop
             Canvas { ctx, size in
                 var path = Path()
                 path.addRect(CGRect(origin: .zero, size: size))
@@ -139,13 +130,11 @@ struct ImageCropView: View {
                 ctx.fill(path, with: .color(.black.opacity(0.5)), style: FillStyle(eoFill: true))
             }
 
-            // White border
             Rectangle()
                 .stroke(Color.white, lineWidth: 1.5)
                 .frame(width: viewRect.width, height: viewRect.height)
                 .position(x: viewRect.midX, y: viewRect.midY)
 
-            // Grid lines (rule of thirds)
             Path { path in
                 let thirdW = viewRect.width / 3
                 let thirdH = viewRect.height / 3
@@ -160,7 +149,6 @@ struct ImageCropView: View {
             }
             .stroke(Color.white.opacity(0.3), lineWidth: 0.5)
 
-            // Corner handles (visual only — gesture is on the whole overlay)
             ForEach(HandlePosition.allCases, id: \.rawValue) { handle in
                 let pt = handle.point(in: viewRect)
                 Circle()
@@ -179,7 +167,6 @@ struct ImageCropView: View {
                         let viewRect = toViewRect(cropRect)
                         let (handle, dist) = closestHandle(to: value.startLocation)
 
-                        // If touch is inside crop rect and far from handles, move the whole rect
                         let insideCrop = viewRect.insetBy(dx: -20, dy: -20).contains(value.startLocation)
                         if insideCrop && dist > 40 {
                             isDraggingRect = true
@@ -225,7 +212,6 @@ struct ImageCropView: View {
         newRect.origin.x = dragStartRect.origin.x + dx
         newRect.origin.y = dragStartRect.origin.y + dy
 
-        // Clamp so the rect stays within [0,1]
         newRect.origin.x = max(0, min(newRect.origin.x, 1 - newRect.width))
         newRect.origin.y = max(0, min(newRect.origin.y, 1 - newRect.height))
 
@@ -268,13 +254,11 @@ struct ImageCropView: View {
             rect.size.width = dragStartRect.maxX - rect.origin.x
         }
 
-        // Clamp to [0,1]
         rect.origin.x = max(0, rect.origin.x)
         rect.origin.y = max(0, rect.origin.y)
         rect.size.width = min(rect.width, 1 - rect.origin.x)
         rect.size.height = min(rect.height, 1 - rect.origin.y)
 
-        // Enforce aspect ratio
         if let ratio = selectedRatio.ratio(isPortrait: isPortrait) {
             rect = enforceRatio(rect, ratio: ratio, handle: handle)
         }
@@ -284,10 +268,9 @@ struct ImageCropView: View {
 
     private func enforceRatio(_ rect: CGRect, ratio: CGFloat, handle: HandlePosition) -> CGRect {
         var r = rect
-        let imgW = image.size.width
-        let imgH = image.size.height
+        let imgW = imageSize.width
+        let imgH = imageSize.height
 
-        // Convert to pixel dimensions
         let pixW = r.width * imgW
         let pixH = r.height * imgH
         let currentRatio = pixW / pixH
@@ -298,21 +281,18 @@ struct ImageCropView: View {
         let isHorizontal = handle == .left || handle == .right
 
         if isVertical {
-            // Height changed, derive width
             let newPixW = pixH * ratio
             let newNormW = newPixW / imgW
             let delta = newNormW - r.width
             r.origin.x = max(0, r.origin.x - delta / 2)
             r.size.width = min(newNormW, 1 - r.origin.x)
         } else if isHorizontal {
-            // Width changed, derive height
             let newPixH = pixW / ratio
             let newNormH = newPixH / imgH
             let delta = newNormH - r.height
             r.origin.y = max(0, r.origin.y - delta / 2)
             r.size.height = min(newNormH, 1 - r.origin.y)
         } else {
-            // Corner — width is authoritative, derive height
             let newPixH = pixW / ratio
             let newNormH = newPixH / imgH
             if handle == .topLeft || handle == .topRight {
@@ -351,38 +331,20 @@ struct ImageCropView: View {
                 .padding(.horizontal, 4)
             }
 
-            Text("\(pixelWidth) × \(pixelHeight)")
+            Text("\(pixelWidth) \u{00D7} \(pixelHeight)")
                 .font(.subheadline.monospacedDigit())
                 .foregroundStyle(.secondary)
 
             Button {
-                isApplying = true
-                Task {
-                    print("[Crop] renderCroppedImage starting, cropRect: \(cropRect)")
-                    if let (croppedImage, url) = renderCroppedImage() {
-                        print("[Crop] render succeeded: \(url)")
-                        await onApply(croppedImage, url)
-                        print("[Crop] onApply returned")
-                    } else {
-                        print("[Crop] renderCroppedImage returned nil!")
-                    }
-                    isApplying = false
-                }
+                onApply(cropRect)
             } label: {
-                if isApplying {
-                    ProgressView()
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, 14)
-                } else {
-                    Text("Apply")
-                        .font(.headline)
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, 14)
-                }
+                Text("Apply")
+                    .font(.headline)
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 14)
             }
             .buttonStyle(.borderedProminent)
             .tint(.teal)
-            .disabled(isApplying)
         }
         .padding(20)
         .background(.bar)
@@ -391,13 +353,11 @@ struct ImageCropView: View {
     // MARK: - Computed
 
     private var pixelWidth: Int {
-        guard let cg = image.cgImage else { return 0 }
-        return Int(cropRect.width * CGFloat(cg.width))
+        Int(cropRect.width * imageSize.width)
     }
 
     private var pixelHeight: Int {
-        guard let cg = image.cgImage else { return 0 }
-        return Int(cropRect.height * CGFloat(cg.height))
+        Int(cropRect.height * imageSize.height)
     }
 
     // MARK: - Coordinate Conversion
@@ -424,28 +384,23 @@ struct ImageCropView: View {
         selectedRatio = ratio
         guard let r = ratio.ratio(isPortrait: isPortrait) else { return }
 
-        let imgW = image.size.width
-        let imgH = image.size.height
+        let imgW = imageSize.width
+        let imgH = imageSize.height
 
-        // Maximize crop area for this ratio within the full image
         var normW: CGFloat
         var normH: CGFloat
 
-        // Check if ratio fits width-first or height-first
         let fullPixW = imgW
         let fullPixH = fullPixW / r
 
         if fullPixH <= imgH {
-            // Fits within image height — use full width
             normW = 1.0
             normH = fullPixH / imgH
         } else {
-            // Use full height, constrain width
             normH = 1.0
             normW = (imgH * r) / imgW
         }
 
-        // Center the rect
         var newRect = CGRect(
             x: (1 - normW) / 2,
             y: (1 - normH) / 2,
@@ -453,59 +408,11 @@ struct ImageCropView: View {
             height: normH
         )
 
-        // Clamp
         newRect.origin.x = max(0, min(newRect.origin.x, 1 - newRect.width))
         newRect.origin.y = max(0, min(newRect.origin.y, 1 - newRect.height))
-
-        print("[Crop] applyAspectRatio \(ratio.label(isPortrait: isPortrait)): normW=\(normW), normH=\(normH)")
 
         withAnimation(.easeInOut(duration: 0.2)) {
             cropRect = newRect
         }
-    }
-
-    // MARK: - Render
-
-    private func renderCroppedImage() -> (UIImage, URL)? {
-        // Normalize orientation
-        let renderer = UIGraphicsImageRenderer(size: image.size)
-        let normalized = renderer.image { _ in image.draw(at: .zero) }
-        guard let cgImage = normalized.cgImage else { return nil }
-
-        let imgW = CGFloat(cgImage.width)
-        let imgH = CGFloat(cgImage.height)
-
-        let pixelRect = CGRect(
-            x: (cropRect.minX * imgW).rounded(),
-            y: (cropRect.minY * imgH).rounded(),
-            width: (cropRect.width * imgW).rounded(),
-            height: (cropRect.height * imgH).rounded()
-        )
-
-        print("[Crop] pixelRect: \(pixelRect)")
-
-        guard let croppedCG = cgImage.cropping(to: pixelRect) else {
-            print("[Crop] cgImage.cropping failed!")
-            return nil
-        }
-        let croppedImage = UIImage(cgImage: croppedCG)
-
-        let ext = fileName.components(separatedBy: ".").last ?? "png"
-        let outputName = "cropped_\(UUID().uuidString.prefix(8)).\(ext)"
-        let outputURL = FileManager.default.temporaryDirectory
-            .appendingPathComponent("rango_conversions", isDirectory: true)
-            .appendingPathComponent(outputName)
-
-        try? FileManager.default.createDirectory(
-            at: outputURL.deletingLastPathComponent(),
-            withIntermediateDirectories: true
-        )
-
-        if let data = croppedImage.pngData() {
-            try? data.write(to: outputURL)
-            return (croppedImage, outputURL)
-        }
-
-        return nil
     }
 }

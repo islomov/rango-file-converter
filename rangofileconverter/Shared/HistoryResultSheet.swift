@@ -13,6 +13,7 @@ struct HistoryResultSheet: View {
     @State private var audioPlayer: AVPlayer?
     @State private var isPlayingAudio = false
     @State private var outputImage: UIImage?
+    @State private var previewTooLarge = false
     @State private var fileSize: String?
     @State private var fileDimensions: String?
     @State private var fileDuration: String?
@@ -287,6 +288,8 @@ struct HistoryResultSheet: View {
             AnimatedGIFView(url: url)
                 .frame(maxHeight: 240)
                 .clipShape(RoundedRectangle(cornerRadius: 12))
+        } else if previewTooLarge {
+            tooLargePreview(url: url)
         } else {
             Group {
                 if let image = outputImage {
@@ -304,6 +307,26 @@ struct HistoryResultSheet: View {
             }
             .onAppear { loadImage(url: url) }
         }
+    }
+
+    private func tooLargePreview(url: URL) -> some View {
+        VStack(spacing: 8) {
+            if let thumbnail = record.thumbnail {
+                Image(uiImage: thumbnail)
+                    .resizable()
+                    .aspectRatio(contentMode: .fit)
+                    .frame(maxHeight: 120)
+                    .clipShape(RoundedRectangle(cornerRadius: 10))
+            } else {
+                Image(systemName: "photo")
+                    .font(.system(size: 40))
+                    .foregroundStyle(.secondary)
+            }
+            Text("File too large to preview")
+                .font(.caption)
+                .foregroundStyle(.secondary)
+        }
+        .padding(.vertical, 8)
     }
 
     @ViewBuilder
@@ -362,10 +385,43 @@ struct HistoryResultSheet: View {
         isPlayingAudio.toggle()
     }
 
+    /// Max file size for preview (50 MB)
+    private static let maxPreviewFileSize: Int64 = 50 * 1024 * 1024
+    /// Max pixel area for preview (100 megapixels)
+    private static let maxPreviewPixels: CGFloat = 100_000_000
+
     private func loadImage(url: URL) {
         DispatchQueue.global(qos: .userInitiated).async {
-            guard let data = try? Data(contentsOf: url),
-                  let image = UIImage(data: data) else { return }
+            // Check file size
+            if let attrs = try? FileManager.default.attributesOfItem(atPath: url.path),
+               let bytes = attrs[.size] as? Int64,
+               bytes > Self.maxPreviewFileSize {
+                DispatchQueue.main.async { previewTooLarge = true }
+                return
+            }
+
+            // Check pixel dimensions
+            let sourceOptions: [CFString: Any] = [kCGImageSourceShouldCache: false]
+            guard let source = CGImageSourceCreateWithURL(url as CFURL, sourceOptions as CFDictionary) else { return }
+
+            if let props = CGImageSourceCopyPropertiesAtIndex(source, 0, nil) as? [CFString: Any],
+               let w = props[kCGImagePropertyPixelWidth] as? CGFloat,
+               let h = props[kCGImagePropertyPixelHeight] as? CGFloat,
+               w * h > Self.maxPreviewPixels {
+                DispatchQueue.main.async { previewTooLarge = true }
+                return
+            }
+
+            // Use ImageIO to downsample for preview, avoiding GPU memory limits
+            let maxPixelSize: CGFloat = 1920
+            let downsampleOptions: [CFString: Any] = [
+                kCGImageSourceCreateThumbnailFromImageAlways: true,
+                kCGImageSourceShouldCacheImmediately: true,
+                kCGImageSourceCreateThumbnailWithTransform: true,
+                kCGImageSourceThumbnailMaxPixelSize: maxPixelSize
+            ]
+            guard let cgImage = CGImageSourceCreateThumbnailAtIndex(source, 0, downsampleOptions as CFDictionary) else { return }
+            let image = UIImage(cgImage: cgImage)
             DispatchQueue.main.async {
                 outputImage = image
             }

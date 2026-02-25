@@ -25,6 +25,8 @@ struct ConversionJob: Identifiable {
     var cropPosition: CGPoint?
     /// Crop scale factor (0...1). 1.0 = maximum crop size. Only used with aspectRatio + crop mode.
     var cropScale: CGFloat?
+    /// Audio speed multiplier (e.g. 0.5 = half speed, 2.0 = double speed). Uses atempo filter.
+    var speedMultiplier: Double?
 }
 
 /// Result of a completed conversion.

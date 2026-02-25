@@ -120,6 +120,11 @@ final class FFmpegConversionEngine: ConversionEngine {
         // Format-specific arguments
         args += formatSpecificArgs(for: job.outputFormat)
 
+        // Audio speed (atempo filter)
+        if let speed = job.speedMultiplier, speed != 1.0 {
+            args += ["-af", buildAtempoFilter(speed: speed)]
+        }
+
         // Quality
         if let quality = job.quality {
             switch job.outputFormat.mediaType {
@@ -212,6 +217,22 @@ final class FFmpegConversionEngine: ConversionEngine {
         let shortID = job.id.uuidString.prefix(8)
         let outputName = "\(baseName)_\(shortID).\(job.outputFormat.fileExtension)"
         return tempDir.appendingPathComponent(outputName)
+    }
+
+    /// Builds an atempo filter chain. FFmpeg atempo supports 0.5–100.0 per instance,
+    /// so speeds below 0.5 are achieved by chaining multiple atempo filters.
+    private func buildAtempoFilter(speed: Double) -> String {
+        let clamped = max(0.25, min(speed, 4.0))
+        var remaining = clamped
+        var filters: [String] = []
+
+        while remaining < 0.5 {
+            filters.append("atempo=0.5")
+            remaining /= 0.5
+        }
+
+        filters.append("atempo=\(String(format: "%.4f", remaining))")
+        return filters.joined(separator: ",")
     }
 
     private func formatTime(_ seconds: TimeInterval) -> String {

@@ -46,6 +46,9 @@ struct VideoConverterView: View {
     @State private var compressFileName: String = ""
     @State private var compressFileURL: URL?
 
+    // Settings
+    @State private var showSettings = false
+
     // History sheet state
     @State private var selectedRecord: ConversionRecord?
 
@@ -259,12 +262,14 @@ struct VideoConverterView: View {
             Text("Video")
                 .font(.title.bold())
             Spacer()
-            Button {
-                // TODO: open settings
-            } label: {
+            Button { showSettings = true } label: {
                 Image(systemName: "gearshape")
                     .font(.title3)
                     .foregroundStyle(.primary)
+            }
+            .sheet(isPresented: $showSettings) {
+                SettingsView()
+                    .environmentObject(historyStore)
             }
         }
         .padding(.horizontal, 16)

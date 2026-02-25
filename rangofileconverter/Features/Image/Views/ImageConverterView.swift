@@ -30,6 +30,9 @@ struct ImageConverterView: View {
     @State private var showAssetPicker = false
     @State private var activeTool: String?
 
+    // Settings
+    @State private var showSettings = false
+
     // History sheet state
     @State private var selectedRecord: ConversionRecord?
 
@@ -282,12 +285,14 @@ struct ImageConverterView: View {
             Text("Image")
                 .font(.title.bold())
             Spacer()
-            Button {
-                // TODO: open settings
-            } label: {
+            Button { showSettings = true } label: {
                 Image(systemName: "gearshape")
                     .font(.title3)
                     .foregroundStyle(.primary)
+            }
+            .sheet(isPresented: $showSettings) {
+                SettingsView()
+                    .environmentObject(historyStore)
             }
         }
         .padding(.horizontal, 16)

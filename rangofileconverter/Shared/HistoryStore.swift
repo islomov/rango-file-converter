@@ -40,6 +40,60 @@ final class HistoryStore: ObservableObject {
         save()
     }
 
+    func removeAll(for mediaCategory: String? = nil) {
+        let toRemove = mediaCategory.map { records(for: $0) } ?? records
+        for record in toRemove {
+            if let outputURL = record.outputURL {
+                try? FileManager.default.removeItem(at: outputURL)
+            }
+        }
+        if let mediaCategory {
+            records.removeAll { $0.mediaCategory == mediaCategory }
+        } else {
+            records.removeAll()
+        }
+        save()
+    }
+
+    // MARK: - Storage Info
+
+    private var conversionsDirectory: URL {
+        let docs = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
+        return docs.appendingPathComponent("rango_conversions", isDirectory: true)
+    }
+
+    func totalStorageBytes() -> Int64 {
+        directorySize(at: conversionsDirectory)
+    }
+
+    func storageBytes(for mediaCategory: String) -> Int64 {
+        let fm = FileManager.default
+        let categoryRecords = records(for: mediaCategory)
+        var total: Int64 = 0
+        for record in categoryRecords {
+            guard let url = record.outputURL else { continue }
+            if let attrs = try? fm.attributesOfItem(atPath: url.path),
+               let size = attrs[.size] as? Int64 {
+                total += size
+            }
+        }
+        return total
+    }
+
+    private func directorySize(at url: URL) -> Int64 {
+        let fm = FileManager.default
+        guard let enumerator = fm.enumerator(at: url, includingPropertiesForKeys: [.fileSizeKey], options: [.skipsHiddenFiles]) else {
+            return 0
+        }
+        var total: Int64 = 0
+        for case let fileURL as URL in enumerator {
+            if let size = try? fileURL.resourceValues(forKeys: [.fileSizeKey]).fileSize {
+                total += Int64(size)
+            }
+        }
+        return total
+    }
+
     func save() {
         objectWillChange.send()
         do {

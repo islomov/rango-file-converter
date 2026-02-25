@@ -11,7 +11,7 @@ final class FFmpegMergeEngine {
             case .noInputFiles:
                 return "No input files provided for merging."
             case .concatFailed(let reason):
-                return "Video merge failed: \(reason)"
+                return "Merge failed: \(reason)"
             }
         }
     }
@@ -73,6 +73,67 @@ final class FFmpegMergeEngine {
             "-c:v", "mpeg4",
             "-c:a", "aac",
             "-b:a", "128k",
+            outputURL.path
+        ]
+        try await wrapper.execute(args)
+
+        return outputURL
+    }
+
+    /// Merge multiple audio files into a single output using FFmpeg concat demuxer.
+    /// First attempts stream copy (fast, lossless). If that fails, falls back to re-encoding audio only.
+    func mergeAudio(
+        inputs: [URL],
+        outputExtension: String,
+        progressFilePath: String? = nil
+    ) async throws -> URL {
+        guard !inputs.isEmpty else { throw MergeError.noInputFiles }
+
+        let tempDir = FileManager.default.temporaryDirectory
+            .appendingPathComponent("rango_conversions", isDirectory: true)
+        try? FileManager.default.createDirectory(at: tempDir, withIntermediateDirectories: true)
+
+        let listURL = tempDir.appendingPathComponent("concat_\(UUID().uuidString.prefix(8)).txt")
+        let listContent = inputs.map { "file '\($0.path)'" }.joined(separator: "\n")
+        try listContent.write(to: listURL, atomically: true, encoding: .utf8)
+        defer { try? FileManager.default.removeItem(at: listURL) }
+
+        let outputName = "merged_\(UUID().uuidString.prefix(8)).\(outputExtension)"
+        let outputURL = tempDir.appendingPathComponent(outputName)
+        try? FileManager.default.removeItem(at: outputURL)
+
+        // Attempt 1: stream copy (fast — works when all inputs share the same codec)
+        do {
+            var args = ["ffmpeg", "-y"]
+            if let progressPath = progressFilePath {
+                args += ["-progress", progressPath]
+            }
+            args += [
+                "-f", "concat",
+                "-safe", "0",
+                "-i", listURL.path,
+                "-vn",
+                "-c:a", "copy",
+                outputURL.path
+            ]
+            try await wrapper.execute(args)
+            return outputURL
+        } catch {
+            try? FileManager.default.removeItem(at: outputURL)
+        }
+
+        // Attempt 2: re-encode audio with consistent settings
+        var args = ["ffmpeg", "-y"]
+        if let progressPath = progressFilePath {
+            args += ["-progress", progressPath]
+        }
+        args += [
+            "-f", "concat",
+            "-safe", "0",
+            "-i", listURL.path,
+            "-vn",
+            "-c:a", "aac",
+            "-b:a", "192k",
             outputURL.path
         ]
         try await wrapper.execute(args)

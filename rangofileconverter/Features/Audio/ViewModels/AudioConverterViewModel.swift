@@ -232,6 +232,70 @@ final class AudioConverterViewModel: ObservableObject {
         taskManager.register(id: record.id, task: task)
     }
 
+    // MARK: - Crop Audio
+
+    func cropAudio(inputURL: URL, fileName: String, startTime: Double, endTime: Double) {
+        let sourceExt = fileName.components(separatedBy: ".").last?.uppercased() ?? "UNKNOWN"
+        let ext = fileName.components(separatedBy: ".").last?.lowercased() ?? "mp3"
+
+        let record = ConversionRecord(
+            sourceFileName: fileName,
+            sourceFormat: sourceExt,
+            targetFormatID: ext,
+            thumbnailData: nil,
+            status: .converting,
+            toolType: "Crop",
+            mediaCategory: "audio"
+        )
+
+        store.add(record)
+
+        let task = Task.detached { [weak self] in
+            guard let self else { return }
+            defer { self.taskManager.remove(id: record.id) }
+
+            do {
+                guard !Task.isCancelled else {
+                    await MainActor.run { self.failRecord(record, error: "Cancelled") }
+                    return
+                }
+
+                let tempDir = FileManager.default.temporaryDirectory
+                    .appendingPathComponent("rango_conversions", isDirectory: true)
+                try? FileManager.default.createDirectory(at: tempDir, withIntermediateDirectories: true)
+
+                let shortID = UUID().uuidString.prefix(8)
+                let outputURL = tempDir.appendingPathComponent("crop_\(shortID).\(ext)")
+
+                try await FFmpegWrapper.shared.convert(
+                    input: inputURL,
+                    output: outputURL,
+                    extraArgs: [
+                        "-ss", String(format: "%.3f", startTime),
+                        "-to", String(format: "%.3f", endTime),
+                        "-c", "copy"
+                    ]
+                )
+
+                let outputPath = ConversionRecord.persistOutput(from: outputURL)
+                await MainActor.run {
+                    record.progress = 1.0
+                    record.status = .converted
+                    record.outputPath = outputPath
+                    self.store.save()
+                }
+            } catch {
+                await MainActor.run {
+                    record.status = .failed
+                    record.errorMessage = error.localizedDescription
+                    self.store.save()
+                }
+            }
+        }
+
+        taskManager.register(id: record.id, task: task)
+    }
+
     private func failRecord(_ record: ConversionRecord, error: String) {
         record.status = .failed
         record.errorMessage = error

@@ -1,11 +1,14 @@
 import SwiftUI
 import AVFoundation
 
-struct VideoTimeClipView: View {
-    let videoURL: URL
-    let thumbnail: UIImage
+struct AudioCropView: View {
+    let fileURL: URL
     let fileName: String
     let onApply: (_ startTime: Double, _ endTime: Double) -> Void
+
+    private static let playableExtensions: Set<String> = [
+        "mp3", "wav", "m4a", "aac", "aiff", "flac", "caf", "au", "mp2"
+    ]
 
     @State private var duration: Double = 0
     @State private var startTime: Double = 0
@@ -14,16 +17,17 @@ struct VideoTimeClipView: View {
     @State private var currentTime: Double = 0
     @State private var player: AVPlayer?
     @State private var timeObserver: Any?
-    @State private var videoAspectRatio: CGFloat?
+    @State private var playableURL: URL?
+    @State private var isConverting = false
 
     var body: some View {
         VStack(spacing: 0) {
             Spacer()
-            videoPreview
+            audioPreview
             Spacer()
             controls
         }
-        .navigationTitle("Time Clip")
+        .navigationTitle("Audio Cropping")
         .navigationBarTitleDisplayMode(.inline)
         .task {
             await setupPlayer()
@@ -33,42 +37,28 @@ struct VideoTimeClipView: View {
         }
     }
 
-    // MARK: - Video Preview
+    // MARK: - Audio Preview
 
-    private var videoPreview: some View {
+    private var audioPreview: some View {
         VStack(spacing: 12) {
             ZStack {
-                if let player {
-                    PlayerView(player: player)
-                        .aspectRatio(videoAspectRatio ?? (thumbnail.size.width / thumbnail.size.height), contentMode: .fit)
-                        .clipShape(RoundedRectangle(cornerRadius: 8))
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 8)
-                                .stroke(.quaternary, lineWidth: 1)
-                        )
-                        .contentShape(Rectangle())
-                        .onTapGesture { togglePlayback() }
-                        .overlay {
-                            Image(systemName: isPlaying ? "pause.fill" : "play.fill")
-                                .font(.title)
-                                .foregroundStyle(.white)
-                                .padding(16)
-                                .background(.black.opacity(0.4), in: Circle())
-                                .opacity(isPlaying ? 0 : 1)
-                                .animation(.easeInOut(duration: 0.2), value: isPlaying)
-                        }
-                } else {
-                    Image(uiImage: thumbnail)
-                        .resizable()
-                        .aspectRatio(contentMode: .fit)
-                        .clipShape(RoundedRectangle(cornerRadius: 8))
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 8)
-                                .stroke(.quaternary, lineWidth: 1)
-                        )
+                RoundedRectangle(cornerRadius: 12)
+                    .fill(.quaternary)
+                    .frame(height: 200)
+
+                VStack(spacing: 12) {
+                    Image(systemName: "waveform")
+                        .font(.system(size: 48))
+                        .foregroundStyle(.secondary)
+
+                    Text(sourceExtension.uppercased())
+                        .font(.caption.weight(.bold))
+                        .foregroundStyle(.white)
+                        .padding(.horizontal, 10)
+                        .padding(.vertical, 4)
+                        .background(.secondary, in: Capsule())
                 }
             }
-            .frame(maxHeight: 400)
 
             HStack(spacing: 4) {
                 Text(fileName)
@@ -140,36 +130,45 @@ struct VideoTimeClipView: View {
             }
 
             // Playback controls
-            HStack(spacing: 24) {
-                Button {
-                    pauseAndSeek(to: startTime)
-                } label: {
-                    Image(systemName: "backward.end.fill")
-                        .font(.title3)
+            if isConverting {
+                HStack(spacing: 8) {
+                    ProgressView()
+                    Text("Preparing audio...")
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
                 }
+            } else if player != nil {
+                HStack(spacing: 24) {
+                    Button {
+                        pauseAndSeek(to: startTime)
+                    } label: {
+                        Image(systemName: "backward.end.fill")
+                            .font(.title3)
+                    }
 
-                Button {
-                    togglePlayback()
-                } label: {
-                    Image(systemName: isPlaying ? "pause.circle.fill" : "play.circle.fill")
-                        .font(.largeTitle)
-                }
+                    Button {
+                        togglePlayback()
+                    } label: {
+                        Image(systemName: isPlaying ? "pause.circle.fill" : "play.circle.fill")
+                            .font(.largeTitle)
+                    }
 
-                Button {
-                    pauseAndSeek(to: max(startTime, endTime - 0.5))
-                } label: {
-                    Image(systemName: "forward.end.fill")
-                        .font(.title3)
+                    Button {
+                        pauseAndSeek(to: max(startTime, endTime - 0.5))
+                    } label: {
+                        Image(systemName: "forward.end.fill")
+                            .font(.title3)
+                    }
                 }
+                .foregroundStyle(.primary)
             }
-            .foregroundStyle(.primary)
 
             Button {
                 player?.pause()
                 isPlaying = false
                 onApply(startTime, endTime)
             } label: {
-                Text("Clip Video")
+                Text("Crop Audio")
                     .font(.headline)
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 14)
@@ -184,8 +183,45 @@ struct VideoTimeClipView: View {
 
     // MARK: - Player
 
+    private var isAVPlayerCompatible: Bool {
+        Self.playableExtensions.contains(sourceExtension.lowercased())
+    }
+
     private func setupPlayer() async {
-        let asset = AVAsset(url: videoURL)
+        // For non-compatible formats, convert to WAV for preview playback
+        var audioURL = fileURL
+        if !isAVPlayerCompatible {
+            isConverting = true
+            do {
+                let tempDir = FileManager.default.temporaryDirectory
+                    .appendingPathComponent("rango_audio_preview", isDirectory: true)
+                try? FileManager.default.createDirectory(at: tempDir, withIntermediateDirectories: true)
+                let shortID = UUID().uuidString.prefix(8)
+                let wavURL = tempDir.appendingPathComponent("preview_\(shortID).wav")
+                try await FFmpegWrapper.shared.convert(
+                    input: fileURL,
+                    output: wavURL,
+                    extraArgs: ["-vn", "-acodec", "pcm_s16le"]
+                )
+                audioURL = wavURL
+                playableURL = wavURL
+            } catch {
+                // If conversion fails, just load duration without playback
+                isConverting = false
+                let asset = AVAsset(url: fileURL)
+                if let cmDuration = try? await asset.load(.duration) {
+                    let seconds = CMTimeGetSeconds(cmDuration)
+                    if seconds.isFinite && seconds > 0 {
+                        duration = seconds
+                        endTime = seconds
+                    }
+                }
+                return
+            }
+            isConverting = false
+        }
+
+        let asset = AVAsset(url: audioURL)
         do {
             let cmDuration = try await asset.load(.duration)
             let seconds = CMTimeGetSeconds(cmDuration)
@@ -193,23 +229,14 @@ struct VideoTimeClipView: View {
                 duration = seconds
                 endTime = seconds
             }
-
-            let tracks = try await asset.loadTracks(withMediaType: .video)
-            if let track = tracks.first {
-                let size = try await track.load(.naturalSize)
-                let transform = try await track.load(.preferredTransform)
-                let transformedSize = size.applying(transform)
-                let w = abs(transformedSize.width)
-                let h = abs(transformedSize.height)
-                if w > 0 && h > 0 {
-                    videoAspectRatio = w / h
-                }
-            }
         } catch {
             return
         }
 
-        let playerItem = AVPlayerItem(url: videoURL)
+        try? AVAudioSession.sharedInstance().setCategory(.playback, mode: .default)
+        try? AVAudioSession.sharedInstance().setActive(true)
+
+        let playerItem = AVPlayerItem(url: audioURL)
         let avPlayer = AVPlayer(playerItem: playerItem)
         avPlayer.actionAtItemEnd = .pause
 
@@ -221,7 +248,6 @@ struct VideoTimeClipView: View {
             guard secs.isFinite else { return }
             currentTime = secs
 
-            // Stop at end boundary during playback
             if isPlaying && secs >= endTime {
                 avPlayer?.pause()
                 isPlaying = false
@@ -241,7 +267,6 @@ struct VideoTimeClipView: View {
             player.pause()
             isPlaying = false
         } else {
-            // Always start from startTime
             player.seek(to: CMTime(seconds: startTime, preferredTimescale: 600), toleranceBefore: .zero, toleranceAfter: .zero) { [weak player] _ in
                 player?.play()
                 isPlaying = true
@@ -264,9 +289,18 @@ struct VideoTimeClipView: View {
             timeObserver = nil
         }
         player = nil
+        if let tempURL = playableURL {
+            try? FileManager.default.removeItem(at: tempURL)
+            playableURL = nil
+        }
+        try? AVAudioSession.sharedInstance().setActive(false, options: .notifyOthersOnDeactivation)
     }
 
     // MARK: - Helpers
+
+    private var sourceExtension: String {
+        fileName.components(separatedBy: ".").last ?? ""
+    }
 
     private func formatTime(_ seconds: Double) -> String {
         guard seconds.isFinite && seconds >= 0 else { return "00:00" }
@@ -280,5 +314,3 @@ struct VideoTimeClipView: View {
         return String(format: "%02d:%02d", minutes, secs)
     }
 }
-
-// RangeSliderView is now in Shared/RangeSliderView.swift

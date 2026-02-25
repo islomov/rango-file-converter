@@ -30,14 +30,14 @@ private enum ResizePreset: String, CaseIterable {
 }
 
 struct ImageResizeView: View {
-    let image: UIImage
+    let fileURL: URL
     let fileName: String
-    let onApply: (UIImage, URL) -> Void
+    let onApply: (Int, Int) -> Void
 
-    @State private var width: Int
-    @State private var height: Int
+    @State private var previewImage: UIImage?
+    @State private var width: Int = 0
+    @State private var height: Int = 0
     @State private var lockAspectRatio = true
-    @State private var isApplying = false
     @State private var activeField: Field?
 
     private let originalWidth: Int
@@ -48,12 +48,13 @@ struct ImageResizeView: View {
         case width, height
     }
 
-    init(image: UIImage, fileName: String, onApply: @escaping (UIImage, URL) -> Void) {
-        self.image = image
+    init(fileURL: URL, fileName: String, onApply: @escaping (Int, Int) -> Void) {
+        self.fileURL = fileURL
         self.fileName = fileName
         self.onApply = onApply
-        let w = Int(image.size.width)
-        let h = Int(image.size.height)
+        let dims = ImageConverterViewModel.imageDimensions(from: fileURL) ?? CGSize(width: 100, height: 100)
+        let w = Int(dims.width)
+        let h = Int(dims.height)
         self.originalWidth = w
         self.originalHeight = h
         self.aspectRatio = Double(w) / Double(h)
@@ -66,30 +67,14 @@ struct ImageResizeView: View {
     }
 
     var body: some View {
-        ZStack {
-            VStack(spacing: 0) {
-                Spacer()
+        VStack(spacing: 0) {
+            Spacer()
 
-                preview
+            preview
 
-                Spacer()
+            Spacer()
 
-                controls
-            }
-            .allowsHitTesting(!isApplying)
-
-            if isApplying {
-                Color.black.opacity(0.4)
-                    .ignoresSafeArea()
-                VStack(spacing: 16) {
-                    ProgressView()
-                        .scaleEffect(1.5)
-                        .tint(.white)
-                    Text("Resizing...")
-                        .font(.headline)
-                        .foregroundStyle(.white)
-                }
-            }
+            controls
         }
         .navigationTitle("Resize")
         .navigationBarTitleDisplayMode(.inline)
@@ -99,8 +84,11 @@ struct ImageResizeView: View {
                     width = originalWidth
                     height = originalHeight
                 }
-                .disabled(isApplying || !dimensionsChanged)
+                .disabled(!dimensionsChanged)
             }
+        }
+        .onAppear {
+            previewImage = ImageConverterViewModel.loadPreviewImage(from: fileURL)
         }
     }
 
@@ -108,14 +96,19 @@ struct ImageResizeView: View {
 
     private var preview: some View {
         VStack(spacing: 16) {
-            Image(uiImage: image)
-                .resizable()
-                .aspectRatio(contentMode: .fit)
-                .frame(maxHeight: 300)
-                .clipShape(RoundedRectangle(cornerRadius: 8))
+            if let previewImage {
+                Image(uiImage: previewImage)
+                    .resizable()
+                    .aspectRatio(contentMode: .fit)
+                    .frame(maxHeight: 300)
+                    .clipShape(RoundedRectangle(cornerRadius: 8))
+            } else {
+                ProgressView()
+                    .frame(height: 300)
+            }
 
             HStack(spacing: 8) {
-                Text("\(originalWidth) × \(originalHeight)")
+                Text("\(originalWidth) \u{00D7} \(originalHeight)")
                     .font(.subheadline.weight(.medium))
                     .foregroundStyle(.secondary)
 
@@ -124,7 +117,7 @@ struct ImageResizeView: View {
                         .font(.caption)
                         .foregroundStyle(.tertiary)
 
-                    Text("\(width) × \(height)")
+                    Text("\(width) \u{00D7} \(height)")
                         .font(.subheadline.weight(.medium))
                         .foregroundStyle(.orange)
 
@@ -142,7 +135,6 @@ struct ImageResizeView: View {
 
     private var controls: some View {
         VStack(spacing: 20) {
-            // Presets
             VStack(spacing: 8) {
                 Text("Presets")
                     .font(.subheadline.weight(.medium))
@@ -150,7 +142,6 @@ struct ImageResizeView: View {
                 presetPicker
             }
 
-            // Dimensions input
             VStack(spacing: 12) {
                 HStack(spacing: 12) {
                     dimensionField(label: "W", value: $width, field: .width)
@@ -169,30 +160,17 @@ struct ImageResizeView: View {
                 }
             }
 
-            // Apply button
             Button {
-                isApplying = true
-                Task {
-                    if let (resizedImage, url) = renderResizedImage() {
-                        onApply(resizedImage, url)
-                    }
-                    isApplying = false
-                }
+                onApply(width, height)
             } label: {
-                if isApplying {
-                    ProgressView()
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, 14)
-                } else {
-                    Text("Resize")
-                        .font(.headline)
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, 14)
-                }
+                Text("Resize")
+                    .font(.headline)
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 14)
             }
             .buttonStyle(.borderedProminent)
             .tint(.orange)
-            .disabled(isApplying || !dimensionsChanged || width < 1 || height < 1)
+            .disabled(!dimensionsChanged || width < 1 || height < 1)
         }
         .padding(20)
         .background(.bar)
@@ -261,34 +239,5 @@ struct ImageResizeView: View {
         width = Int(target.width)
         height = Int(target.height)
         activeField = nil
-    }
-
-    // MARK: - Render
-
-    private func renderResizedImage() -> (UIImage, URL)? {
-        let newSize = CGSize(width: width, height: height)
-
-        let renderer = UIGraphicsImageRenderer(size: newSize)
-        let resized = renderer.image { _ in
-            image.draw(in: CGRect(origin: .zero, size: newSize))
-        }
-
-        let ext = fileName.components(separatedBy: ".").last ?? "png"
-        let outputName = "resized_\(UUID().uuidString.prefix(8)).\(ext)"
-        let outputURL = FileManager.default.temporaryDirectory
-            .appendingPathComponent("rango_conversions", isDirectory: true)
-            .appendingPathComponent(outputName)
-
-        try? FileManager.default.createDirectory(
-            at: outputURL.deletingLastPathComponent(),
-            withIntermediateDirectories: true
-        )
-
-        if let data = resized.pngData() {
-            try? data.write(to: outputURL)
-            return (resized, outputURL)
-        }
-
-        return nil
     }
 }

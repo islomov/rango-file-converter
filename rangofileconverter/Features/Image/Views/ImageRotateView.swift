@@ -1,52 +1,42 @@
 import SwiftUI
 
 struct ImageRotateView: View {
-    let image: UIImage
+    let fileURL: URL
     let fileName: String
-    let onApply: (UIImage, URL) async -> Void
+    let onApply: (Double, Bool, Bool) -> Void
 
     @State private var rotation: Double = 0
     @State private var flipH = false
     @State private var flipV = false
-    @State private var isApplying = false
+    @State private var previewImage: UIImage?
 
     var body: some View {
-        ZStack {
-            VStack(spacing: 0) {
-                Spacer()
+        VStack(spacing: 0) {
+            Spacer()
 
-                GeometryReader { geo in
-                    let maxSide = min(geo.size.width - 40, geo.size.height)
-                    Image(uiImage: image)
-                        .resizable()
-                        .aspectRatio(contentMode: .fit)
-                        .frame(maxWidth: maxSide, maxHeight: maxSide)
-                        .rotationEffect(.degrees(rotation))
-                        .scaleEffect(x: flipH ? -1 : 1, y: flipV ? -1 : 1)
-                        .frame(width: geo.size.width, height: geo.size.height)
-                        .animation(.easeInOut(duration: 0.25), value: rotation)
-                        .animation(.easeInOut(duration: 0.25), value: flipH)
-                        .animation(.easeInOut(duration: 0.25), value: flipV)
+            GeometryReader { geo in
+                let maxSide = min(geo.size.width - 40, geo.size.height)
+                Group {
+                    if let previewImage {
+                        Image(uiImage: previewImage)
+                            .resizable()
+                            .aspectRatio(contentMode: .fit)
+                            .frame(maxWidth: maxSide, maxHeight: maxSide)
+                            .rotationEffect(.degrees(rotation))
+                            .scaleEffect(x: flipH ? -1 : 1, y: flipV ? -1 : 1)
+                            .animation(.easeInOut(duration: 0.25), value: rotation)
+                            .animation(.easeInOut(duration: 0.25), value: flipH)
+                            .animation(.easeInOut(duration: 0.25), value: flipV)
+                    } else {
+                        ProgressView()
+                    }
                 }
-
-                Spacer()
-
-                controls
+                .frame(width: geo.size.width, height: geo.size.height)
             }
-            .allowsHitTesting(!isApplying)
 
-            if isApplying {
-                Color.black.opacity(0.4)
-                    .ignoresSafeArea()
-                VStack(spacing: 16) {
-                    ProgressView()
-                        .scaleEffect(1.5)
-                        .tint(.white)
-                    Text("Rotating...")
-                        .font(.headline)
-                        .foregroundStyle(.white)
-                }
-            }
+            Spacer()
+
+            controls
         }
         .navigationTitle("Rotate")
         .navigationBarTitleDisplayMode(.inline)
@@ -57,8 +47,11 @@ struct ImageRotateView: View {
                     flipH = false
                     flipV = false
                 }
-                .disabled(isApplying || (rotation == 0 && !flipH && !flipV))
+                .disabled(rotation == 0 && !flipH && !flipV)
             }
+        }
+        .onAppear {
+            previewImage = ImageConverterViewModel.loadPreviewImage(from: fileURL)
         }
     }
 
@@ -66,10 +59,10 @@ struct ImageRotateView: View {
         VStack(spacing: 20) {
             // Quick actions
             HStack(spacing: 24) {
-                quickAction(icon: "rotate.left", label: "90° L") {
+                quickAction(icon: "rotate.left", label: "90\u{00B0} L") {
                     rotation -= 90
                 }
-                quickAction(icon: "rotate.right", label: "90° R") {
+                quickAction(icon: "rotate.right", label: "90\u{00B0} R") {
                     rotation += 90
                 }
                 quickAction(icon: "arrow.left.and.right.righttriangle.left.righttriangle.right", label: "Flip H") {
@@ -82,7 +75,7 @@ struct ImageRotateView: View {
 
             // Free rotation slider
             VStack(spacing: 8) {
-                Text("\(Int(normalizedDegrees))°")
+                Text("\(Int(normalizedDegrees))\u{00B0}")
                     .font(.subheadline.monospacedDigit())
                     .foregroundStyle(.secondary)
 
@@ -92,33 +85,15 @@ struct ImageRotateView: View {
 
             // Apply button
             Button {
-                isApplying = true
-                Task {
-                    print("[Rotate] renderRotatedImage starting...")
-                    if let (rotatedImage, url) = renderRotatedImage() {
-                        print("[Rotate] render succeeded, url: \(url)")
-                        print("[Rotate] calling onApply...")
-                        await onApply(rotatedImage, url)
-                        print("[Rotate] onApply returned")
-                    } else {
-                        print("[Rotate] renderRotatedImage returned nil!")
-                    }
-                    isApplying = false
-                }
+                onApply(rotation, flipH, flipV)
             } label: {
-                if isApplying {
-                    ProgressView()
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, 14)
-                } else {
-                    Text("Apply")
-                        .font(.headline)
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, 14)
-                }
+                Text("Apply")
+                    .font(.headline)
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 14)
             }
             .buttonStyle(.borderedProminent)
-            .disabled(isApplying || (rotation == 0 && !flipH && !flipV))
+            .disabled(rotation == 0 && !flipH && !flipV)
         }
         .padding(20)
         .background(.bar)
@@ -141,60 +116,5 @@ struct ImageRotateView: View {
     private var normalizedDegrees: Double {
         let mod = rotation.truncatingRemainder(dividingBy: 360)
         return mod < 0 ? mod + 360 : mod
-    }
-
-    // MARK: - Render
-
-    private func renderRotatedImage() -> (UIImage, URL)? {
-        guard let cgImage = image.cgImage else { return nil }
-
-        let width = CGFloat(cgImage.width)
-        let height = CGFloat(cgImage.height)
-        let radians = rotation * .pi / 180
-
-        // Compute bounding box of rotated image
-        let rotatedRect = CGRect(x: 0, y: 0, width: width, height: height)
-            .applying(CGAffineTransform(rotationAngle: radians))
-        let newWidth = abs(rotatedRect.width)
-        let newHeight = abs(rotatedRect.height)
-
-        let colorSpace = CGColorSpaceCreateDeviceRGB()
-        let bitmapInfo = CGImageAlphaInfo.premultipliedLast.rawValue
-        guard let context = CGContext(
-                  data: nil,
-                  width: Int(newWidth),
-                  height: Int(newHeight),
-                  bitsPerComponent: 8,
-                  bytesPerRow: 0,
-                  space: colorSpace,
-                  bitmapInfo: bitmapInfo
-              ) else { return nil }
-
-        context.translateBy(x: newWidth / 2, y: newHeight / 2)
-        context.rotate(by: radians)
-        context.scaleBy(x: flipH ? -1 : 1, y: flipV ? -1 : 1)
-        context.draw(cgImage, in: CGRect(x: -width / 2, y: -height / 2, width: width, height: height))
-
-        guard let outputCG = context.makeImage() else { return nil }
-        let outputImage = UIImage(cgImage: outputCG)
-
-        // Save to temp file
-        let ext = fileName.components(separatedBy: ".").last ?? "png"
-        let outputName = "rotated_\(UUID().uuidString.prefix(8)).\(ext)"
-        let outputURL = FileManager.default.temporaryDirectory
-            .appendingPathComponent("rango_conversions", isDirectory: true)
-            .appendingPathComponent(outputName)
-
-        try? FileManager.default.createDirectory(
-            at: outputURL.deletingLastPathComponent(),
-            withIntermediateDirectories: true
-        )
-
-        if let data = outputImage.pngData() {
-            try? data.write(to: outputURL)
-            return (outputImage, outputURL)
-        }
-
-        return nil
     }
 }

@@ -29,7 +29,6 @@ private enum CompressFormat: String, CaseIterable {
         }
     }
 
-    /// Whether this format requires FFmpeg for encoding.
     var usesFFmpeg: Bool {
         switch self {
         case .jp2, .tiff: return true
@@ -39,49 +38,33 @@ private enum CompressFormat: String, CaseIterable {
 }
 
 struct ImageCompressView: View {
-    let image: UIImage
-    let fileName: String
     let fileURL: URL
-    let onApply: (UIImage, URL) async -> Void
+    let fileName: String
+    let onApply: (String, Double) -> Void
 
+    @State private var previewImage: UIImage?
     @State private var selectedFormat: CompressFormat = .jpeg
     @State private var quality: Double = 80
-    @State private var isApplying = false
     @State private var originalSize: Int64 = 0
     @State private var estimatedSize: Int64 = 0
     @State private var estimationTask: Task<Void, Never>?
-
-    private let coordinator = ConversionCoordinator()
+    @State private var imageSize: CGSize = .zero
 
     var body: some View {
-        ZStack {
-            VStack(spacing: 0) {
-                Spacer()
+        VStack(spacing: 0) {
+            Spacer()
 
-                preview
+            preview
 
-                Spacer()
+            Spacer()
 
-                controls
-            }
-            .allowsHitTesting(!isApplying)
-
-            if isApplying {
-                Color.black.opacity(0.4)
-                    .ignoresSafeArea()
-                VStack(spacing: 16) {
-                    ProgressView()
-                        .scaleEffect(1.5)
-                        .tint(.white)
-                    Text("Compressing...")
-                        .font(.headline)
-                        .foregroundStyle(.white)
-                }
-            }
+            controls
         }
         .navigationTitle("Compress")
         .navigationBarTitleDisplayMode(.inline)
         .onAppear {
+            previewImage = ImageConverterViewModel.loadPreviewImage(from: fileURL)
+            imageSize = ImageConverterViewModel.imageDimensions(from: fileURL) ?? .zero
             loadOriginalSize()
             updateEstimatedSize()
         }
@@ -97,13 +80,17 @@ struct ImageCompressView: View {
 
     private var preview: some View {
         VStack(spacing: 16) {
-            Image(uiImage: image)
-                .resizable()
-                .aspectRatio(contentMode: .fit)
-                .frame(maxHeight: 300)
-                .clipShape(RoundedRectangle(cornerRadius: 8))
+            if let previewImage {
+                Image(uiImage: previewImage)
+                    .resizable()
+                    .aspectRatio(contentMode: .fit)
+                    .frame(maxHeight: 300)
+                    .clipShape(RoundedRectangle(cornerRadius: 8))
+            } else {
+                ProgressView()
+                    .frame(height: 300)
+            }
 
-            // File size comparison
             HStack(spacing: 8) {
                 Text(formatBytes(originalSize))
                     .font(.subheadline.weight(.medium))
@@ -132,7 +119,6 @@ struct ImageCompressView: View {
 
     private var controls: some View {
         VStack(spacing: 20) {
-            // Format picker
             VStack(spacing: 8) {
                 Text("Format")
                     .font(.subheadline.weight(.medium))
@@ -140,7 +126,6 @@ struct ImageCompressView: View {
                 formatPicker
             }
 
-            // Quality slider (hidden for lossless formats)
             if selectedFormat.isLossy {
                 VStack(spacing: 8) {
                     HStack {
@@ -164,30 +149,16 @@ struct ImageCompressView: View {
                 }
             }
 
-            // Apply button
             Button {
-                isApplying = true
-                Task {
-                    if let (thumbnail, url) = await renderCompressed() {
-                        await onApply(thumbnail, url)
-                    }
-                    isApplying = false
-                }
+                onApply(selectedFormat.fileExtension, quality)
             } label: {
-                if isApplying {
-                    ProgressView()
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, 14)
-                } else {
-                    Text("Compress")
-                        .font(.headline)
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, 14)
-                }
+                Text("Compress")
+                    .font(.headline)
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 14)
             }
             .buttonStyle(.borderedProminent)
             .tint(.purple)
-            .disabled(isApplying)
         }
         .padding(20)
         .background(.bar)
@@ -227,7 +198,6 @@ struct ImageCompressView: View {
     private func updateEstimatedSize() {
         estimationTask?.cancel()
         estimationTask = Task {
-            // Small debounce
             try? await Task.sleep(for: .milliseconds(150))
             guard !Task.isCancelled else { return }
 
@@ -239,34 +209,22 @@ struct ImageCompressView: View {
     }
 
     private func estimateCompressedSize() -> Int64 {
-        // FFmpeg formats can't be estimated quickly in-process
         if selectedFormat.usesFFmpeg {
-            // Rough estimate based on format characteristics
-            let pixelCount = image.size.width * image.size.height
+            let pixelCount = imageSize.width * imageSize.height
             let bytesPerPixel: Double
             switch selectedFormat {
             case .jp2:
                 bytesPerPixel = selectedFormat.isLossy ? (quality / 100) * 3.0 : 3.0
             case .tiff:
-                bytesPerPixel = 3.0 // Uncompressed TIFF ~3 bytes/pixel for RGB
+                bytesPerPixel = 3.0
             default:
                 bytesPerPixel = 1.0
             }
             return Int64(pixelCount * bytesPerPixel)
         }
 
-        // Use a scaled-down version for fast estimation (native formats)
-        let maxDim: CGFloat = 800
-        let scale = min(maxDim / image.size.width, maxDim / image.size.height, 1.0)
-        let sampleSize = CGSize(
-            width: image.size.width * scale,
-            height: image.size.height * scale
-        )
-
-        let renderer = UIGraphicsImageRenderer(size: sampleSize)
-        let sample = renderer.image { _ in
-            image.draw(in: CGRect(origin: .zero, size: sampleSize))
-        }
+        // Use the preview image for estimation (already downsampled)
+        guard let sample = previewImage else { return 0 }
 
         let sampleData: Data?
         switch selectedFormat {
@@ -279,85 +237,19 @@ struct ImageCompressView: View {
         case .webp:
             sampleData = try? encodeWebPData(from: sample, quality: quality / 100)
         case .jp2, .tiff:
-            sampleData = nil // Handled above
+            sampleData = nil
         }
 
         guard let data = sampleData else { return 0 }
 
-        // Extrapolate from sample to full size
-        if scale < 1.0 {
-            let pixelRatio = (image.size.width * image.size.height) / (sampleSize.width * sampleSize.height)
+        // Extrapolate from preview to full size
+        let previewPixels = sample.size.width * sample.size.height
+        let fullPixels = imageSize.width * imageSize.height
+        if previewPixels > 0 && fullPixels > previewPixels {
+            let pixelRatio = fullPixels / previewPixels
             return Int64(Double(data.count) * pixelRatio)
         }
         return Int64(data.count)
-    }
-
-    // MARK: - Render
-
-    private func renderCompressed() async -> (UIImage, URL)? {
-        if selectedFormat.usesFFmpeg {
-            return await renderViaFFmpeg()
-        }
-        return renderNative()
-    }
-
-    private func renderNative() -> (UIImage, URL)? {
-        // Normalize orientation
-        let renderer = UIGraphicsImageRenderer(size: image.size)
-        let normalized = renderer.image { _ in
-            image.draw(in: CGRect(origin: .zero, size: image.size))
-        }
-
-        let outputName = "compressed_\(UUID().uuidString.prefix(8)).\(selectedFormat.fileExtension)"
-        let outputURL = FileManager.default.temporaryDirectory
-            .appendingPathComponent("rango_conversions", isDirectory: true)
-            .appendingPathComponent(outputName)
-
-        try? FileManager.default.createDirectory(
-            at: outputURL.deletingLastPathComponent(),
-            withIntermediateDirectories: true
-        )
-
-        let data: Data?
-        switch selectedFormat {
-        case .jpeg:
-            data = normalized.jpegData(compressionQuality: quality / 100)
-        case .png:
-            data = normalized.pngData()
-        case .heic:
-            data = encodeHEICData(from: normalized, quality: quality / 100)
-        case .webp:
-            data = try? encodeWebPData(from: normalized, quality: quality / 100)
-        case .jp2, .tiff:
-            data = nil // Handled by renderViaFFmpeg
-        }
-
-        guard let outputData = data else { return nil }
-
-        do {
-            try outputData.write(to: outputURL)
-            return (normalized, outputURL)
-        } catch {
-            return nil
-        }
-    }
-
-    private func renderViaFFmpeg() async -> (UIImage, URL)? {
-        guard let formatDef = FormatRegistry.format(forExtension: selectedFormat.fileExtension) else {
-            return nil
-        }
-
-        var job = ConversionJob(inputURL: fileURL, outputFormat: formatDef)
-        if selectedFormat.isLossy {
-            job.quality = Int(quality)
-        }
-
-        do {
-            let result = try await coordinator.convert(job: job)
-            return (image, result.outputURL)
-        } catch {
-            return nil
-        }
     }
 
     // MARK: - Encoders
@@ -388,7 +280,7 @@ struct ImageCompressView: View {
     // MARK: - Helpers
 
     private func formatBytes(_ bytes: Int64) -> String {
-        if bytes == 0 { return "—" }
+        if bytes == 0 { return "\u{2014}" }
         let formatter = ByteCountFormatter()
         formatter.countStyle = .file
         return formatter.string(fromByteCount: bytes)

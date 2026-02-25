@@ -33,39 +33,24 @@ struct ImageConverterView: View {
     // History sheet state
     @State private var selectedRecord: ConversionRecord?
 
-    // Rotate tool state
+    // Single-image tool state (URL-based)
     @State private var showRotateView = false
-    @State private var rotateImage: UIImage?
-    @State private var rotateFileName: String = ""
-    @State private var rotateFileURL: URL?
-
-    // Crop tool state
     @State private var showCropView = false
-    @State private var cropImage: UIImage?
-    @State private var cropFileName: String = ""
-    @State private var cropFileURL: URL?
-
-    // Resize tool state
     @State private var showResizeView = false
-    @State private var resizeImage: UIImage?
-    @State private var resizeFileName: String = ""
-
-    // Compress tool state
     @State private var showCompressView = false
-    @State private var compressImage: UIImage?
-    @State private var compressFileName: String = ""
-    @State private var compressFileURL: URL?
+    @State private var toolFileURL: URL?
+    @State private var toolFileName: String = ""
 
     // GIF tool state
     @State private var showGifPicker = false
     @State private var showGifView = false
-    @State private var gifImages: [UIImage] = []
+    @State private var gifFileURLs: [URL] = []
     @State private var gifFileNames: [String] = []
 
     // Stitch tool state
     @State private var showStitchPicker = false
     @State private var showStitchView = false
-    @State private var stitchImages: [UIImage] = []
+    @State private var stitchFileURLs: [URL] = []
     @State private var stitchFileNames: [String] = []
 
     private var history: [ConversionRecord] {
@@ -102,9 +87,9 @@ struct ImageConverterView: View {
                 }
             }
             .navigationDestination(isPresented: $viewModel.showConversionDetail) {
-                if let image = viewModel.selectedImage {
+                if let url = viewModel.selectedFileURL {
                     ImageDetailView(
-                        image: image,
+                        fileURL: url,
                         fileName: viewModel.selectedFileName
                     ) { format in
                         await viewModel.convert(to: format)
@@ -113,121 +98,151 @@ struct ImageConverterView: View {
                 }
             }
             .navigationDestination(isPresented: $showRotateView) {
-                if let image = rotateImage {
+                if let url = toolFileURL {
                     ImageRotateView(
-                        image: image,
-                        fileName: rotateFileName
-                    ) { rotatedImage, outputURL in
-                        viewModel.addHistoryRecord(
-                            fileName: rotateFileName,
-                            thumbnail: rotatedImage,
-                            outputURL: outputURL,
-                            toolType: "Rotate"
-                        )
+                        fileURL: url,
+                        fileName: toolFileName
+                    ) { rotation, flipH, flipV in
+                        let capturedURL = url
+                        let capturedName = toolFileName
+                        Task {
+                            await viewModel.processRotation(
+                                fileURL: capturedURL,
+                                fileName: capturedName,
+                                rotation: rotation,
+                                flipH: flipH,
+                                flipV: flipV
+                            )
+                        }
                         DispatchQueue.main.async {
                             showRotateView = false
                             showAssetPicker = false
+                            toolFileURL = nil
                             selectedTab = .history
                         }
                     }
                 }
             }
             .navigationDestination(isPresented: $showCropView) {
-                if let image = cropImage {
+                if let url = toolFileURL {
                     ImageCropView(
-                        image: image,
-                        fileName: cropFileName
-                    ) { croppedImage, outputURL in
-                        viewModel.addHistoryRecord(
-                            fileName: cropFileName,
-                            thumbnail: croppedImage,
-                            outputURL: outputURL,
-                            toolType: "Crop"
-                        )
+                        fileURL: url,
+                        fileName: toolFileName
+                    ) { cropRect in
+                        let capturedURL = url
+                        let capturedName = toolFileName
+                        Task {
+                            await viewModel.processCrop(
+                                fileURL: capturedURL,
+                                fileName: capturedName,
+                                cropRect: cropRect
+                            )
+                        }
                         DispatchQueue.main.async {
                             showCropView = false
                             showAssetPicker = false
+                            toolFileURL = nil
                             selectedTab = .history
                         }
                     }
                 }
             }
             .navigationDestination(isPresented: $showResizeView) {
-                if let image = resizeImage {
+                if let url = toolFileURL {
                     ImageResizeView(
-                        image: image,
-                        fileName: resizeFileName
-                    ) { resizedImage, outputURL in
-                        viewModel.addHistoryRecord(
-                            fileName: resizeFileName,
-                            thumbnail: resizedImage,
-                            outputURL: outputURL,
-                            toolType: "Resize"
-                        )
+                        fileURL: url,
+                        fileName: toolFileName
+                    ) { width, height in
+                        let capturedURL = url
+                        let capturedName = toolFileName
+                        Task {
+                            await viewModel.processResize(
+                                fileURL: capturedURL,
+                                fileName: capturedName,
+                                width: width,
+                                height: height
+                            )
+                        }
                         DispatchQueue.main.async {
                             showResizeView = false
                             showAssetPicker = false
+                            toolFileURL = nil
                             selectedTab = .history
                         }
                     }
                 }
             }
             .navigationDestination(isPresented: $showCompressView) {
-                if let image = compressImage, let url = compressFileURL {
+                if let url = toolFileURL {
                     ImageCompressView(
-                        image: image,
-                        fileName: compressFileName,
-                        fileURL: url
-                    ) { compressedImage, outputURL in
-                        viewModel.addHistoryRecord(
-                            fileName: outputURL.lastPathComponent,
-                            thumbnail: compressedImage,
-                            outputURL: outputURL,
-                            toolType: "Compress"
-                        )
+                        fileURL: url,
+                        fileName: toolFileName
+                    ) { formatExt, quality in
+                        let capturedURL = url
+                        let capturedName = toolFileName
+                        Task {
+                            await viewModel.processCompress(
+                                fileURL: capturedURL,
+                                fileName: capturedName,
+                                formatExtension: formatExt,
+                                quality: quality
+                            )
+                        }
                         DispatchQueue.main.async {
                             showCompressView = false
                             showAssetPicker = false
+                            toolFileURL = nil
                             selectedTab = .history
                         }
                     }
                 }
             }
             .navigationDestination(isPresented: $showGifView) {
-                if !gifImages.isEmpty {
+                if !gifFileURLs.isEmpty {
                     MakeGifView(
-                        images: gifImages,
+                        fileURLs: gifFileURLs,
                         fileNames: gifFileNames
-                    ) { thumbnail, outputURL in
-                        viewModel.addHistoryRecord(
-                            fileName: "animated.gif",
-                            thumbnail: thumbnail,
-                            outputURL: outputURL,
-                            toolType: "GIF"
-                        )
+                    ) { frameDelay, loopForever in
+                        let capturedURLs = gifFileURLs
+                        let capturedNames = gifFileNames
+                        Task {
+                            await viewModel.processGif(
+                                fileURLs: capturedURLs,
+                                fileNames: capturedNames,
+                                frameDelay: frameDelay,
+                                loopForever: loopForever
+                            )
+                        }
                         DispatchQueue.main.async {
                             showGifView = false
                             showGifPicker = false
+                            gifFileURLs = []
+                            gifFileNames = []
                             selectedTab = .history
                         }
                     }
                 }
             }
             .navigationDestination(isPresented: $showStitchView) {
-                if !stitchImages.isEmpty {
+                if !stitchFileURLs.isEmpty {
                     ImageStitchView(
-                        images: stitchImages,
+                        fileURLs: stitchFileURLs,
                         fileNames: stitchFileNames
-                    ) { thumbnail, outputURL in
-                        viewModel.addHistoryRecord(
-                            fileName: "stitched.png",
-                            thumbnail: thumbnail,
-                            outputURL: outputURL,
-                            toolType: "Stitch"
-                        )
+                    ) { layout, background in
+                        let capturedURLs = stitchFileURLs
+                        Task {
+                            await viewModel.processStitch(
+                                fileURLs: capturedURLs,
+                                layout: layout,
+                                background: background,
+                                gap: 16
+                            )
+                        }
                         DispatchQueue.main.async {
                             showStitchView = false
                             showStitchPicker = false
+                            stitchFileURLs = []
+                            stitchFileNames = []
                             selectedTab = .history
                         }
                     }
@@ -242,27 +257,20 @@ struct ImageConverterView: View {
     }
 
     private func handleAssetSelected(image: UIImage, fileName: String, url: URL) {
+        // We only need the URL and fileName — ignore the UIImage
+        toolFileName = fileName
+        toolFileURL = url
+
         switch activeTool {
         case "convert":
             viewModel.selectImage(image, fileName: fileName, fileURL: url)
         case "rotate":
-            rotateImage = image
-            rotateFileName = fileName
-            rotateFileURL = url
             showRotateView = true
         case "resize":
-            resizeImage = image
-            resizeFileName = fileName
             showResizeView = true
         case "compress":
-            compressImage = image
-            compressFileName = fileName
-            compressFileURL = url
             showCompressView = true
         case "crop":
-            cropImage = image
-            cropFileName = fileName
-            cropFileURL = url
             showCropView = true
         default:
             break
@@ -352,13 +360,13 @@ struct ImageConverterView: View {
     }
 
     private func handleMultipleAssetsSelected(_ results: [(UIImage, String, URL)]) {
-        gifImages = results.map { $0.0 }
+        gifFileURLs = results.map { $0.2 }
         gifFileNames = results.map { $0.1 }
         showGifView = true
     }
 
     private func handleStitchAssetsSelected(_ results: [(UIImage, String, URL)]) {
-        stitchImages = results.map { $0.0 }
+        stitchFileURLs = results.map { $0.2 }
         stitchFileNames = results.map { $0.1 }
         showStitchView = true
     }

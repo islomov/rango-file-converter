@@ -15,7 +15,7 @@ private struct AudioTool: Identifiable, Hashable {
 
 private let audioTools: [AudioTool] = [
     AudioTool(id: "convert", title: "Format Conversion", subtitle: "Any conversion of multiple formats", icon: "arrow.triangle.2.circlepath", isAvailable: true),
-    AudioTool(id: "extract", title: "Extract Audio", subtitle: "Extract audio from video", icon: "music.note", isAvailable: false),
+    AudioTool(id: "extract", title: "Extract Audio", subtitle: "Extract audio from video", icon: "music.note", isAvailable: true),
     AudioTool(id: "compress", title: "Audio Compression", subtitle: "Custom compression", icon: "arrow.down.right.and.arrow.up.left", isAvailable: false),
     AudioTool(id: "speed", title: "Audio Speed Change", subtitle: "0.1 to 5 times free adjustment", icon: "gauge.with.dots.needle.33percent", isAvailable: false),
     AudioTool(id: "merge", title: "Combined Audios", subtitle: "Easily merge multiple audios", icon: "square.stack.3d.up", isAvailable: false),
@@ -27,6 +27,7 @@ struct AudioConverterView: View {
     @EnvironmentObject private var historyStore: HistoryStore
     @State private var selectedTab: AudioTab = .tools
     @State private var showAudioPicker = false
+    @State private var showExtractVideoPicker = false
     @State private var showComingSoon = false
     @State private var showSettings = false
 
@@ -82,6 +83,31 @@ struct AudioConverterView: View {
                         )
                         viewModel.showConversionDetail = false
                         showAudioPicker = false
+                        selectedTab = .history
+                    }
+                }
+            }
+            .navigationDestination(isPresented: $showExtractVideoPicker) {
+                VideoPickerView { thumbnail, fileName, url in
+                    viewModel.selectVideoForExtractAudio(thumbnail: thumbnail, fileName: fileName, fileURL: url)
+                }
+            }
+            .navigationDestination(isPresented: $viewModel.showExtractAudioDetail) {
+                if let thumbnail = viewModel.extractThumbnail,
+                   let fileURL = viewModel.extractVideoURL {
+                    ExtractAudioDetailView(
+                        thumbnail: thumbnail,
+                        fileName: viewModel.extractFileName,
+                        fileURL: fileURL
+                    ) { format in
+                        viewModel.extractAudio(
+                            inputURL: fileURL,
+                            fileName: viewModel.extractFileName,
+                            thumbnail: thumbnail,
+                            to: format
+                        )
+                        viewModel.showExtractAudioDetail = false
+                        showExtractVideoPicker = false
                         selectedTab = .history
                     }
                 }
@@ -169,6 +195,8 @@ struct AudioConverterView: View {
             switch tool.id {
             case "convert":
                 showAudioPicker = true
+            case "extract":
+                showExtractVideoPicker = true
             default:
                 break
             }

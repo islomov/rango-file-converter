@@ -8,6 +8,12 @@ final class AudioConverterViewModel: ObservableObject {
     @Published var showConversionDetail = false
     @Published var isExtracting = false
 
+    // Extract audio tool state
+    @Published var showExtractAudioDetail = false
+    @Published var extractThumbnail: UIImage?
+    @Published var extractVideoURL: URL?
+    @Published var extractFileName: String = ""
+
     private let coordinator = ConversionCoordinator()
     private let store = HistoryStore.shared
     private let taskManager = ConversionTaskManager.shared
@@ -101,6 +107,90 @@ final class AudioConverterViewModel: ObservableObject {
                 }
 
                 var job = ConversionJob(inputURL: inputURL, outputFormat: format)
+
+                let tempDir = FileManager.default.temporaryDirectory
+                    .appendingPathComponent("rango_conversions", isDirectory: true)
+                try? FileManager.default.createDirectory(at: tempDir, withIntermediateDirectories: true)
+                let shortID = UUID().uuidString.prefix(8)
+                let progressFile = tempDir.appendingPathComponent("progress_\(shortID).txt")
+
+                if totalDurationUs > 0 {
+                    job.progressFilePath = progressFile.path
+                    pollingTask = self.startProgressPolling(
+                        progressFile: progressFile,
+                        totalDurationUs: totalDurationUs,
+                        record: record
+                    )
+                }
+
+                let result = try await coordinator.convert(job: job)
+
+                pollingTask?.cancel()
+                try? FileManager.default.removeItem(at: progressFile)
+
+                let outputPath = ConversionRecord.persistOutput(from: result.outputURL)
+                await MainActor.run {
+                    record.progress = 1.0
+                    record.status = .converted
+                    record.outputPath = outputPath
+                    self.store.save()
+                }
+            } catch {
+                pollingTask?.cancel()
+                await MainActor.run {
+                    record.status = .failed
+                    record.errorMessage = error.localizedDescription
+                    self.store.save()
+                }
+            }
+        }
+
+        taskManager.register(id: record.id, task: task)
+    }
+
+    // MARK: - Extract Audio
+
+    func selectVideoForExtractAudio(thumbnail: UIImage, fileName: String, fileURL: URL) {
+        extractThumbnail = thumbnail
+        extractFileName = fileName
+        extractVideoURL = fileURL
+        showExtractAudioDetail = true
+    }
+
+    func extractAudio(inputURL: URL, fileName: String, thumbnail: UIImage?, to format: FormatDefinition) {
+        let sourceExt = fileName.components(separatedBy: ".").last?.uppercased() ?? "UNKNOWN"
+        let thumbnailData = thumbnail?
+            .preparingThumbnail(of: CGSize(width: 80, height: 80))?
+            .jpegData(compressionQuality: 0.8)
+
+        let record = ConversionRecord(
+            sourceFileName: fileName,
+            sourceFormat: sourceExt,
+            targetFormatID: format.id,
+            thumbnailData: thumbnailData,
+            status: .converting,
+            toolType: "Extract Audio",
+            mediaCategory: "audio"
+        )
+
+        store.add(record)
+
+        let coordinator = self.coordinator
+        let task = Task.detached { [weak self] in
+            guard let self else { return }
+            defer { self.taskManager.remove(id: record.id) }
+
+            let totalDurationUs = await self.probeDurationUs(url: inputURL)
+
+            var pollingTask: Task<Void, Never>?
+            do {
+                guard !Task.isCancelled else {
+                    await MainActor.run { self.failRecord(record, error: "Cancelled") }
+                    return
+                }
+
+                var job = ConversionJob(inputURL: inputURL, outputFormat: format)
+                job.stripVideo = true
 
                 let tempDir = FileManager.default.temporaryDirectory
                     .appendingPathComponent("rango_conversions", isDirectory: true)

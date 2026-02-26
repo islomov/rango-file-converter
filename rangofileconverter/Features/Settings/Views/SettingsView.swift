@@ -7,10 +7,13 @@ struct SettingsView: View {
     @State private var storageInfo = StorageInfo()
     @State private var showDeleteAll = false
     @State private var deleteCategoryTarget: String?
+    @State private var cloudConvertKey: String = ""
+    @State private var showAPIKeySaved = false
 
     var body: some View {
         NavigationStack {
             List {
+                cloudConvertSection
                 storageSection
                 clearDataSection
                 aboutSection
@@ -23,7 +26,15 @@ struct SettingsView: View {
                         .fontWeight(.semibold)
                 }
             }
-            .onAppear { refreshStorage() }
+            .onAppear {
+                refreshStorage()
+                cloudConvertKey = CloudConvertAPIKey.apiKey() ?? ""
+            }
+            .alert("API Key Saved", isPresented: $showAPIKeySaved) {
+                Button("OK", role: .cancel) { }
+            } message: {
+                Text("Your CloudConvert API key has been saved securely.")
+            }
             .alert("Delete All History", isPresented: $showDeleteAll) {
                 Button("Delete All", role: .destructive) {
                     historyStore.removeAll()
@@ -55,6 +66,34 @@ struct SettingsView: View {
 
     private var deleteCategoryTitle: String {
         deleteCategoryTarget?.capitalized ?? ""
+    }
+
+    // MARK: - CloudConvert Section
+
+    private var cloudConvertSection: some View {
+        Section {
+            SecureField("API Key", text: $cloudConvertKey)
+                .textContentType(.password)
+                .autocapitalization(.none)
+                .disableAutocorrection(true)
+
+            Button {
+                let trimmed = cloudConvertKey.trimmingCharacters(in: .whitespaces)
+                if trimmed.isEmpty {
+                    CloudConvertAPIKey.deleteAPIKey()
+                } else {
+                    CloudConvertAPIKey.setAPIKey(trimmed)
+                }
+                showAPIKeySaved = true
+            } label: {
+                Text("Save API Key")
+            }
+            .disabled(cloudConvertKey.trimmingCharacters(in: .whitespaces) == (CloudConvertAPIKey.apiKey() ?? ""))
+        } header: {
+            Text("Document Conversion")
+        } footer: {
+            Text("Required for document format conversion. Get your free API key at cloudconvert.com.")
+        }
     }
 
     // MARK: - Storage Section

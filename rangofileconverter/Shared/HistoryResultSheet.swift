@@ -3,6 +3,7 @@ import Photos
 import AVFoundation
 import AVKit
 import Combine
+import QuickLook
 
 struct HistoryResultSheet: View {
     @ObservedObject var record: ConversionRecord
@@ -19,6 +20,7 @@ struct HistoryResultSheet: View {
     @State private var fileDuration: String?
     @State private var fileInfoTask: Task<Void, Never>?
     @State private var imageLoadTask: Task<Void, Never>?
+    @State private var quickLookURL: URL?
 
     var body: some View {
         VStack(spacing: 20) {
@@ -42,6 +44,7 @@ struct HistoryResultSheet: View {
         .padding(.horizontal, 20)
         .padding(.top, 8)
         .presentationDetents([.medium, .large])
+        .quickLookPreview($quickLookURL)
         .onDisappear {
             audioPlayer?.pause()
             audioPlayer = nil
@@ -86,7 +89,7 @@ struct HistoryResultSheet: View {
                     .fill(.quaternary)
                     .frame(width: 56, height: 56)
                     .overlay {
-                        Image(systemName: record.mediaCategory == "video" ? "video" : "photo")
+                        Image(systemName: headerPlaceholderIcon)
                             .foregroundStyle(.secondary)
                     }
             }
@@ -169,10 +172,18 @@ struct HistoryResultSheet: View {
                 fileInfoSection(url: outputURL)
 
                 HStack(spacing: 12) {
-                    Button {
-                        saveToPhotos(url: outputURL)
-                    } label: {
-                        actionButton(title: "Save", icon: "square.and.arrow.down", color: .blue)
+                    if isDocumentOutput(url: outputURL) {
+                        Button {
+                            openWithSystemApp(url: outputURL)
+                        } label: {
+                            actionButton(title: "Open", icon: "arrow.up.forward.app", color: .blue)
+                        }
+                    } else {
+                        Button {
+                            saveToPhotos(url: outputURL)
+                        } label: {
+                            actionButton(title: "Save", icon: "square.and.arrow.down", color: .blue)
+                        }
                     }
 
                     ShareLink(item: outputURL) {
@@ -278,6 +289,8 @@ struct HistoryResultSheet: View {
             imagePreview(url: url)
         case .audio:
             audioPreview(url: url)
+        case .document:
+            documentPreview(url: url)
         }
     }
 
@@ -369,6 +382,33 @@ struct HistoryResultSheet: View {
             }
         } else {
             unsupportedPreview(icon: "waveform", format: url.pathExtension.uppercased())
+        }
+    }
+
+    // MARK: - Document Preview
+
+    private func documentPreview(url: URL) -> some View {
+        VStack(spacing: 12) {
+            Image(systemName: documentIcon(for: url.pathExtension))
+                .font(.system(size: 64))
+                .foregroundStyle(.blue)
+
+            Text(url.pathExtension.uppercased())
+                .font(.caption.weight(.semibold))
+                .foregroundStyle(.secondary)
+        }
+        .padding(.vertical, 8)
+    }
+
+    private func documentIcon(for ext: String) -> String {
+        switch ext.lowercased() {
+        case "pdf": return "doc.richtext"
+        case "doc", "docx": return "doc.text"
+        case "html": return "globe"
+        case "rtf": return "doc.text.fill"
+        case "txt": return "doc.plaintext"
+        case "odt": return "doc.text"
+        default: return "doc"
         }
     }
 
@@ -476,7 +516,7 @@ struct HistoryResultSheet: View {
     }
 
     private enum OutputMediaType {
-        case video, image, audio
+        case video, image, audio, document
     }
 
     private func outputMediaType(for url: URL) -> OutputMediaType {
@@ -486,8 +526,11 @@ struct HistoryResultSheet: View {
                                     "w64", "voc", "snd", "spx", "ircam"])
         let imageExtensions = Set(["heic", "jpeg", "jpg", "png", "webp", "bmp", "tiff", "gif",
                                     "tga", "jp2", "pbm", "pgm", "exr", "pam", "pfm"])
+        let documentExtensions = Set(["doc", "docx", "pdf", "html", "odt", "rtf", "txt"])
 
-        if audioExtensions.contains(ext) || record.toolType == "Extract Audio" {
+        if record.mediaCategory == "document" || documentExtensions.contains(ext) {
+            return .document
+        } else if audioExtensions.contains(ext) || record.toolType == "Extract Audio" {
             return .audio
         } else if imageExtensions.contains(ext) {
             return .image
@@ -542,6 +585,14 @@ struct HistoryResultSheet: View {
         .background(color.opacity(0.1), in: RoundedRectangle(cornerRadius: 10))
     }
 
+    private func isDocumentOutput(url: URL) -> Bool {
+        outputMediaType(for: url) == .document
+    }
+
+    private func openWithSystemApp(url: URL) {
+        quickLookURL = url
+    }
+
     private func saveToPhotos(url: URL) {
         let ext = url.pathExtension.lowercased()
         let videoExtensions = ["mp4", "mov", "m4v", "avi", "mkv", "wmv", "flv", "mpg", "mpeg", "3gp", "webm", "ts", "vob", "ogv"]
@@ -573,6 +624,15 @@ struct HistoryResultSheet: View {
         }
     }
 
+    private var headerPlaceholderIcon: String {
+        switch record.mediaCategory {
+        case "document": return "doc.text"
+        case "video": return "video"
+        case "audio": return "waveform"
+        default: return "photo"
+        }
+    }
+
     private var toolColor: Color {
         switch record.toolType {
         case "Rotate": return .blue
@@ -581,6 +641,11 @@ struct HistoryResultSheet: View {
         case "Crop": return .teal
         case "GIF": return .pink
         case "Stitch": return .mint
+        case "Convert": return .blue
+        case "Merge": return .indigo
+        case "Split": return .teal
+        case "Reorder": return .orange
+        case "Protect": return .purple
         default: return .green
         }
     }

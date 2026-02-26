@@ -13,15 +13,24 @@ private struct DocumentTool: Identifiable, Hashable {
 }
 
 private let documentTools: [DocumentTool] = [
-    DocumentTool(id: "convert", title: "Format Conversion", icon: "arrow.triangle.2.circlepath", isAvailable: false),
-    DocumentTool(id: "compress", title: "Compress", icon: "arrow.down.right.and.arrow.up.left", isAvailable: false),
+    DocumentTool(id: "convert", title: "Format Conversion", icon: "arrow.triangle.2.circlepath", isAvailable: true),
+    DocumentTool(id: "merge", title: "Merge PDFs", icon: "doc.on.doc", isAvailable: true),
+    DocumentTool(id: "split", title: "Split PDF", icon: "scissors", isAvailable: true),
+    DocumentTool(id: "reorder", title: "Reorder Pages", icon: "arrow.up.arrow.down", isAvailable: true),
+    DocumentTool(id: "protect", title: "Protect PDF", icon: "lock.doc", isAvailable: true),
 ]
 
 struct DocumentConverterView: View {
+    @StateObject private var viewModel = DocumentConverterViewModel()
     @EnvironmentObject private var historyStore: HistoryStore
     @State private var selectedTab: DocumentTab = .tools
-    @State private var showComingSoon = false
+    @State private var showDocumentPicker = false
+    @State private var showMergeView = false
+    @State private var showSplitView = false
+    @State private var showReorderView = false
+    @State private var showProtectView = false
     @State private var showSettings = false
+    @State private var selectedRecord: ConversionRecord?
 
     private var history: [ConversionRecord] {
         historyStore.records(for: "document")
@@ -41,10 +50,60 @@ struct DocumentConverterView: View {
                 }
             }
             .navigationBarHidden(true)
-            .alert("Coming Soon", isPresented: $showComingSoon) {
-                Button("OK", role: .cancel) { }
-            } message: {
-                Text("This tool is not available yet. Stay tuned!")
+            // Format conversion flow
+            .navigationDestination(isPresented: $showDocumentPicker) {
+                DocumentPickerView { fileName, url in
+                    viewModel.selectDocument(fileName: fileName, fileURL: url)
+                }
+            }
+            .navigationDestination(isPresented: $viewModel.showConversionDetail) {
+                if let fileURL = viewModel.selectedFileURL {
+                    DocumentDetailView(
+                        fileName: viewModel.selectedFileName,
+                        fileURL: fileURL
+                    ) { format in
+                        viewModel.convert(
+                            inputURL: fileURL,
+                            fileName: viewModel.selectedFileName,
+                            to: format
+                        )
+                        viewModel.showConversionDetail = false
+                        showDocumentPicker = false
+                        selectedTab = .history
+                    }
+                }
+            }
+            // PDF Merge
+            .navigationDestination(isPresented: $showMergeView) {
+                PDFMergeView { urls, names in
+                    viewModel.mergePDFs(fileURLs: urls, fileNames: names)
+                    showMergeView = false
+                    selectedTab = .history
+                }
+            }
+            // PDF Split
+            .navigationDestination(isPresented: $showSplitView) {
+                PDFSplitView { url, name, pages in
+                    viewModel.splitPDF(inputURL: url, fileName: name, pages: pages)
+                    showSplitView = false
+                    selectedTab = .history
+                }
+            }
+            // PDF Reorder
+            .navigationDestination(isPresented: $showReorderView) {
+                PDFReorderView { url, name, order in
+                    viewModel.reorderPDF(inputURL: url, fileName: name, pageOrder: order)
+                    showReorderView = false
+                    selectedTab = .history
+                }
+            }
+            // PDF Protect
+            .navigationDestination(isPresented: $showProtectView) {
+                PDFProtectView { url, name, password in
+                    viewModel.protectPDF(inputURL: url, fileName: name, password: password)
+                    showProtectView = false
+                    selectedTab = .history
+                }
             }
         }
     }
@@ -120,10 +179,19 @@ struct DocumentConverterView: View {
     }
 
     private func handleToolTap(_ tool: DocumentTool) {
-        if tool.isAvailable {
-            // Tool navigation will be added when tools are implemented
-        } else {
-            showComingSoon = true
+        switch tool.id {
+        case "convert":
+            showDocumentPicker = true
+        case "merge":
+            showMergeView = true
+        case "split":
+            showSplitView = true
+        case "reorder":
+            showReorderView = true
+        case "protect":
+            showProtectView = true
+        default:
+            break
         }
     }
 
@@ -143,10 +211,19 @@ struct DocumentConverterView: View {
         } else {
             List {
                 ForEach(history) { record in
-                    HistoryRowView(record: record)
+                    Button {
+                        selectedRecord = record
+                    } label: {
+                        HistoryRowView(record: record)
+                    }
+                    .buttonStyle(.plain)
                 }
             }
             .listStyle(.plain)
+            .sheet(item: $selectedRecord) { record in
+                HistoryResultSheet(record: record)
+                    .environmentObject(historyStore)
+            }
         }
     }
 }

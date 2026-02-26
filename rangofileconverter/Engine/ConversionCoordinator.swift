@@ -9,6 +9,7 @@ final class ConversionCoordinator {
     init() {
         self.engines = [
             NativeImageEngine(),       // HEIC, WEBP via iOS native APIs
+            CloudConvertEngine(),      // Documents via CloudConvert API
             FFmpegConversionEngine(),  // Everything else via FFmpeg
         ]
     }

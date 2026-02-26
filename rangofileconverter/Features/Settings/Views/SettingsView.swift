@@ -1,5 +1,4 @@
 import SwiftUI
-import Combine
 
 struct SettingsView: View {
     @EnvironmentObject private var historyStore: HistoryStore
@@ -7,15 +6,11 @@ struct SettingsView: View {
     @State private var storageInfo = StorageInfo()
     @State private var showDeleteAll = false
     @State private var deleteCategoryTarget: String?
-    @State private var cloudConvertKey: String = ""
-    @State private var showAPIKeySaved = false
 
     var body: some View {
         NavigationStack {
             List {
-                cloudConvertSection
                 storageSection
-                clearDataSection
                 aboutSection
             }
             .navigationTitle("Settings")
@@ -28,12 +23,6 @@ struct SettingsView: View {
             }
             .onAppear {
                 refreshStorage()
-                cloudConvertKey = CloudConvertAPIKey.apiKey() ?? ""
-            }
-            .alert("API Key Saved", isPresented: $showAPIKeySaved) {
-                Button("OK", role: .cancel) { }
-            } message: {
-                Text("Your CloudConvert API key has been saved securely.")
             }
             .alert("Delete All History", isPresented: $showDeleteAll) {
                 Button("Delete All", role: .destructive) {
@@ -68,93 +57,43 @@ struct SettingsView: View {
         deleteCategoryTarget?.capitalized ?? ""
     }
 
-    // MARK: - CloudConvert Section
-
-    private var cloudConvertSection: some View {
-        Section {
-            SecureField("API Key", text: $cloudConvertKey)
-                .textContentType(.password)
-                .autocapitalization(.none)
-                .disableAutocorrection(true)
-
-            Button {
-                let trimmed = cloudConvertKey.trimmingCharacters(in: .whitespaces)
-                if trimmed.isEmpty {
-                    CloudConvertAPIKey.deleteAPIKey()
-                } else {
-                    CloudConvertAPIKey.setAPIKey(trimmed)
-                }
-                showAPIKeySaved = true
-            } label: {
-                Text("Save API Key")
-            }
-            .disabled(cloudConvertKey.trimmingCharacters(in: .whitespaces) == (CloudConvertAPIKey.apiKey() ?? ""))
-        } header: {
-            Text("Document Conversion")
-        } footer: {
-            Text("Required for document format conversion. Get your free API key at cloudconvert.com.")
-        }
-    }
-
     // MARK: - Storage Section
 
     private var storageSection: some View {
         Section {
-            HStack {
-                Label("Total Storage", systemImage: "internaldrive")
-                Spacer()
-                Text(formatBytes(storageInfo.total))
-                    .foregroundStyle(.secondary)
-            }
-
-            ForEach(storageCategories, id: \.category) { item in
+            Button {
+                if storageInfo.total > 0 {
+                    showDeleteAll = true
+                }
+            } label: {
                 HStack {
-                    Label(item.label, systemImage: item.icon)
+                    Label("Total Storage", systemImage: "internaldrive")
+                        .foregroundStyle(.primary)
                     Spacer()
-                    Text(formatBytes(item.bytes))
+                    Text(formatBytes(storageInfo.total))
                         .foregroundStyle(.secondary)
                 }
             }
-        } header: {
-            Text("Storage")
-        } footer: {
-            Text("Converted files are stored locally on your device in the app's Documents folder.")
-        }
-    }
 
-    // MARK: - Clear Data Section
-
-    private var clearDataSection: some View {
-        Section {
             ForEach(storageCategories, id: \.category) { item in
-                if item.count > 0 {
-                    Button(role: .destructive) {
+                Button {
+                    if item.count > 0 {
                         deleteCategoryTarget = item.category
-                    } label: {
-                        HStack {
-                            Label("Delete \(item.label)", systemImage: "trash")
-                            Spacer()
-                            Text("\(item.count) files")
-                                .foregroundStyle(.secondary)
-                        }
                     }
-                }
-            }
-
-            if historyStore.records.count > 0 {
-                Button(role: .destructive) {
-                    showDeleteAll = true
                 } label: {
                     HStack {
-                        Label("Delete All History", systemImage: "trash.fill")
+                        Label(item.label, systemImage: item.icon)
+                            .foregroundStyle(.primary)
                         Spacer()
-                        Text("\(historyStore.records.count) files")
+                        Text(formatBytes(item.bytes))
                             .foregroundStyle(.secondary)
                     }
                 }
             }
         } header: {
-            Text("Clear Data")
+            Text("Storage")
+        } footer: {
+            Text("Converted files are stored locally on your device in the app's Documents folder. Tap a category to delete its data.")
         }
     }
 

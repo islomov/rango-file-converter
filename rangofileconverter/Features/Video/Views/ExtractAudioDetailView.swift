@@ -10,6 +10,7 @@ struct ExtractAudioDetailView: View {
 
     private static let supportedAudioFormats = FormatRegistry.audioFormats
 
+    @Environment(\.dismiss) private var dismiss
     @State private var targetFormat: FormatDefinition = FormatRegistry.audioFormats[0] // MP3
     @State private var fileSizeText: String = ""
     @State private var audioPlayer: AVPlayer?
@@ -20,95 +21,29 @@ struct ExtractAudioDetailView: View {
     @State private var timeObserver: Any?
     @State private var durationTask: Task<Void, Never>?
 
+    private let formatColumns = [
+        GridItem(.flexible(), spacing: 4),
+        GridItem(.flexible(), spacing: 4),
+        GridItem(.flexible(), spacing: 4),
+        GridItem(.flexible(), spacing: 4),
+    ]
+
     var body: some View {
-        ScrollView {
-            VStack(spacing: 24) {
-                ZStack {
-                    Image(uiImage: thumbnail)
-                        .resizable()
-                        .aspectRatio(contentMode: .fit)
-                        .frame(maxHeight: 350)
-                        .clipShape(RoundedRectangle(cornerRadius: 12))
-                        .shadow(color: .black.opacity(0.1), radius: 8, y: 4)
+        VStack(spacing: 0) {
+            previewSection
 
-                    Image(systemName: "music.note")
-                        .font(.system(size: 44))
-                        .foregroundStyle(.white.opacity(0.8))
+            ScrollView {
+                VStack(spacing: 12) {
+                    audioPlayerSection
+                    formatSelection
                 }
-
-                // Audio playback
-                HStack(spacing: 16) {
-                    Button {
-                        toggleAudioPlayback()
-                    } label: {
-                        Image(systemName: isPlayingAudio ? "pause.circle.fill" : "play.circle.fill")
-                            .font(.system(size: 40))
-                            .foregroundStyle(.blue)
-                    }
-
-                    VStack(spacing: 4) {
-                        Slider(
-                            value: $currentTime,
-                            in: 0...max(duration, 1)
-                        ) { editing in
-                            isSeeking = editing
-                            if !editing {
-                                seekTo(currentTime)
-                            }
-                        }
-                        .tint(.blue)
-
-                        HStack {
-                            Text(formatTime(currentTime))
-                                .font(.caption2.monospacedDigit())
-                                .foregroundStyle(.secondary)
-                            Spacer()
-                            Text(formatTime(duration))
-                                .font(.caption2.monospacedDigit())
-                                .foregroundStyle(.secondary)
-                        }
-                    }
-                }
-
-                VStack(alignment: .leading, spacing: 8) {
-                    Text(fileName)
-                        .font(.headline)
-                    Text(fileSizeText)
-                        .font(.subheadline)
-                        .foregroundStyle(.secondary)
-                }
-                .frame(maxWidth: .infinity, alignment: .leading)
-
-                VStack(alignment: .leading, spacing: 8) {
-                    Text("Extract as")
-                        .font(.subheadline)
-                        .foregroundStyle(.secondary)
-
-                    LazyVGrid(columns: [GridItem(.adaptive(minimum: 70))], spacing: 8) {
-                        ForEach(Self.supportedAudioFormats) { format in
-                            Button(format.displayName) {
-                                targetFormat = format
-                            }
-                            .buttonStyle(.bordered)
-                            .tint(targetFormat.id == format.id ? .accentColor : .secondary)
-                        }
-                    }
-                }
-
-                Button {
-                    onExtract(targetFormat)
-                } label: {
-                    Text("Extract Audio")
-                        .font(.headline)
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, 14)
-                }
-                .buttonStyle(.borderedProminent)
+                .padding(16)
             }
-            .padding(20)
+
+            bottomButton
         }
-        .navigationTitle("Extract Audio")
-        .navigationBarTitleDisplayMode(.inline)
+        .background(Color.white)
+        .navigationBarHidden(true)
         .task {
             let path = fileURL.path
             let size = await Task.detached(priority: .utility) {
@@ -127,6 +62,192 @@ struct ExtractAudioDetailView: View {
         .onDisappear {
             cleanupPlayer()
         }
+    }
+
+    // MARK: - Header
+
+    private var header: some View {
+        ZStack {
+            Text("Extract audio")
+                .font(.system(size: 20, weight: .semibold))
+                .foregroundColor(Color(hex: "1D1D1D"))
+                .tracking(-0.408)
+
+            HStack {
+                Spacer()
+                Button {
+                    dismiss()
+                } label: {
+                    Image(systemName: "xmark")
+                        .font(.system(size: 14, weight: .semibold))
+                        .foregroundColor(Color(hex: "1D1D1D"))
+                        .frame(width: 40, height: 40)
+                        .background(
+                            Circle()
+                                .fill(Color(hex: "888888").opacity(0.08))
+                        )
+                }
+            }
+        }
+        .frame(height: 56)
+        .padding(.horizontal, 8)
+    }
+
+    // MARK: - Preview Section
+
+    private var previewSection: some View {
+        VStack(spacing: 0) {
+            header
+
+            VStack(spacing: 8) {
+                ZStack {
+                    RoundedRectangle(cornerRadius: 16)
+                        .fill(Color(hex: "E6E6EC"))
+                        .aspectRatio(175.0 / 250.0, contentMode: .fit)
+
+                    Image("icon_musicnote_bold")
+                        .resizable()
+                        .aspectRatio(contentMode: .fit)
+                        .frame(width: 40, height: 40)
+                }
+                .frame(width: 200)
+
+                Text(fileSizeText)
+                    .font(.system(size: 12, weight: .semibold))
+                    .foregroundColor(Color(hex: "888888"))
+                    .tracking(-0.408)
+            }
+            .padding(.horizontal, 16)
+            .padding(.vertical, 24)
+        }
+        .background(Color.white)
+        .overlay(
+            Rectangle()
+                .fill(Color(hex: "565656").opacity(0.08))
+                .frame(height: 1),
+            alignment: .bottom
+        )
+    }
+
+    // MARK: - Audio Player
+
+    private var audioPlayerSection: some View {
+        HStack(spacing: 12) {
+            Button {
+                toggleAudioPlayback()
+            } label: {
+                ZStack {
+                    Circle()
+                        .fill(
+                            LinearGradient(
+                                colors: [Color(hex: "FFAD5B"), Color(hex: "F4800D"), Color(hex: "FFAD5B")],
+                                startPoint: .topTrailing,
+                                endPoint: .bottomLeading
+                            )
+                        )
+                        .frame(width: 56, height: 56)
+
+                    Image(systemName: isPlayingAudio ? "pause.fill" : "play.fill")
+                        .font(.system(size: 20, weight: .bold))
+                        .foregroundColor(.white)
+                }
+            }
+
+            Text(formatTime(currentTime))
+                .font(.system(size: 12, weight: .semibold))
+                .foregroundColor(Color(hex: "888888"))
+                .tracking(-0.408)
+
+            Slider(
+                value: $currentTime,
+                in: 0...max(duration, 1)
+            ) { editing in
+                isSeeking = editing
+                if !editing {
+                    seekTo(currentTime)
+                }
+            }
+            .tint(Color(hex: "F4800D"))
+
+            Text(formatTime(duration))
+                .font(.system(size: 12, weight: .semibold))
+                .foregroundColor(Color(hex: "888888"))
+                .tracking(-0.408)
+        }
+    }
+
+    // MARK: - Format Selection
+
+    private var formatSelection: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text("Extract as")
+                .font(.system(size: 14, weight: .semibold))
+                .foregroundColor(Color(hex: "888888"))
+                .tracking(-0.408)
+
+            LazyVGrid(columns: formatColumns, spacing: 4) {
+                ForEach(Self.supportedAudioFormats) { format in
+                    Button {
+                        targetFormat = format
+                    } label: {
+                        Text(format.displayName)
+                            .font(.system(size: 16, weight: .semibold))
+                            .tracking(-0.408)
+                            .foregroundColor(
+                                targetFormat.id == format.id
+                                    ? Color(hex: "F4800D")
+                                    : Color(hex: "1D1D1D")
+                            )
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 12)
+                            .background(
+                                RoundedRectangle(cornerRadius: 12)
+                                    .fill(
+                                        targetFormat.id == format.id
+                                            ? Color(hex: "F4800D").opacity(0.08)
+                                            : Color.clear
+                                    )
+                            )
+                    }
+                    .buttonStyle(.plain)
+                }
+            }
+        }
+    }
+
+    // MARK: - Bottom Button
+
+    private var bottomButton: some View {
+        VStack(spacing: 0) {
+            Button {
+                onExtract(targetFormat)
+            } label: {
+                Text("Extract")
+                    .font(.system(size: 16, weight: .semibold))
+                    .foregroundColor(.white)
+                    .tracking(-0.408)
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 20)
+                    .background(
+                        LinearGradient(
+                            colors: [Color(hex: "FFAD5B"), Color(hex: "F4800D"), Color(hex: "FFAD5B")],
+                            startPoint: .topTrailing,
+                            endPoint: .bottomLeading
+                        )
+                    )
+                    .clipShape(RoundedRectangle(cornerRadius: 16))
+            }
+            .padding(.horizontal, 16)
+            .padding(.top, 12)
+            .padding(.bottom, 24)
+        }
+        .background(Color.white)
+        .overlay(
+            Rectangle()
+                .fill(Color(hex: "888888").opacity(0.12))
+                .frame(height: 1),
+            alignment: .top
+        )
     }
 
     // MARK: - Audio Playback

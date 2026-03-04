@@ -169,10 +169,12 @@ struct DocumentConverterView: View {
             if tool.icon.starts(with: "icon_") {
                 Image(tool.icon)
                     .resizable()
+                    .aspectRatio(contentMode: .fit)
                     .frame(width: 28, height: 28)
             } else {
                 Image(systemName: tool.icon)
                     .resizable()
+                    .aspectRatio(contentMode: .fit)
                     .frame(width: 28, height: 28)
                     .foregroundColor(Color(hex: "F4800D"))
             }

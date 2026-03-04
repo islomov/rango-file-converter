@@ -29,6 +29,7 @@ struct VideoSpeedView: View {
     let fileURL: URL
     let onApply: (_ speed: Double) -> Void
 
+    @Environment(\.dismiss) private var dismiss
     @State private var selectedSpeed: SpeedPreset = .double
     @State private var isPlaying = false
     @State private var originalDuration: Double = 0
@@ -38,20 +39,16 @@ struct VideoSpeedView: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            Spacer()
-            preview
-            Spacer()
-            controls
-        }
-        .navigationTitle("Speed Change")
-        .navigationBarTitleDisplayMode(.inline)
-        .toolbar {
-            ToolbarItem(placement: .navigationBarTrailing) {
-                Button("Reset") {
-                    selectedSpeed = .double
-                }
+            previewSection
+
+            ScrollView {
+                controlsSection
             }
+
+            bottomButtons
         }
+        .background(Color.white)
+        .navigationBarHidden(true)
         .task {
             await setupPlayer()
         }
@@ -63,137 +60,122 @@ struct VideoSpeedView: View {
         }
     }
 
-    // MARK: - Preview
+    // MARK: - Header
 
-    private var preview: some View {
-        VStack(spacing: 16) {
-            ZStack {
-                if let player {
-                    PlayerView(player: player)
-                        .aspectRatio(videoAspectRatio ?? (thumbnail.size.width / thumbnail.size.height), contentMode: .fit)
-                        .clipShape(RoundedRectangle(cornerRadius: 8))
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 8)
-                                .stroke(.quaternary, lineWidth: 1)
+    private var header: some View {
+        ZStack {
+            Text("Speed change")
+                .font(.system(size: 20, weight: .semibold))
+                .foregroundColor(Color(hex: "1D1D1D"))
+                .tracking(-0.408)
+
+            HStack {
+                Spacer()
+                Button {
+                    dismiss()
+                } label: {
+                    Image(systemName: "xmark")
+                        .font(.system(size: 14, weight: .semibold))
+                        .foregroundColor(Color(hex: "1D1D1D"))
+                        .frame(width: 40, height: 40)
+                        .background(
+                            Circle()
+                                .fill(Color(hex: "888888").opacity(0.08))
                         )
-                        .contentShape(Rectangle())
-                        .onTapGesture { togglePlayback() }
-                        .overlay {
-                            Image(systemName: isPlaying ? "pause.fill" : "play.fill")
-                                .font(.title)
-                                .foregroundStyle(.white)
-                                .padding(16)
-                                .background(.black.opacity(0.4), in: Circle())
-                                .opacity(isPlaying ? 0 : 1)
-                                .animation(.easeInOut(duration: 0.2), value: isPlaying)
-                        }
-                } else {
-                    Image(uiImage: thumbnail)
-                        .resizable()
-                        .aspectRatio(contentMode: .fit)
-                        .clipShape(RoundedRectangle(cornerRadius: 8))
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 8)
-                                .stroke(.quaternary, lineWidth: 1)
-                        )
-                }
-            }
-            .frame(maxHeight: 400)
-            .overlay(alignment: .topTrailing) {
-                Text(selectedSpeed.label)
-                    .font(.subheadline.weight(.bold).monospacedDigit())
-                    .foregroundStyle(.white)
-                    .padding(.horizontal, 10)
-                    .padding(.vertical, 4)
-                    .background(.black.opacity(0.5), in: Capsule())
-                    .padding(8)
-            }
-
-            Text(fileName)
-                .font(.subheadline.weight(.medium))
-                .lineLimit(1)
-                .foregroundStyle(.secondary)
-
-            if originalDuration > 0 {
-                HStack(spacing: 8) {
-                    Text(formatDuration(originalDuration))
-                        .font(.subheadline.weight(.medium))
-                        .foregroundStyle(.secondary)
-
-                    Image(systemName: "arrow.right")
-                        .font(.caption)
-                        .foregroundStyle(.tertiary)
-
-                    Text(formatDuration(originalDuration / selectedSpeed.rawValue))
-                        .font(.subheadline.weight(.medium))
-                        .foregroundStyle(.orange)
                 }
             }
         }
-        .padding(.horizontal, 20)
+        .frame(height: 56)
+        .padding(.horizontal, 8)
     }
 
-    // MARK: - Controls
+    // MARK: - Preview Section
 
-    private var controls: some View {
-        VStack(spacing: 20) {
+    private var previewSection: some View {
+        VStack(spacing: 0) {
+            header
+
             VStack(spacing: 8) {
+                ZStack {
+                    RoundedRectangle(cornerRadius: 16)
+                        .fill(Color(hex: "E6E6EC"))
+                        .aspectRatio(175.0 / 250.0, contentMode: .fit)
+                        .frame(width: 200)
+
+                    if let player {
+                        PlayerView(player: player)
+                            .aspectRatio(videoAspectRatio ?? (thumbnail.size.width / thumbnail.size.height), contentMode: .fit)
+                            .clipShape(RoundedRectangle(cornerRadius: 16))
+                            .contentShape(Rectangle())
+                            .onTapGesture { togglePlayback() }
+                            .overlay {
+                                Image(systemName: isPlaying ? "pause.fill" : "play.fill")
+                                    .font(.title)
+                                    .foregroundStyle(.white)
+                                    .padding(16)
+                                    .background(.black.opacity(0.4), in: Circle())
+                                    .opacity(isPlaying ? 0 : 1)
+                                    .animation(.easeInOut(duration: 0.2), value: isPlaying)
+                            }
+                    } else {
+                        Image(uiImage: thumbnail)
+                            .resizable()
+                            .aspectRatio(contentMode: .fit)
+                            .clipShape(RoundedRectangle(cornerRadius: 16))
+                    }
+                }
+                .frame(width: 200)
+
+                if originalDuration > 0 {
+                    durationInfo
+                }
+            }
+            .padding(.horizontal, 16)
+            .padding(.vertical, 24)
+        }
+        .background(Color.white)
+        .overlay(
+            Rectangle()
+                .fill(Color(hex: "565656").opacity(0.08))
+                .frame(height: 1),
+            alignment: .bottom
+        )
+    }
+
+    private var durationInfo: some View {
+        HStack(spacing: 4) {
+            Text(formatDuration(originalDuration))
+                .font(.system(size: 12, weight: .semibold))
+                .foregroundColor(Color(hex: "1D1D1D"))
+                .tracking(-0.408)
+
+            Image(systemName: "arrow.right")
+                .font(.system(size: 10, weight: .semibold))
+                .foregroundColor(Color(hex: "1D1D1D"))
+
+            Text(formatDuration(originalDuration / selectedSpeed.rawValue))
+                .font(.system(size: 12, weight: .semibold))
+                .foregroundColor(Color(hex: "F4800D"))
+                .tracking(-0.408)
+        }
+    }
+
+    // MARK: - Controls Section
+
+    private var controlsSection: some View {
+        VStack(spacing: 24) {
+            VStack(alignment: .leading, spacing: 8) {
                 Text("Speed")
-                    .font(.subheadline.weight(.medium))
-                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .font(.system(size: 14, weight: .semibold))
+                    .foregroundColor(Color(hex: "888888"))
+                    .tracking(-0.408)
+
                 speedPicker
             }
 
-            // Playback controls
-            HStack(spacing: 24) {
-                Button {
-                    player?.pause()
-                    isPlaying = false
-                    player?.seek(to: .zero, toleranceBefore: .zero, toleranceAfter: .zero)
-                } label: {
-                    Image(systemName: "backward.end.fill")
-                        .font(.title3)
-                }
-
-                Button {
-                    togglePlayback()
-                } label: {
-                    Image(systemName: isPlaying ? "pause.circle.fill" : "play.circle.fill")
-                        .font(.largeTitle)
-                }
-
-                Button {
-                    player?.pause()
-                    isPlaying = false
-                    if let duration = player?.currentItem?.duration {
-                        let end = CMTimeGetSeconds(duration)
-                        if end.isFinite {
-                            player?.seek(to: CMTime(seconds: max(0, end - 0.5), preferredTimescale: 600), toleranceBefore: .zero, toleranceAfter: .zero)
-                        }
-                    }
-                } label: {
-                    Image(systemName: "forward.end.fill")
-                        .font(.title3)
-                }
-            }
-            .foregroundStyle(.primary)
-
-            Button {
-                player?.pause()
-                isPlaying = false
-                onApply(selectedSpeed.rawValue)
-            } label: {
-                Text("Apply")
-                    .font(.headline)
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 14)
-            }
-            .buttonStyle(.borderedProminent)
-            .tint(.orange)
-            .disabled(player == nil)
+            playbackControls
         }
-        .padding(20)
-        .background(.bar)
+        .padding(16)
     }
 
     private var speedPicker: some View {
@@ -204,23 +186,136 @@ struct VideoSpeedView: View {
                         selectedSpeed = preset
                     } label: {
                         Text(preset.label)
-                            .font(.subheadline.weight(.medium))
-                            .padding(.horizontal, 14)
+                            .font(.system(size: 14, weight: .semibold))
+                            .tracking(-0.408)
+                            .foregroundColor(
+                                selectedSpeed == preset
+                                    ? .white
+                                    : Color(hex: "1D1D1D")
+                            )
+                            .padding(.horizontal, 12)
                             .padding(.vertical, 8)
                             .background(
-                                selectedSpeed == preset ? Color.orange : Color(.systemGray5),
-                                in: Capsule()
+                                Capsule()
+                                    .fill(
+                                        selectedSpeed == preset
+                                            ? Color(hex: "F4800D")
+                                            : Color(hex: "888888").opacity(0.08)
+                                    )
                             )
-                            .foregroundStyle(selectedSpeed == preset ? .white : .primary)
                     }
+                    .buttonStyle(.plain)
                 }
             }
         }
     }
 
+    private var playbackControls: some View {
+        HStack(spacing: 12) {
+            Button {
+                player?.pause()
+                isPlaying = false
+                player?.seek(to: .zero, toleranceBefore: .zero, toleranceAfter: .zero)
+            } label: {
+                Image("icon_play_back")
+                    .resizable()
+                    .renderingMode(.template)
+                    .frame(width: 32, height: 32)
+                    .foregroundColor(Color(hex: "1D1D1D"))
+            }
+
+            Button {
+                togglePlayback()
+            } label: {
+                if isPlaying {
+                    Image(systemName: "pause.circle.fill")
+                        .resizable()
+                        .frame(width: 56, height: 56)
+                        .foregroundStyle(
+                            Color(hex: "F4800D"),
+                            Color(hex: "F4800D").opacity(0.15)
+                        )
+                } else {
+                    Image("icon_video_play")
+                        .resizable()
+                        .frame(width: 56, height: 56)
+                }
+            }
+
+            Button {
+                player?.pause()
+                isPlaying = false
+                if let duration = player?.currentItem?.duration {
+                    let end = CMTimeGetSeconds(duration)
+                    if end.isFinite {
+                        player?.seek(to: CMTime(seconds: max(0, end - 0.5), preferredTimescale: 600), toleranceBefore: .zero, toleranceAfter: .zero)
+                    }
+                }
+            } label: {
+                Image("icon_play_forward")
+                    .resizable()
+                    .renderingMode(.template)
+                    .frame(width: 32, height: 32)
+                    .foregroundColor(Color(hex: "1D1D1D"))
+            }
+        }
+    }
+
+    // MARK: - Bottom Buttons
+
+    private var bottomButtons: some View {
+        GeometryReader { geo in
+            let totalWidth = geo.size.width - 32
+            let spacing: CGFloat = 12
+            let resetWidth = (totalWidth - spacing) * 0.3
+            let convertWidth = (totalWidth - spacing) * 0.7
+
+            HStack(spacing: spacing) {
+                Button {
+                    selectedSpeed = .double
+                } label: {
+                    Text("Reset")
+                        .font(.system(size: 16, weight: .semibold))
+                        .foregroundColor(Color(hex: "1D1D1D"))
+                        .tracking(-0.408)
+                        .frame(width: resetWidth, height: 60)
+                        .background(Color(hex: "888888").opacity(0.08))
+                        .clipShape(RoundedRectangle(cornerRadius: 16))
+                }
+
+                Button {
+                    player?.pause()
+                    isPlaying = false
+                    onApply(selectedSpeed.rawValue)
+                } label: {
+                    Text("Change speed")
+                        .font(.system(size: 16, weight: .semibold))
+                        .foregroundColor(.white)
+                        .tracking(-0.408)
+                        .frame(width: convertWidth, height: 60)
+                        .background(
+                            LinearGradient(
+                                colors: [Color(hex: "FFAD5B"), Color(hex: "F4800D"), Color(hex: "FFAD5B")],
+                                startPoint: .leading,
+                                endPoint: .trailing
+                            )
+                        )
+                        .clipShape(RoundedRectangle(cornerRadius: 16))
+                }
+                .disabled(player == nil)
+            }
+            .padding(.horizontal, 16)
+        }
+        .frame(height: 60)
+        .padding(.vertical, 24)
+    }
+
     // MARK: - Player
 
     private func setupPlayer() async {
+        try? AVAudioSession.sharedInstance().setCategory(.playback)
+        try? AVAudioSession.sharedInstance().setActive(true)
+
         let asset = AVAsset(url: fileURL)
         do {
             let cmDuration = try await asset.load(.duration)

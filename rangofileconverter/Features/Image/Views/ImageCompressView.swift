@@ -257,6 +257,10 @@ struct ImageCompressView: View {
 
     // MARK: - Bottom Buttons
 
+    private var hasChanges: Bool {
+        selectedFormat != .jpeg || quality != 80
+    }
+
     private var bottomButtons: some View {
         GeometryReader { geo in
             let totalWidth = geo.size.width - 32
@@ -278,6 +282,8 @@ struct ImageCompressView: View {
                         .background(Color(hex: "888888").opacity(0.12))
                         .clipShape(RoundedRectangle(cornerRadius: 16))
                 }
+                .disabled(!hasChanges)
+                .opacity(hasChanges ? 1.0 : 0.5)
 
                 // Compress button (70%)
                 Button {
@@ -290,13 +296,16 @@ struct ImageCompressView: View {
                         .frame(width: compressWidth, height: 60)
                         .background(
                             LinearGradient(
-                                colors: [Color(hex: "FFA05C"), Color(hex: "EF731A")],
+                                colors: hasChanges
+                                    ? [Color(hex: "FFA05C"), Color(hex: "EF731A")]
+                                    : [Color(hex: "FFD9B8"), Color(hex: "F8C192"), Color(hex: "FFD9B8")],
                                 startPoint: .leading,
                                 endPoint: .trailing
                             )
                         )
                         .clipShape(RoundedRectangle(cornerRadius: 16))
                 }
+                .disabled(!hasChanges)
             }
             .padding(.horizontal, 16)
         }

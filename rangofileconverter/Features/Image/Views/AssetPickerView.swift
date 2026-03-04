@@ -256,7 +256,7 @@ struct AssetPickerView: View {
                         let idx = selectionOrder(for: asset)
                         ZStack {
                             Circle()
-                                .fill(isSelected ? Color.pink : Color.black.opacity(0.3))
+                                .fill(isSelected ? Color(hex: "F4800D") : Color.black.opacity(0.3))
                                 .frame(width: 26, height: 26)
                             Circle()
                                 .stroke(Color.white, lineWidth: 2)
@@ -300,23 +300,41 @@ struct AssetPickerView: View {
 
     private var multiSelectBar: some View {
         VStack(spacing: 0) {
-            Divider()
+            Rectangle()
+                .fill(Color(hex: "565656").opacity(0.08))
+                .frame(height: 1)
             HStack {
                 Text("\(selectedAssetIDs.count) selected")
-                    .font(.subheadline)
-                    .foregroundStyle(.secondary)
+                    .font(.system(size: 16, weight: .semibold))
+                    .foregroundColor(Color(hex: "888888"))
+                    .tracking(-0.408)
 
                 Spacer()
 
-                Button("Done") {
+                Button {
                     loadSelectedAndFinish()
+                } label: {
+                    Text("Done")
+                        .font(.system(size: 16, weight: .semibold))
+                        .foregroundColor(.white)
+                        .tracking(-0.408)
+                        .padding(.horizontal, 24)
+                        .padding(.vertical, 12)
+                        .background(
+                            LinearGradient(
+                                colors: selectedAssetIDs.count >= minCount
+                                    ? [Color(hex: "FFA05C"), Color(hex: "EF731A")]
+                                    : [Color(hex: "FFD9B8"), Color(hex: "F8C192"), Color(hex: "FFD9B8")],
+                                startPoint: .leading,
+                                endPoint: .trailing
+                            )
+                        )
+                        .clipShape(RoundedRectangle(cornerRadius: 12))
                 }
-                .font(.system(size: 16, weight: .semibold))
-                .foregroundColor(Color(hex: "1D1D1D"))
                 .disabled(selectedAssetIDs.count < minCount || isLoadingFullImage)
             }
             .padding(.horizontal, 16)
-            .padding(.vertical, 12)
+            .padding(.vertical, 16)
             .background(Color.white)
         }
     }

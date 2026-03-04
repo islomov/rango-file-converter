@@ -25,6 +25,7 @@ enum AppTab: Int, CaseIterable {
 struct ContentView: View {
     @State private var selectedTab: AppTab = .home
     @State private var selectedCategory: MediaCategory?
+    @State private var hideTabBar: Bool = false
 
     var body: some View {
         ZStack(alignment: .bottom) {
@@ -48,11 +49,14 @@ struct ContentView: View {
             .frame(maxWidth: .infinity, maxHeight: .infinity)
 
             // Floating tab bar
-            FloatingTabBar(selectedTab: $selectedTab) {
-                // Reset category when tapping home
-                if selectedTab == .home {
-                    selectedCategory = nil
+            if !hideTabBar {
+                FloatingTabBar(selectedTab: $selectedTab) {
+                    // Reset category when tapping home
+                    if selectedTab == .home {
+                        selectedCategory = nil
+                    }
                 }
+                .transition(.move(edge: .bottom).combined(with: .opacity))
             }
         }
         .ignoresSafeArea(.keyboard)
@@ -62,7 +66,7 @@ struct ContentView: View {
     private func categoryView(for category: MediaCategory) -> some View {
         switch category {
         case .image:
-            ImageConverterView(onBack: { selectedCategory = nil })
+            ImageConverterView(onBack: { selectedCategory = nil }, hideTabBar: $hideTabBar)
         case .video:
             VideoConverterView()
         case .audio:

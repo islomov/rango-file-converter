@@ -28,6 +28,7 @@ private let imageTools: [ImageTool] = [
 
 struct ImageConverterView: View {
     var onBack: (() -> Void)?
+    @Binding var hideTabBar: Bool
 
     @StateObject private var viewModel = ImageConverterViewModel()
     @EnvironmentObject private var historyStore: HistoryStore
@@ -210,6 +211,15 @@ struct ImageConverterView: View {
             } message: {
                 Text("This tool is not available yet. Stay tuned!")
             }
+            .onChange(of: showAssetPicker) { newValue in
+                hideTabBar = newValue
+            }
+            .onChange(of: showGifPicker) { newValue in
+                hideTabBar = newValue
+            }
+            .onChange(of: showStitchPicker) { newValue in
+                hideTabBar = newValue
+            }
         }
     }
 
@@ -337,6 +347,6 @@ struct ImageConverterView: View {
 }
 
 #Preview {
-    ImageConverterView()
+    ImageConverterView(hideTabBar: .constant(false))
         .environmentObject(HistoryStore.shared)
 }

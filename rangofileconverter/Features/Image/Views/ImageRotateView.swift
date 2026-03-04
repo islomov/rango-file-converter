@@ -5,116 +5,285 @@ struct ImageRotateView: View {
     let fileName: String
     let onApply: (Double, Bool, Bool) -> Void
 
+    @Environment(\.dismiss) private var dismiss
     @State private var rotation: Double = 0
     @State private var flipH = false
     @State private var flipV = false
     @State private var previewImage: UIImage?
+    @State private var originalSize: Int64 = 0
+    @State private var estimatedSize: Int64 = 0
 
     var body: some View {
         VStack(spacing: 0) {
-            Spacer()
+            // Image preview area
+            previewSection
 
-            GeometryReader { geo in
-                let maxSide = min(geo.size.width - 40, geo.size.height)
-                Group {
-                    if let previewImage {
-                        Image(uiImage: previewImage)
-                            .resizable()
-                            .aspectRatio(contentMode: .fit)
-                            .frame(maxWidth: maxSide, maxHeight: maxSide)
-                            .rotationEffect(.degrees(rotation))
-                            .scaleEffect(x: flipH ? -1 : 1, y: flipV ? -1 : 1)
-                            .animation(.easeInOut(duration: 0.25), value: rotation)
-                            .animation(.easeInOut(duration: 0.25), value: flipH)
-                            .animation(.easeInOut(duration: 0.25), value: flipV)
-                    } else {
-                        ProgressView()
-                    }
+            // Controls
+            controlsSection
+
+            Spacer(minLength: 0)
+
+            // Bottom button
+            bottomButton
+        }
+        .background(Color.white)
+        .navigationBarHidden(true)
+        .onAppear {
+            previewImage = ImageConverterViewModel.loadPreviewImage(from: fileURL)
+            loadOriginalSize()
+            updateEstimatedSize()
+        }
+        .onChange(of: rotation) { _ in
+            updateEstimatedSize()
+        }
+        .onChange(of: flipH) { _ in
+            updateEstimatedSize()
+        }
+        .onChange(of: flipV) { _ in
+            updateEstimatedSize()
+        }
+    }
+
+    // MARK: - Header
+
+    private var header: some View {
+        ZStack {
+            Text("Rotate image")
+                .font(.system(size: 20, weight: .semibold))
+                .foregroundColor(Color(hex: "1D1D1D"))
+                .tracking(-0.408)
+
+            HStack {
+                Spacer()
+                Button {
+                    dismiss()
+                } label: {
+                    Image(systemName: "xmark")
+                        .font(.system(size: 14, weight: .semibold))
+                        .foregroundColor(Color(hex: "1D1D1D"))
+                        .frame(width: 40, height: 40)
+                        .background(
+                            Circle()
+                                .fill(Color(hex: "888888").opacity(0.08))
+                        )
                 }
-                .frame(width: geo.size.width, height: geo.size.height)
+            }
+        }
+        .frame(height: 56)
+        .padding(.horizontal, 8)
+    }
+
+    // MARK: - Preview Section
+
+    private var previewSection: some View {
+        VStack(spacing: 0) {
+            header
+
+            if let previewImage {
+                Image(uiImage: previewImage)
+                    .resizable()
+                    .aspectRatio(contentMode: .fit)
+                    .frame(maxHeight: 260)
+                    .clipShape(RoundedRectangle(cornerRadius: 16))
+                    .rotationEffect(.degrees(rotation))
+                    .scaleEffect(x: flipH ? -1 : 1, y: flipV ? -1 : 1)
+                    .animation(.easeInOut(duration: 0.25), value: rotation)
+                    .animation(.easeInOut(duration: 0.25), value: flipH)
+                    .animation(.easeInOut(duration: 0.25), value: flipV)
+                    .padding(.horizontal, 16)
+                    .padding(.vertical, 24)
+            } else {
+                ProgressView()
+                    .frame(height: 260)
+                    .padding(.vertical, 24)
             }
 
-            Spacer()
-
-            controls
+            // File size info
+            fileSizeInfo
+                .padding(.bottom, 12)
         }
-        .navigationTitle("Rotate")
-        .navigationBarTitleDisplayMode(.inline)
-        .toolbar {
-            ToolbarItem(placement: .navigationBarTrailing) {
-                Button("Reset") {
+        .background(Color.white)
+        .overlay(
+            Rectangle()
+                .fill(Color(hex: "565656").opacity(0.08))
+                .frame(height: 1),
+            alignment: .bottom
+        )
+    }
+
+    private var fileSizeInfo: some View {
+        HStack(spacing: 4) {
+            Text(formatBytes(originalSize))
+                .font(.system(size: 12, weight: .semibold))
+                .foregroundColor(Color(hex: "1D1D1D"))
+                .tracking(-0.408)
+
+            Image(systemName: "arrow.right")
+                .font(.system(size: 10))
+                .foregroundColor(Color(hex: "1D1D1D"))
+                .rotationEffect(.degrees(0))
+
+            Text(formatBytes(estimatedSize))
+                .font(.system(size: 12, weight: .semibold))
+                .foregroundColor(Color(hex: "F4800D"))
+                .tracking(-0.408)
+
+            if originalSize > 0 && estimatedSize > 0 {
+                let ratio = Double(estimatedSize) / Double(originalSize) * 100
+                Text(String(format: "(%.0f%%)", ratio))
+                    .font(.system(size: 12, weight: .semibold))
+                    .foregroundColor(Color(hex: "888888"))
+                    .tracking(-0.408)
+            }
+        }
+    }
+
+    // MARK: - Controls Section
+
+    private var controlsSection: some View {
+        VStack(alignment: .leading, spacing: 24) {
+            // Rotate buttons
+            VStack(alignment: .leading, spacing: 8) {
+                Text("Rotate")
+                    .font(.system(size: 14, weight: .semibold))
+                    .foregroundColor(Color(hex: "888888"))
+                    .tracking(-0.408)
+
+                HStack(spacing: 0) {
+                    rotateButton(icon: "rotate.left", action: { rotation -= 90 })
+                    Spacer()
+                    rotateButton(icon: "rotate.right", action: { rotation += 90 })
+                    Spacer()
+                    rotateButton(
+                        icon: "arrow.left.and.right.righttriangle.left.righttriangle.right",
+                        action: { flipH.toggle() }
+                    )
+                    Spacer()
+                    rotateButton(
+                        icon: "arrow.up.and.down.righttriangle.up.righttriangle.down",
+                        action: { flipV.toggle() }
+                    )
+                }
+            }
+
+            // Degree slider
+            VStack(alignment: .leading, spacing: 12) {
+                HStack {
+                    Spacer()
+                    Text("\(Int(normalizedDegrees))\u{00B0}")
+                        .font(.system(size: 14, weight: .semibold))
+                        .foregroundColor(Color(hex: "888888"))
+                        .tracking(-0.408)
+                    Spacer()
+                }
+
+                Slider(value: $rotation, in: -180...180, step: 1)
+                    .tint(Color(hex: "F4800D"))
+            }
+        }
+        .padding(16)
+    }
+
+    private func rotateButton(icon: String, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            Image(systemName: icon)
+                .font(.system(size: 24))
+                .foregroundColor(Color(hex: "1D1D1D"))
+                .frame(width: 72, height: 72)
+                .background(Color(hex: "888888").opacity(0.12))
+                .clipShape(RoundedRectangle(cornerRadius: 16))
+        }
+    }
+
+    // MARK: - Bottom Buttons
+
+    private var hasChanges: Bool {
+        rotation != 0 || flipH || flipV
+    }
+
+    private var bottomButton: some View {
+        GeometryReader { geo in
+            let totalWidth = geo.size.width - 32 // 16px padding on each side
+            let spacing: CGFloat = 8
+            let resetWidth = (totalWidth - spacing) * 0.3
+            let rotateWidth = (totalWidth - spacing) * 0.7
+
+            HStack(spacing: spacing) {
+                // Reset button (30%)
+                Button {
                     rotation = 0
                     flipH = false
                     flipV = false
+                } label: {
+                    Text("Reset")
+                        .font(.system(size: 16, weight: .semibold))
+                        .foregroundColor(Color(hex: "1D1D1D"))
+                        .tracking(-0.408)
+                        .frame(width: resetWidth, height: 60)
+                        .background(Color(hex: "888888").opacity(0.12))
+                        .clipShape(RoundedRectangle(cornerRadius: 16))
                 }
-                .disabled(rotation == 0 && !flipH && !flipV)
+                .disabled(!hasChanges)
+                .opacity(hasChanges ? 1.0 : 0.5)
+
+                // Rotate button (70%)
+                Button {
+                    onApply(rotation, flipH, flipV)
+                } label: {
+                    Text("Rotate")
+                        .font(.system(size: 16, weight: .semibold))
+                        .foregroundColor(.white)
+                        .tracking(-0.408)
+                        .frame(width: rotateWidth, height: 60)
+                        .background(
+                            LinearGradient(
+                                colors: hasChanges
+                                    ? [Color(hex: "FFA05C"), Color(hex: "EF731A")]
+                                    : [Color(hex: "FFD9B8"), Color(hex: "F8C192"), Color(hex: "FFD9B8")],
+                                startPoint: .leading,
+                                endPoint: .trailing
+                            )
+                        )
+                        .clipShape(RoundedRectangle(cornerRadius: 16))
+                }
+                .disabled(!hasChanges)
             }
+            .padding(.horizontal, 16)
         }
-        .onAppear {
-            previewImage = ImageConverterViewModel.loadPreviewImage(from: fileURL)
-        }
+        .frame(height: 60)
+        .padding(.vertical, 24)
     }
 
-    private var controls: some View {
-        VStack(spacing: 20) {
-            // Quick actions
-            HStack(spacing: 24) {
-                quickAction(icon: "rotate.left", label: "90\u{00B0} L") {
-                    rotation -= 90
-                }
-                quickAction(icon: "rotate.right", label: "90\u{00B0} R") {
-                    rotation += 90
-                }
-                quickAction(icon: "arrow.left.and.right.righttriangle.left.righttriangle.right", label: "Flip H") {
-                    flipH.toggle()
-                }
-                quickAction(icon: "arrow.up.and.down.righttriangle.up.righttriangle.down", label: "Flip V") {
-                    flipV.toggle()
-                }
-            }
-
-            // Free rotation slider
-            VStack(spacing: 8) {
-                Text("\(Int(normalizedDegrees))\u{00B0}")
-                    .font(.subheadline.monospacedDigit())
-                    .foregroundStyle(.secondary)
-
-                Slider(value: $rotation, in: -180...180, step: 1)
-                    .padding(.horizontal, 4)
-            }
-
-            // Apply button
-            Button {
-                onApply(rotation, flipH, flipV)
-            } label: {
-                Text("Apply")
-                    .font(.headline)
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 14)
-            }
-            .buttonStyle(.borderedProminent)
-            .disabled(rotation == 0 && !flipH && !flipV)
-        }
-        .padding(20)
-        .background(.bar)
-    }
-
-    private func quickAction(icon: String, label: String, action: @escaping () -> Void) -> some View {
-        Button(action: action) {
-            VStack(spacing: 6) {
-                Image(systemName: icon)
-                    .font(.title3)
-                Text(label)
-                    .font(.caption2)
-            }
-            .foregroundStyle(.primary)
-            .frame(width: 64, height: 56)
-            .background(.quaternary, in: RoundedRectangle(cornerRadius: 10))
-        }
-    }
+    // MARK: - Helpers
 
     private var normalizedDegrees: Double {
         let mod = rotation.truncatingRemainder(dividingBy: 360)
         return mod < 0 ? mod + 360 : mod
+    }
+
+    private func loadOriginalSize() {
+        if let attrs = try? FileManager.default.attributesOfItem(atPath: fileURL.path),
+           let size = attrs[.size] as? Int64 {
+            originalSize = size
+        }
+    }
+
+    private func updateEstimatedSize() {
+        // Rotation doesn't change file size significantly; estimate same as original
+        // with slight overhead for re-encoding
+        if rotation == 0 && !flipH && !flipV {
+            estimatedSize = originalSize
+        } else {
+            // Re-encoding as PNG typically increases size slightly
+            let multiplier: Double = 1.05
+            estimatedSize = Int64(Double(originalSize) * multiplier)
+        }
+    }
+
+    private func formatBytes(_ bytes: Int64) -> String {
+        if bytes == 0 { return "\u{2014}" }
+        let formatter = ByteCountFormatter()
+        formatter.countStyle = .file
+        return formatter.string(fromByteCount: bytes)
     }
 }

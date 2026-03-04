@@ -59,6 +59,11 @@ struct ContentView: View {
                 .transition(.move(edge: .bottom).combined(with: .opacity))
             }
         }
+        .onPreferenceChange(TabBarVisibilityPreferenceKey.self) { shouldHide in
+            withAnimation(.easeInOut(duration: 0.25)) {
+                hideTabBar = shouldHide
+            }
+        }
         .ignoresSafeArea(.keyboard)
     }
 
@@ -66,7 +71,13 @@ struct ContentView: View {
     private func categoryView(for category: MediaCategory) -> some View {
         switch category {
         case .image:
-            ImageConverterView(onBack: { selectedCategory = nil }, hideTabBar: $hideTabBar)
+            ImageConverterView(
+                onBack: { selectedCategory = nil },
+                onNavigateToHistory: {
+                    selectedCategory = nil
+                    selectedTab = .history
+                }
+            )
         case .video:
             VideoConverterView()
         case .audio:

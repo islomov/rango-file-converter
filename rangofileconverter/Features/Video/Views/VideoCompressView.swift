@@ -39,6 +39,7 @@ struct VideoCompressView: View {
     let fileURL: URL
     let onCompress: (_ quality: Int, _ resolutionHeight: Int?, _ preset: String, _ format: String) -> Void
 
+    @Environment(\.dismiss) private var dismiss
     @State private var quality: Double = 8
     @State private var selectedResolution: CompressResolution = .original
     @State private var selectedPreset: CompressPreset = .medium
@@ -47,69 +48,113 @@ struct VideoCompressView: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            Spacer()
-            preview
-            Spacer()
-            controls
+            previewSection
+
+            ScrollView {
+                controlsSection
+            }
+
+            Spacer(minLength: 0)
+
+            bottomButton
         }
-        .navigationTitle("Compress")
-        .navigationBarTitleDisplayMode(.inline)
+        .background(Color.white)
+        .navigationBarHidden(true)
+        .hidesFloatingTabBar()
         .onAppear { loadOriginalSize() }
     }
 
-    // MARK: - Preview
+    // MARK: - Header
 
-    private var preview: some View {
-        VStack(spacing: 16) {
+    private var header: some View {
+        ZStack {
+            Text("Compress video")
+                .font(.system(size: 20, weight: .semibold))
+                .foregroundColor(Color(hex: "1D1D1D"))
+                .tracking(-0.408)
+
+            HStack {
+                Spacer()
+                Button {
+                    dismiss()
+                } label: {
+                    Image(systemName: "xmark")
+                        .font(.system(size: 14, weight: .semibold))
+                        .foregroundColor(Color(hex: "1D1D1D"))
+                        .frame(width: 40, height: 40)
+                        .background(
+                            Circle()
+                                .fill(Color(hex: "888888").opacity(0.08))
+                        )
+                }
+            }
+        }
+        .frame(height: 56)
+        .padding(.horizontal, 8)
+    }
+
+    // MARK: - Preview Section
+
+    private var previewSection: some View {
+        VStack(spacing: 0) {
+            header
+
             Image(uiImage: thumbnail)
                 .resizable()
                 .aspectRatio(contentMode: .fit)
-                .frame(maxHeight: 300)
-                .clipShape(RoundedRectangle(cornerRadius: 8))
+                .frame(maxHeight: 260)
+                .clipShape(RoundedRectangle(cornerRadius: 16))
+                .padding(.horizontal, 16)
+                .padding(.vertical, 24)
 
-            Text(formatBytes(originalSize))
-                .font(.subheadline.weight(.medium))
-                .foregroundStyle(.secondary)
-
-            Text(fileName)
-                .font(.caption)
-                .foregroundStyle(.tertiary)
-                .lineLimit(1)
+            fileSizeInfo
+                .padding(.bottom, 12)
         }
-        .padding(.horizontal, 20)
+        .background(Color.white)
+        .overlay(
+            Rectangle()
+                .fill(Color(hex: "565656").opacity(0.08))
+                .frame(height: 1),
+            alignment: .bottom
+        )
     }
 
-    // MARK: - Controls
+    private var fileSizeInfo: some View {
+        Text(formatBytes(originalSize))
+            .font(.system(size: 12, weight: .semibold))
+            .foregroundColor(Color(hex: "888888"))
+            .tracking(-0.408)
+    }
 
-    private var controls: some View {
-        VStack(spacing: 20) {
-            // Quality slider (mpeg4 q:v range: 1=best, 31=worst)
-            VStack(spacing: 8) {
+    // MARK: - Controls Section
+
+    private var controlsSection: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            // Quality
+            VStack(spacing: 12) {
                 HStack {
                     Text("Quality")
-                        .font(.subheadline.weight(.medium))
+                        .font(.system(size: 14, weight: .semibold))
+                        .foregroundColor(Color(hex: "888888"))
+                        .tracking(-0.408)
                     Spacer()
                     Text("\(Int(quality))")
-                        .font(.subheadline.monospacedDigit())
-                        .foregroundStyle(.secondary)
+                        .font(.system(size: 14, weight: .semibold))
+                        .foregroundColor(Color(hex: "888888"))
+                        .tracking(-0.408)
                 }
+
                 Slider(value: $quality, in: 1...31, step: 1)
-                HStack {
-                    Text("Higher")
-                        .font(.caption2)
-                        .foregroundStyle(.tertiary)
-                    Spacer()
-                    Text("Lower")
-                        .font(.caption2)
-                        .foregroundStyle(.tertiary)
-                }
+                    .tint(Color(hex: "F4800D"))
             }
 
-            // Resolution picker
-            VStack(spacing: 8) {
+            // Resolution
+            VStack(alignment: .leading, spacing: 8) {
                 Text("Resolution")
-                    .font(.subheadline.weight(.medium))
-                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .font(.system(size: 14, weight: .semibold))
+                    .foregroundColor(Color(hex: "888888"))
+                    .tracking(-0.408)
+
                 chipPicker(
                     items: CompressResolution.allCases,
                     selected: selectedResolution,
@@ -117,11 +162,13 @@ struct VideoCompressView: View {
                 ) { selectedResolution = $0 }
             }
 
-            // Preset picker
-            VStack(spacing: 8) {
+            // Speed
+            VStack(alignment: .leading, spacing: 8) {
                 Text("Speed")
-                    .font(.subheadline.weight(.medium))
-                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .font(.system(size: 14, weight: .semibold))
+                    .foregroundColor(Color(hex: "888888"))
+                    .tracking(-0.408)
+
                 chipPicker(
                     items: CompressPreset.allCases,
                     selected: selectedPreset,
@@ -129,37 +176,21 @@ struct VideoCompressView: View {
                 ) { selectedPreset = $0 }
             }
 
-            // Output format picker
-            VStack(spacing: 8) {
+            // Format
+            VStack(alignment: .leading, spacing: 8) {
                 Text("Format")
-                    .font(.subheadline.weight(.medium))
-                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .font(.system(size: 14, weight: .semibold))
+                    .foregroundColor(Color(hex: "888888"))
+                    .tracking(-0.408)
+
                 chipPicker(
                     items: OutputFormat.allCases,
                     selected: selectedFormat,
                     label: \.rawValue
                 ) { selectedFormat = $0 }
             }
-
-            // Compress button
-            Button {
-                onCompress(
-                    Int(quality),
-                    selectedResolution.height,
-                    selectedPreset.rawValue.lowercased(),
-                    selectedFormat.fileExtension
-                )
-            } label: {
-                Text("Compress")
-                    .font(.headline)
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 14)
-            }
-            .buttonStyle(.borderedProminent)
-            .tint(.purple)
         }
-        .padding(20)
-        .background(.bar)
+        .padding(16)
     }
 
     private func chipPicker<T: Hashable>(
@@ -175,18 +206,54 @@ struct VideoCompressView: View {
                         onSelect(item)
                     } label: {
                         Text(item[keyPath: label])
-                            .font(.subheadline.weight(.medium))
-                            .padding(.horizontal, 14)
+                            .font(.system(size: 14, weight: .semibold))
+                            .tracking(-0.408)
+                            .padding(.horizontal, 12)
                             .padding(.vertical, 8)
                             .background(
-                                selected == item ? Color.purple : Color(.systemGray5),
+                                selected == item
+                                    ? Color(hex: "F4800D")
+                                    : Color(hex: "888888").opacity(0.08),
                                 in: Capsule()
                             )
-                            .foregroundStyle(selected == item ? .white : .primary)
+                            .foregroundColor(selected == item ? .white : Color(hex: "1D1D1D"))
                     }
+                    .buttonStyle(.plain)
                 }
             }
         }
+    }
+
+    // MARK: - Bottom Button
+
+    private var bottomButton: some View {
+        VStack(spacing: 0) {
+            Button {
+                onCompress(
+                    Int(quality),
+                    selectedResolution.height,
+                    selectedPreset.rawValue.lowercased(),
+                    selectedFormat.fileExtension
+                )
+            } label: {
+                Text("Compress")
+                    .font(.system(size: 16, weight: .semibold))
+                    .foregroundColor(.white)
+                    .tracking(-0.408)
+                    .frame(maxWidth: .infinity)
+                    .frame(height: 60)
+                    .background(
+                        LinearGradient(
+                            colors: [Color(hex: "FFAD5B"), Color(hex: "F4800D"), Color(hex: "FFAD5B")],
+                            startPoint: .topTrailing,
+                            endPoint: .bottomLeading
+                        )
+                    )
+                    .clipShape(RoundedRectangle(cornerRadius: 16))
+            }
+            .padding(.horizontal, 16)
+        }
+        .padding(.vertical, 24)
     }
 
     // MARK: - Helpers
@@ -199,7 +266,7 @@ struct VideoCompressView: View {
     }
 
     private func formatBytes(_ bytes: Int64) -> String {
-        if bytes == 0 { return "—" }
+        if bytes == 0 { return "\u{2014}" }
         let formatter = ByteCountFormatter()
         formatter.countStyle = .file
         return formatter.string(fromByteCount: bytes)

@@ -135,7 +135,9 @@ struct ImageConverterView: View {
                         showCropView = false
                         showAssetPicker = false
                         toolFileURL = nil
+                        onNavigateToHistory?()
                     }
+                    .hidesFloatingTabBar()
                 }
             }
             .navigationDestination(isPresented: $showResizeView) {
@@ -153,7 +155,9 @@ struct ImageConverterView: View {
                         showResizeView = false
                         showAssetPicker = false
                         toolFileURL = nil
+                        onNavigateToHistory?()
                     }
+                    .hidesFloatingTabBar()
                 }
             }
             .navigationDestination(isPresented: $showCompressView) {
@@ -193,6 +197,7 @@ struct ImageConverterView: View {
                         gifFileURLs = []
                         gifFileNames = []
                     }
+                    .hidesFloatingTabBar()
                 }
             }
             .navigationDestination(isPresented: $showStitchView) {
@@ -212,6 +217,7 @@ struct ImageConverterView: View {
                         stitchFileURLs = []
                         stitchFileNames = []
                     }
+                    .hidesFloatingTabBar()
                 }
             }
             .alert("Coming Soon", isPresented: $showComingSoon) {
@@ -257,7 +263,6 @@ struct ImageConverterView: View {
             LazyVGrid(columns: twoColumns, spacing: 12) {
                 ForEach(imageTools) { tool in
                     if tool.isFullWidth {
-                        // Full-width card spanning both columns
                         Button {
                             handleToolTap(tool)
                         } label: {

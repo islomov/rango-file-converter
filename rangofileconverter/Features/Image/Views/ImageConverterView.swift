@@ -28,7 +28,7 @@ private let imageTools: [ImageTool] = [
 
 struct ImageConverterView: View {
     var onBack: (() -> Void)?
-    @Binding var hideTabBar: Bool
+    var onNavigateToHistory: (() -> Void)?
 
     @StateObject private var viewModel = ImageConverterViewModel()
     @EnvironmentObject private var historyStore: HistoryStore
@@ -72,16 +72,19 @@ struct ImageConverterView: View {
                 AssetPickerView { image, fileName, url in
                     handleAssetSelected(image: image, fileName: fileName, url: url)
                 }
+                .hidesFloatingTabBar()
             }
             .navigationDestination(isPresented: $showGifPicker) {
                 AssetPickerView(mode: .multiple(minCount: 2)) { results in
                     handleMultipleAssetsSelected(results)
                 }
+                .hidesFloatingTabBar()
             }
             .navigationDestination(isPresented: $showStitchPicker) {
                 AssetPickerView(mode: .multiple(minCount: 2)) { results in
                     handleStitchAssetsSelected(results)
                 }
+                .hidesFloatingTabBar()
             }
             .navigationDestination(isPresented: $viewModel.showConversionDetail) {
                 if let url = viewModel.selectedFileURL {
@@ -112,7 +115,9 @@ struct ImageConverterView: View {
                         showRotateView = false
                         showAssetPicker = false
                         toolFileURL = nil
+                        onNavigateToHistory?()
                     }
+                    .hidesFloatingTabBar()
                 }
             }
             .navigationDestination(isPresented: $showCropView) {
@@ -210,15 +215,6 @@ struct ImageConverterView: View {
                 Button("OK", role: .cancel) { }
             } message: {
                 Text("This tool is not available yet. Stay tuned!")
-            }
-            .onChange(of: showAssetPicker) { newValue in
-                hideTabBar = newValue
-            }
-            .onChange(of: showGifPicker) { newValue in
-                hideTabBar = newValue
-            }
-            .onChange(of: showStitchPicker) { newValue in
-                hideTabBar = newValue
             }
         }
     }
@@ -347,6 +343,6 @@ struct ImageConverterView: View {
 }
 
 #Preview {
-    ImageConverterView(hideTabBar: .constant(false))
+    ImageConverterView()
         .environmentObject(HistoryStore.shared)
 }

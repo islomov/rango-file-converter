@@ -87,17 +87,18 @@ struct ImageConverterView: View {
                 .hidesFloatingTabBar()
             }
             .navigationDestination(isPresented: $viewModel.showConversionDetail) {
-                if let url = viewModel.selectedFileURL {
-                    ImageDetailView(
-                        fileURL: url,
-                        fileName: viewModel.selectedFileName
-                    ) { format in
-                        viewModel.convert(inputURL: url, fileName: viewModel.selectedFileName, to: format)
-                        viewModel.showConversionDetail = false
-                        showAssetPicker = false
-                        toolFileURL = nil
-                    }
+                ImageDetailView(
+                    fileURL: viewModel.selectedFileURL ?? URL(fileURLWithPath: ""),
+                    fileName: viewModel.selectedFileName
+                ) { format in
+                    guard let url = viewModel.selectedFileURL else { return }
+                    viewModel.convert(inputURL: url, fileName: viewModel.selectedFileName, to: format)
+                    viewModel.showConversionDetail = false
+                    showAssetPicker = false
+                    toolFileURL = nil
+                    onNavigateToHistory?()
                 }
+                .hidesFloatingTabBar()
             }
             .navigationDestination(isPresented: $showRotateView) {
                 if let url = toolFileURL {

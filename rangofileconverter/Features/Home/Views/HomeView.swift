@@ -2,6 +2,7 @@ import SwiftUI
 
 struct HomeView: View {
     var onCategorySelected: ((MediaCategory) -> Void)?
+    @State private var showFAQ = false
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
@@ -13,7 +14,7 @@ struct HomeView: View {
 
                 Spacer()
 
-                Button(action: {}) {
+                Button(action: { showFAQ = true }) {
                     ZStack {
                         Circle()
                             .fill(
@@ -122,6 +123,10 @@ struct HomeView: View {
             }
         }
         .background(Color(hex: "F2F2F6"))
+        .sheet(isPresented: $showFAQ) {
+            FAQBottomSheetView()
+                .presentationDetents([.large])
+        }
     }
 }
 

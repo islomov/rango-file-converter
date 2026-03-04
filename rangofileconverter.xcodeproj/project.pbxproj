@@ -270,6 +270,13 @@
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = Rango;
+				INFOPLIST_KEY_UIAppFonts = (
+						"Montserrat-Bold.ttf",
+						"Montserrat-SemiBold.ttf",
+						"Montserrat-Medium.ttf",
+						"Montserrat-Regular.ttf",
+						"Sora-Regular.ttf",
+					);
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
 				INFOPLIST_KEY_NSCameraUsageDescription = "Rango needs access to the camera to capture photos and videos for conversion.";
 				INFOPLIST_KEY_NSMicrophoneUsageDescription = "Rango needs access to the microphone to record audio for conversion.";
@@ -312,6 +319,13 @@
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = Rango;
+				INFOPLIST_KEY_UIAppFonts = (
+						"Montserrat-Bold.ttf",
+						"Montserrat-SemiBold.ttf",
+						"Montserrat-Medium.ttf",
+						"Montserrat-Regular.ttf",
+						"Sora-Regular.ttf",
+					);
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
 				INFOPLIST_KEY_NSCameraUsageDescription = "Rango needs access to the camera to capture photos and videos for conversion.";
 				INFOPLIST_KEY_NSMicrophoneUsageDescription = "Rango needs access to the microphone to record audio for conversion.";

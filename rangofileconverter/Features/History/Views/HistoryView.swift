@@ -2,106 +2,129 @@ import SwiftUI
 
 struct HistoryView: View {
     @EnvironmentObject private var historyStore: HistoryStore
-    @State private var selectedCategory: String?
     @State private var selectedRecord: ConversionRecord?
-
-    private var filteredRecords: [ConversionRecord] {
-        let records: [ConversionRecord]
-        if let category = selectedCategory {
-            records = historyStore.records(for: category)
-        } else {
-            records = historyStore.records
-        }
-        return records.sorted { $0.date > $1.date }
-    }
+    @State private var searchText: String = ""
 
     private let categories = ["image", "video", "audio", "document"]
 
+    private var groupedRecords: [(category: String, records: [ConversionRecord])] {
+        let allRecords: [ConversionRecord]
+        if searchText.isEmpty {
+            allRecords = historyStore.records
+        } else {
+            allRecords = historyStore.records.filter {
+                $0.sourceFileName.localizedCaseInsensitiveContains(searchText)
+            }
+        }
+
+        let sorted = allRecords.sorted { $0.date > $1.date }
+        var groups: [(category: String, records: [ConversionRecord])] = []
+
+        for category in categories {
+            let categoryRecords = sorted.filter { $0.mediaCategory == category }
+            if !categoryRecords.isEmpty {
+                groups.append((category: category, records: categoryRecords))
+            }
+        }
+        return groups
+    }
+
     var body: some View {
-        NavigationStack {
-            VStack(spacing: 0) {
-                // Category filter
-                ScrollView(.horizontal, showsIndicators: false) {
-                    HStack(spacing: 8) {
-                        FilterChip(title: "All", isSelected: selectedCategory == nil) {
-                            selectedCategory = nil
-                        }
+        VStack(alignment: .leading, spacing: 0) {
+            // Header
+            HStack {
+                Text("My converts")
+                    .font(.custom("Montserrat-Bold", size: 28))
+                    .foregroundColor(Color(hex: "1D1D1D"))
 
-                        ForEach(categories, id: \.self) { category in
-                            FilterChip(title: category.capitalized, isSelected: selectedCategory == category) {
-                                selectedCategory = category
-                            }
-                        }
-                    }
-                    .padding(.horizontal, 16)
-                    .padding(.vertical, 12)
+                Spacer()
+            }
+            .padding(.horizontal, 16)
+            .padding(.top, 24)
+            .padding(.bottom, 24)
+
+            // Search bar + filter
+            HStack(spacing: 12) {
+                HStack(spacing: 8) {
+                    Image("icon_search")
+                        .resizable()
+                        .frame(width: 24, height: 24)
+
+                    TextField("Search", text: $searchText)
+                        .font(.custom("Sora-Regular", size: 14))
+                        .foregroundColor(Color(hex: "1D1D1D"))
                 }
+                .padding(4)
+                .padding(.horizontal, 12)
+                .frame(height: 48)
+                .background(Color.white)
+                .clipShape(RoundedRectangle(cornerRadius: 16))
 
-                if filteredRecords.isEmpty {
-                    Spacer()
-                    VStack(spacing: 12) {
-                        Image(systemName: "clock.arrow.circlepath")
-                            .font(.system(size: 48))
-                            .foregroundStyle(.tertiary)
-                        Text("No history yet")
-                            .font(.headline)
-                            .foregroundStyle(.secondary)
-                        Text("Your conversions will appear here")
-                            .font(.subheadline)
-                            .foregroundStyle(.tertiary)
-                    }
-                    Spacer()
-                } else {
-                    List {
-                        ForEach(filteredRecords) { record in
-                            Button {
-                                selectedRecord = record
-                            } label: {
-                                HistoryRowView(record: record)
-                            }
-                            .buttonStyle(.plain)
-                        }
-                        .onDelete { indexSet in
-                            for index in indexSet {
-                                historyStore.remove(filteredRecords[index])
+                Button {
+                    // Filter action placeholder
+                } label: {
+                    Image("icon_filter")
+                        .resizable()
+                        .frame(width: 24, height: 24)
+                        .frame(width: 48, height: 48)
+                        .background(Color.white)
+                        .clipShape(RoundedRectangle(cornerRadius: 16))
+                }
+                .buttonStyle(.plain)
+            }
+            .padding(.horizontal, 16)
+            .padding(.bottom, 24)
+
+            // Content
+            if groupedRecords.isEmpty {
+                Spacer()
+                VStack(spacing: 12) {
+                    Image(systemName: "clock.arrow.circlepath")
+                        .font(.system(size: 48))
+                        .foregroundStyle(.tertiary)
+                    Text("No history yet")
+                        .font(.custom("Montserrat-SemiBold", size: 16))
+                        .foregroundStyle(.secondary)
+                    Text("Your conversions will appear here")
+                        .font(.custom("Sora-Regular", size: 14))
+                        .foregroundStyle(.tertiary)
+                }
+                Spacer()
+            } else {
+                ScrollView {
+                    LazyVStack(alignment: .leading, spacing: 12, pinnedViews: [.sectionHeaders]) {
+                        ForEach(groupedRecords, id: \.category) { group in
+                            Section {
+                                ForEach(group.records) { record in
+                                    Button {
+                                        selectedRecord = record
+                                    } label: {
+                                        HistoryRowView(record: record)
+                                    }
+                                    .buttonStyle(.plain)
+                                }
+                            } header: {
+                                Text(group.category.capitalized)
+                                    .font(.custom("Montserrat-SemiBold", size: 20))
+                                    .foregroundColor(Color(hex: "1D1D1D"))
+                                    .frame(maxWidth: .infinity, alignment: .leading)
+                                    .padding(.vertical, 8)
+                                    .background(Color(hex: "F2F2F6"))
                             }
                         }
 
                         // Spacer for floating tab bar
                         Color.clear
-                            .frame(height: 80)
-                            .listRowBackground(Color.clear)
-                            .listRowSeparator(.hidden)
+                            .frame(height: 100)
                     }
-                    .listStyle(.plain)
+                    .padding(.horizontal, 16)
                 }
-            }
-            .navigationTitle("History")
-            .sheet(item: $selectedRecord) { record in
-                HistoryResultSheet(record: record)
             }
         }
         .background(Color(hex: "F2F2F6"))
-    }
-}
-
-// MARK: - Filter Chip
-
-private struct FilterChip: View {
-    let title: String
-    let isSelected: Bool
-    let action: () -> Void
-
-    var body: some View {
-        Button(action: action) {
-            Text(title)
-                .font(.system(size: 14, weight: .medium))
-                .foregroundColor(isSelected ? .white : Color(hex: "1D1D1D"))
-                .padding(.horizontal, 16)
-                .padding(.vertical, 8)
-                .background(isSelected ? Color(hex: "1D1D1D") : Color.white)
-                .clipShape(Capsule())
+        .sheet(item: $selectedRecord) { record in
+            HistoryResultSheet(record: record)
         }
-        .buttonStyle(.plain)
     }
+
 }

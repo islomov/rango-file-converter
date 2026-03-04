@@ -25,6 +25,7 @@ struct ImageStitchView: View {
     let fileNames: [String]
     let onApply: (String, String) -> Void
 
+    @Environment(\.dismiss) private var dismiss
     @State private var layout: StitchLayout = .horizontal
     @State private var background: StitchBackground = .white
     @State private var previewImage: UIImage?
@@ -35,13 +36,13 @@ struct ImageStitchView: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            Spacer()
-            preview
-            Spacer()
-            controls
+            previewSection
+            controlsSection
+            Spacer(minLength: 0)
+            bottomButtons
         }
-        .navigationTitle("Stitch")
-        .navigationBarTitleDisplayMode(.inline)
+        .background(Color.white)
+        .navigationBarHidden(true)
         .onAppear {
             loadPreviews()
             updatePreview()
@@ -50,77 +51,206 @@ struct ImageStitchView: View {
         .onChange(of: background) { _ in updatePreview() }
     }
 
-    // MARK: - Preview
+    // MARK: - Header
 
-    private var preview: some View {
-        VStack(spacing: 12) {
+    private var header: some View {
+        ZStack {
+            Text("Stitch images")
+                .font(.system(size: 20, weight: .semibold))
+                .foregroundColor(Color(hex: "1D1D1D"))
+                .tracking(-0.408)
+            HStack {
+                Spacer()
+                Button {
+                    dismiss()
+                } label: {
+                    Image(systemName: "xmark")
+                        .font(.system(size: 14, weight: .semibold))
+                        .foregroundColor(Color(hex: "1D1D1D"))
+                        .frame(width: 40, height: 40)
+                        .background(Circle().fill(Color(hex: "888888").opacity(0.08)))
+                }
+            }
+        }
+        .frame(height: 56)
+        .padding(.horizontal, 8)
+    }
+
+    // MARK: - Preview Section
+
+    private var previewSection: some View {
+        VStack(spacing: 0) {
+            header
+
             if let previewImage {
                 Image(uiImage: previewImage)
                     .resizable()
                     .aspectRatio(contentMode: .fit)
-                    .frame(maxHeight: 350)
-                    .clipShape(RoundedRectangle(cornerRadius: 8))
+                    .frame(maxHeight: 260)
+                    .clipShape(RoundedRectangle(cornerRadius: 16))
                     .overlay(
-                        RoundedRectangle(cornerRadius: 8)
-                            .stroke(.quaternary, lineWidth: 1)
+                        RoundedRectangle(cornerRadius: 16)
+                            .stroke(Color(hex: "565656").opacity(0.08), lineWidth: 1)
                     )
+                    .padding(.horizontal, 16)
+                    .padding(.vertical, 24)
+            } else {
+                ProgressView()
+                    .frame(height: 260)
+                    .padding(.vertical, 24)
             }
 
-            if let size = previewImage?.size {
-                Text("\(fileURLs.count) images \u{00B7} \(Int(size.width))\u{00D7}\(Int(size.height))")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-            }
+            imageInfo
+                .padding(.bottom, 12)
         }
-        .padding(.horizontal, 20)
+        .background(Color.white)
+        .overlay(
+            Rectangle().fill(Color(hex: "565656").opacity(0.08)).frame(height: 1),
+            alignment: .bottom
+        )
     }
 
-    // MARK: - Controls
+    private var imageInfo: some View {
+        HStack(spacing: 4) {
+            Text("\(fileURLs.count) images")
+                .font(.system(size: 12, weight: .semibold))
+                .foregroundColor(Color(hex: "1D1D1D"))
+                .tracking(-0.408)
 
-    private var controls: some View {
-        VStack(spacing: 20) {
+            if let size = previewImage?.size {
+                Text("\u{00B7}")
+                    .font(.system(size: 12, weight: .semibold))
+                    .foregroundColor(Color(hex: "888888"))
+                Text("\(Int(size.width))\u{00D7}\(Int(size.height))")
+                    .font(.system(size: 12, weight: .semibold))
+                    .foregroundColor(Color(hex: "F4800D"))
+                    .tracking(-0.408)
+            }
+        }
+    }
+
+    // MARK: - Controls Section
+
+    private var controlsSection: some View {
+        VStack(alignment: .leading, spacing: 24) {
             VStack(alignment: .leading, spacing: 8) {
                 Text("Layout")
-                    .font(.subheadline.weight(.medium))
-                Picker("Layout", selection: $layout) {
+                    .font(.system(size: 14, weight: .semibold))
+                    .foregroundColor(Color(hex: "888888"))
+                    .tracking(-0.408)
+
+                HStack(spacing: 8) {
                     ForEach(StitchLayout.allCases, id: \.self) { option in
-                        Text(option.rawValue).tag(option)
+                        chipButton(
+                            title: option.rawValue,
+                            icon: layoutIcon(for: option),
+                            isSelected: layout == option
+                        ) {
+                            layout = option
+                        }
                     }
                 }
-                .pickerStyle(.segmented)
             }
 
             VStack(alignment: .leading, spacing: 8) {
                 Text("Background")
-                    .font(.subheadline.weight(.medium))
-                Picker("Background", selection: $background) {
+                    .font(.system(size: 14, weight: .semibold))
+                    .foregroundColor(Color(hex: "888888"))
+                    .tracking(-0.408)
+
+                HStack(spacing: 8) {
                     ForEach(StitchBackground.allCases, id: \.self) { option in
-                        Text(option.rawValue).tag(option)
+                        chipButton(
+                            title: option.rawValue,
+                            icon: nil,
+                            isSelected: background == option
+                        ) {
+                            background = option
+                        }
                     }
                 }
-                .pickerStyle(.segmented)
             }
-
-            HStack {
-                Text("\(fileURLs.count) images")
-                    .font(.subheadline)
-                    .foregroundStyle(.secondary)
-                Spacer()
-            }
-
-            Button {
-                onApply(layout.rawValue, background.rawValue)
-            } label: {
-                Text("Stitch Images")
-                    .font(.headline)
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 14)
-            }
-            .buttonStyle(.borderedProminent)
-            .tint(.mint)
         }
-        .padding(20)
-        .background(.bar)
+        .padding(16)
+    }
+
+    private func chipButton(title: String, icon: String?, isSelected: Bool, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            HStack(spacing: 6) {
+                if let icon {
+                    Image(systemName: icon)
+                        .font(.system(size: 14, weight: .semibold))
+                }
+                Text(title)
+                    .font(.system(size: 14, weight: .semibold))
+                    .tracking(-0.408)
+            }
+            .foregroundColor(isSelected ? .white : Color(hex: "1D1D1D"))
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, 8)
+            .padding(.horizontal, 12)
+            .background(
+                isSelected
+                    ? AnyShapeStyle(Color(hex: "F4800D"))
+                    : AnyShapeStyle(Color(hex: "888888").opacity(0.08))
+            )
+            .clipShape(Capsule())
+        }
+    }
+
+    private func layoutIcon(for layout: StitchLayout) -> String {
+        switch layout {
+        case .horizontal: return "rectangle.split.3x1"
+        case .vertical: return "rectangle.split.1x2"
+        case .grid: return "rectangle.split.2x2"
+        }
+    }
+
+    // MARK: - Bottom Buttons
+
+    private var bottomButtons: some View {
+        GeometryReader { geo in
+            let totalWidth = geo.size.width - 32
+            let spacing: CGFloat = 8
+            let resetWidth = (totalWidth - spacing) * 0.3
+            let actionWidth = (totalWidth - spacing) * 0.7
+
+            HStack(spacing: spacing) {
+                Button {
+                    layout = .horizontal
+                    background = .white
+                } label: {
+                    Text("Reset")
+                        .font(.system(size: 16, weight: .semibold))
+                        .foregroundColor(Color(hex: "1D1D1D"))
+                        .tracking(-0.408)
+                        .frame(width: resetWidth, height: 60)
+                        .background(Color(hex: "888888").opacity(0.12))
+                        .clipShape(RoundedRectangle(cornerRadius: 16))
+                }
+
+                Button {
+                    onApply(layout.rawValue, background.rawValue)
+                } label: {
+                    Text("Stitch Images")
+                        .font(.system(size: 16, weight: .semibold))
+                        .foregroundColor(.white)
+                        .tracking(-0.408)
+                        .frame(width: actionWidth, height: 60)
+                        .background(
+                            LinearGradient(
+                                colors: [Color(hex: "FFA05C"), Color(hex: "EF731A")],
+                                startPoint: .leading,
+                                endPoint: .trailing
+                            )
+                        )
+                        .clipShape(RoundedRectangle(cornerRadius: 16))
+                }
+            }
+            .padding(.horizontal, 16)
+        }
+        .frame(height: 60)
+        .padding(.vertical, 24)
     }
 
     // MARK: - Preview Loading & Rendering

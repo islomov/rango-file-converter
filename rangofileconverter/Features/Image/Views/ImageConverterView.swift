@@ -216,6 +216,7 @@ struct ImageConverterView: View {
                         showStitchPicker = false
                         stitchFileURLs = []
                         stitchFileNames = []
+                        onNavigateToHistory?()
                     }
                     .hidesFloatingTabBar()
                 }

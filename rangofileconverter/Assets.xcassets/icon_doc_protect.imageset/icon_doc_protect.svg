@@ -1,12 +1,12 @@
 <svg width="28" height="28" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
-<rect width="28" height="28" rx="6" fill="url(#paint0_linear)"/>
+<rect width="28" height="28" rx="6" fill="url(#bg)"/>
 <g transform="translate(3.667 1.333)">
 <path d="M2.16667 24.3333H18.5C18.8094 24.3333 19.1062 24.2104 19.325 23.9916C19.5437 23.7728 19.6667 23.4761 19.6667 23.1667V6.83333H13.8333V1H2.16667C1.85725 1 1.5605 1.12292 1.34171 1.34171C1.12292 1.5605 1 1.85725 1 2.16667V23.1667C1 23.4761 1.12292 23.7728 1.34171 23.9916C1.5605 24.2104 1.85725 24.3333 2.16667 24.3333Z" fill="white" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
 <path d="M13.8333 1L19.6667 6.83333" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-<path d="M6.25 12.2C6.25 11.5776 10.3333 10.3333 10.3333 10.3333C10.3333 10.3333 14.4167 11.5776 14.4167 12.2C14.4167 17.1776 10.3333 19.6667 10.3333 19.6667C10.3333 19.6667 6.25 17.1776 6.25 12.2Z" fill="url(#paint0_linear)" stroke="url(#paint0_linear)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M6.25 12.2C6.25 11.5776 10.3333 10.3333 10.3333 10.3333C10.3333 10.3333 14.4167 11.5776 14.4167 12.2C14.4167 17.1776 10.3333 19.6667 10.3333 19.6667C10.3333 19.6667 6.25 17.1776 6.25 12.2Z" fill="#F4800D" stroke="#F4800D" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
 </g>
 <defs>
-<linearGradient id="paint0_linear" x1="28" y1="0" x2="-3.133" y2="4.078" gradientUnits="userSpaceOnUse">
+<linearGradient id="bg" x1="28" y1="0" x2="-3.133" y2="4.078" gradientUnits="userSpaceOnUse">
 <stop stop-color="#FFAD5B"/>
 <stop offset="0.5" stop-color="#F4800D"/>
 <stop offset="1" stop-color="#FFAD5B"/>

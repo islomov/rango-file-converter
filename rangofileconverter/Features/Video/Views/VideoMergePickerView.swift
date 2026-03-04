@@ -3,6 +3,11 @@ import Photos
 import UniformTypeIdentifiers
 import AVFoundation
 
+private enum VideoMergeSource: String, CaseIterable {
+    case gallery = "Gallery"
+    case files = "Files"
+}
+
 struct VideoMergePickerView: View {
     var onVideosSelected: ([(UIImage, String, URL)]) -> Void
 
@@ -19,18 +24,30 @@ struct VideoMergePickerView: View {
     private let minCount = 2
 
     private let columns = [
-        GridItem(.flexible(), spacing: 2),
-        GridItem(.flexible(), spacing: 2),
-        GridItem(.flexible(), spacing: 2),
+        GridItem(.flexible(), spacing: 4),
+        GridItem(.flexible(), spacing: 4),
+        GridItem(.flexible(), spacing: 4),
     ]
 
     var body: some View {
-        VStack(spacing: 0) {
-            content
-            bottomBar
+        ZStack {
+            Color(hex: "F2F2F6")
+                .ignoresSafeArea()
+
+            VStack(spacing: 0) {
+                navBar
+
+                sourceToggle
+                    .padding(.horizontal, 16)
+                    .padding(.top, 16)
+                    .padding(.bottom, 12)
+
+                content
+
+                multiSelectBar
+            }
         }
-        .navigationTitle("Select Videos")
-        .navigationBarTitleDisplayMode(.inline)
+        .navigationBarHidden(true)
         .onAppear {
             videoVM.requestAccessAndFetch()
         }
@@ -53,6 +70,69 @@ struct VideoMergePickerView: View {
             }
         }
     }
+
+    // MARK: - Navigation Bar
+
+    private var navBar: some View {
+        ZStack {
+            Text("Select Videos")
+                .font(.system(size: 20, weight: .semibold))
+                .foregroundColor(Color(hex: "1D1D1D"))
+                .tracking(-0.408)
+
+            HStack {
+                Button {
+                    dismiss()
+                } label: {
+                    Image(systemName: "chevron.left")
+                        .font(.system(size: 18, weight: .medium))
+                        .foregroundColor(Color(hex: "1D1D1D"))
+                        .frame(width: 40, height: 40)
+                }
+
+                Spacer()
+            }
+        }
+        .frame(height: 56)
+        .padding(.horizontal, 8)
+    }
+
+    // MARK: - Source Toggle
+
+    private var sourceToggle: some View {
+        HStack(spacing: 0) {
+            ForEach(VideoMergeSource.allCases, id: \.self) { source in
+                Button {
+                    withAnimation(.easeInOut(duration: 0.2)) {
+                        selectedSource = source
+                    }
+                } label: {
+                    Text(source.rawValue)
+                        .font(.system(size: 14, weight: .semibold))
+                        .foregroundColor(Color(hex: "1D1D1D"))
+                        .frame(maxWidth: .infinity)
+                        .frame(height: 36)
+                        .background(
+                            Group {
+                                if selectedSource == source {
+                                    RoundedRectangle(cornerRadius: 10)
+                                        .fill(Color.white)
+                                        .shadow(color: Color(hex: "2F2E41").opacity(0.12), radius: 4, x: 0, y: 0)
+                                }
+                            }
+                        )
+                }
+                .buttonStyle(.plain)
+            }
+        }
+        .padding(4)
+        .background(
+            RoundedRectangle(cornerRadius: 12)
+                .fill(Color.white)
+        )
+    }
+
+    // MARK: - Content
 
     @ViewBuilder
     private var content: some View {
@@ -85,11 +165,12 @@ struct VideoMergePickerView: View {
                     Spacer()
                 } else {
                     ScrollView {
-                        LazyVGrid(columns: columns, spacing: 2) {
+                        LazyVGrid(columns: columns, spacing: 4) {
                             ForEach(videoVM.assets, id: \.localIdentifier) { asset in
                                 thumbnailCell(for: asset)
                             }
                         }
+                        .padding(.horizontal, 16)
                     }
                 }
             case .denied, .restricted:
@@ -131,11 +212,8 @@ struct VideoMergePickerView: View {
                             .clipped()
                     } else {
                         Rectangle()
-                            .fill(.quaternary)
+                            .fill(Color(hex: "E6E6EC"))
                             .frame(width: geo.size.width, height: geo.size.width)
-                            .onAppear {
-                                videoVM.loadThumbnail(for: asset)
-                            }
                     }
 
                     // Duration badge
@@ -165,7 +243,7 @@ struct VideoMergePickerView: View {
                             let idx = selectionOrder(for: asset)
                             ZStack {
                                 Circle()
-                                    .fill(isSelected ? Color.mint : Color.black.opacity(0.3))
+                                    .fill(isSelected ? Color(hex: "F4800D") : Color.black.opacity(0.3))
                                     .frame(width: 26, height: 26)
                                 Circle()
                                     .stroke(Color.white, lineWidth: 2)
@@ -183,6 +261,10 @@ struct VideoMergePickerView: View {
                 }
             }
             .aspectRatio(1, contentMode: .fit)
+            .clipShape(RoundedRectangle(cornerRadius: 8))
+            .onAppear {
+                videoVM.loadThumbnail(for: asset)
+            }
         }
         .disabled(isLoading)
     }
@@ -211,53 +293,46 @@ struct VideoMergePickerView: View {
         return idx + 1
     }
 
-    // MARK: - Bottom Bar
+    // MARK: - Multi-select Bar
 
-    private var bottomBar: some View {
+    private var multiSelectBar: some View {
         VStack(spacing: 0) {
-            Divider()
+            Rectangle()
+                .fill(Color(hex: "565656").opacity(0.08))
+                .frame(height: 1)
             HStack {
-                HStack(spacing: 16) {
-                    Button {
-                        selectedSource = .gallery
-                    } label: {
-                        VStack(spacing: 2) {
-                            Image(systemName: "photo.on.rectangle")
-                                .font(.body)
-                            Text("Gallery")
-                                .font(.caption2)
-                        }
-                        .foregroundStyle(selectedSource == .gallery ? .primary : .secondary)
-                    }
-
-                    Button {
-                        selectedSource = .files
-                    } label: {
-                        VStack(spacing: 2) {
-                            Image(systemName: "folder")
-                                .font(.body)
-                            Text("Files")
-                                .font(.caption2)
-                        }
-                        .foregroundStyle(selectedSource == .files ? .primary : .secondary)
-                    }
-                }
+                Text("\(selectedAssetIDs.count) selected")
+                    .font(.system(size: 16, weight: .semibold))
+                    .foregroundColor(Color(hex: "888888"))
+                    .tracking(-0.408)
 
                 Spacer()
 
-                Text("\(selectedAssetIDs.count) selected")
-                    .font(.subheadline)
-                    .foregroundStyle(.secondary)
-
-                Button("Done") {
+                Button {
                     loadSelectedAndFinish()
+                } label: {
+                    Text("Done")
+                        .font(.system(size: 16, weight: .semibold))
+                        .foregroundColor(.white)
+                        .tracking(-0.408)
+                        .padding(.horizontal, 24)
+                        .padding(.vertical, 12)
+                        .background(
+                            LinearGradient(
+                                colors: selectedAssetIDs.count >= minCount
+                                    ? [Color(hex: "FFA05C"), Color(hex: "EF731A")]
+                                    : [Color(hex: "FFD9B8"), Color(hex: "F8C192"), Color(hex: "FFD9B8")],
+                                startPoint: .leading,
+                                endPoint: .trailing
+                            )
+                        )
+                        .clipShape(RoundedRectangle(cornerRadius: 12))
                 }
-                .font(.headline)
                 .disabled(selectedAssetIDs.count < minCount || isLoading)
             }
             .padding(.horizontal, 16)
-            .padding(.vertical, 10)
-            .background(.bar)
+            .padding(.vertical, 16)
+            .background(Color.white)
         }
     }
 
@@ -317,9 +392,4 @@ struct VideoMergePickerView: View {
             onVideosSelected(results)
         }
     }
-}
-
-private enum VideoMergeSource: String, CaseIterable {
-    case gallery = "Gallery"
-    case files = "Files"
 }

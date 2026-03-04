@@ -196,6 +196,7 @@ struct ImageConverterView: View {
                         showGifPicker = false
                         gifFileURLs = []
                         gifFileNames = []
+                        onNavigateToHistory?()
                     }
                     .hidesFloatingTabBar()
                 }

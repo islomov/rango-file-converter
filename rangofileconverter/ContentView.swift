@@ -87,7 +87,13 @@ struct ContentView: View {
                 }
             )
         case .audio:
-            AudioConverterView()
+            AudioConverterView(
+                onBack: { selectedCategory = nil },
+                onNavigateToHistory: {
+                    selectedCategory = nil
+                    selectedTab = .history
+                }
+            )
         case .document:
             DocumentConverterView()
         }

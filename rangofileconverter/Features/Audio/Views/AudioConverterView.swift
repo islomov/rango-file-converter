@@ -1,37 +1,39 @@
 import SwiftUI
 
-private enum AudioTab: String, CaseIterable {
-    case tools = "Tools"
-    case history = "History"
-}
-
 private struct AudioTool: Identifiable, Hashable {
     let id: String
     let title: String
-    let subtitle: String
     let icon: String
     let isAvailable: Bool
+
+    init(id: String, title: String, icon: String, isAvailable: Bool = true) {
+        self.id = id
+        self.title = title
+        self.icon = icon
+        self.isAvailable = isAvailable
+    }
 }
 
 private let audioTools: [AudioTool] = [
-    AudioTool(id: "convert", title: "Format Conversion", subtitle: "Any conversion of multiple formats", icon: "arrow.triangle.2.circlepath", isAvailable: true),
-    AudioTool(id: "extract", title: "Extract Audio", subtitle: "Extract audio from video", icon: "music.note", isAvailable: true),
-    AudioTool(id: "compress", title: "Audio Compression", subtitle: "Custom compression", icon: "arrow.down.right.and.arrow.up.left", isAvailable: true),
-    AudioTool(id: "speed", title: "Audio Speed Change", subtitle: "0.25 to 4x free adjustment", icon: "gauge.with.dots.needle.33percent", isAvailable: true),
-    AudioTool(id: "merge", title: "Combined Audios", subtitle: "Easily merge multiple audios", icon: "square.stack.3d.up", isAvailable: true),
-    AudioTool(id: "crop", title: "Audio Cropping", subtitle: "Capture and retain audio clips", icon: "scissors", isAvailable: true),
+    AudioTool(id: "convert", title: "Convert", icon: "icon_convert"),
+    AudioTool(id: "extract", title: "Extract audio", icon: "icon_extract_audio"),
+    AudioTool(id: "compress", title: "Compress", icon: "icon_compress"),
+    AudioTool(id: "speed", title: "Speed change", icon: "icon_speed"),
+    AudioTool(id: "merge", title: "Merge audio", icon: "icon_merge"),
+    AudioTool(id: "crop", title: "Audio cropping", icon: "icon_clip"),
 ]
 
 struct AudioConverterView: View {
+    var onBack: (() -> Void)?
+    var onNavigateToHistory: (() -> Void)?
+
     @StateObject private var viewModel = AudioConverterViewModel()
     @EnvironmentObject private var historyStore: HistoryStore
-    @State private var selectedTab: AudioTab = .tools
     @State private var showAudioPicker = false
     @State private var showSpeedAudioPicker = false
     @State private var showExtractVideoPicker = false
     @State private var showCompressPicker = false
     @State private var showComingSoon = false
-    @State private var showSettings = false
     @State private var showCropPicker = false
     @State private var showCropView = false
     @State private var cropFileName: String = ""
@@ -41,23 +43,16 @@ struct AudioConverterView: View {
     @State private var showMergePicker = false
     @State private var showMergeView = false
     @State private var mergeAudios: [MergeAudioItem] = []
-    @State private var selectedRecord: ConversionRecord?
-
-    private var history: [ConversionRecord] {
-        historyStore.records(for: "audio")
-    }
 
     var body: some View {
         NavigationStack {
-            VStack(spacing: 0) {
-                header
-                tabPicker
+            ZStack {
+                Color(hex: "F2F2F6")
+                    .ignoresSafeArea()
 
-                switch selectedTab {
-                case .tools:
-                    toolsSection
-                case .history:
-                    historySection
+                VStack(spacing: 0) {
+                    header
+                    toolsGrid
                 }
             }
             .navigationBarHidden(true)
@@ -81,6 +76,7 @@ struct AudioConverterView: View {
                         .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 16))
                     }
                 }
+                .hidesFloatingTabBar()
             }
             .navigationDestination(isPresented: $viewModel.showConversionDetail) {
                 if let fileURL = viewModel.selectedFileURL {
@@ -95,14 +91,16 @@ struct AudioConverterView: View {
                         )
                         viewModel.showConversionDetail = false
                         showAudioPicker = false
-                        selectedTab = .history
+                        onNavigateToHistory?()
                     }
+                    .hidesFloatingTabBar()
                 }
             }
             .navigationDestination(isPresented: $showExtractVideoPicker) {
                 VideoPickerView { thumbnail, fileName, url in
                     viewModel.selectVideoForExtractAudio(thumbnail: thumbnail, fileName: fileName, fileURL: url)
                 }
+                .hidesFloatingTabBar()
             }
             .navigationDestination(isPresented: $showCompressPicker) {
                 ZStack {
@@ -124,6 +122,7 @@ struct AudioConverterView: View {
                         .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 16))
                     }
                 }
+                .hidesFloatingTabBar()
             }
             .navigationDestination(isPresented: $viewModel.showCompressDetail) {
                 if let fileURL = viewModel.compressFileURL {
@@ -140,8 +139,9 @@ struct AudioConverterView: View {
                         )
                         viewModel.showCompressDetail = false
                         showCompressPicker = false
-                        selectedTab = .history
+                        onNavigateToHistory?()
                     }
+                    .hidesFloatingTabBar()
                 }
             }
             .navigationDestination(isPresented: $viewModel.showExtractAudioDetail) {
@@ -160,8 +160,9 @@ struct AudioConverterView: View {
                         )
                         viewModel.showExtractAudioDetail = false
                         showExtractVideoPicker = false
-                        selectedTab = .history
+                        onNavigateToHistory?()
                     }
+                    .hidesFloatingTabBar()
                 }
             }
             .navigationDestination(isPresented: $showSpeedAudioPicker) {
@@ -184,6 +185,7 @@ struct AudioConverterView: View {
                         .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 16))
                     }
                 }
+                .hidesFloatingTabBar()
             }
             .navigationDestination(isPresented: $viewModel.showSpeedDetail) {
                 if let fileURL = viewModel.speedFileURL {
@@ -199,8 +201,9 @@ struct AudioConverterView: View {
                         )
                         viewModel.showSpeedDetail = false
                         showSpeedAudioPicker = false
-                        selectedTab = .history
+                        onNavigateToHistory?()
                     }
+                    .hidesFloatingTabBar()
                 }
             }
             .navigationDestination(isPresented: $showCropPicker) {
@@ -209,6 +212,7 @@ struct AudioConverterView: View {
                     cropFileURL = url
                     showCropView = true
                 }
+                .hidesFloatingTabBar()
             }
             .navigationDestination(isPresented: $showCropView) {
                 if let url = cropFileURL {
@@ -224,8 +228,9 @@ struct AudioConverterView: View {
                         )
                         showCropView = false
                         showCropPicker = false
-                        selectedTab = .history
+                        onNavigateToHistory?()
                     }
+                    .hidesFloatingTabBar()
                 }
             }
             .navigationDestination(isPresented: $showMergePicker) {
@@ -233,6 +238,7 @@ struct AudioConverterView: View {
                     mergeAudios = results.map { MergeAudioItem(fileName: $0.fileName, url: $0.url) }
                     showMergeView = true
                 }
+                .hidesFloatingTabBar()
             }
             .navigationDestination(isPresented: $showMergeView) {
                 if !mergeAudios.isEmpty {
@@ -243,8 +249,9 @@ struct AudioConverterView: View {
                         )
                         showMergeView = false
                         showMergePicker = false
-                        selectedTab = .history
+                        onNavigateToHistory?()
                     }
+                    .hidesFloatingTabBar()
                 }
             }
             .alert("Coming Soon", isPresented: $showComingSoon) {
@@ -255,39 +262,39 @@ struct AudioConverterView: View {
         }
     }
 
+    // MARK: - Header
+
     private var header: some View {
-        HStack {
+        ZStack {
             Text("Audio")
-                .font(.title.bold())
-            Spacer()
-            Button { showSettings = true } label: {
-                Image(systemName: "gearshape")
-                    .font(.title3)
-                    .foregroundStyle(.primary)
-            }
-            .sheet(isPresented: $showSettings) {
-                SettingsView()
-                    .environmentObject(historyStore)
+                .font(.system(size: 20, weight: .semibold))
+                .foregroundColor(Color(hex: "1D1D1D"))
+
+            HStack {
+                Button {
+                    onBack?()
+                } label: {
+                    Image("icon_arrow_left")
+                        .resizable()
+                        .renderingMode(.template)
+                        .frame(width: 24, height: 24)
+                        .foregroundColor(Color(hex: "1D1D1D"))
+                        .frame(width: 40, height: 40)
+                }
+                Spacer()
             }
         }
-        .padding(.horizontal, 16)
-        .padding(.vertical, 12)
+        .frame(height: 56)
+        .padding(.horizontal, 8)
     }
 
-    private var tabPicker: some View {
-        Picker("", selection: $selectedTab) {
-            ForEach(AudioTab.allCases, id: \.self) { tab in
-                Text(tab.rawValue).tag(tab)
-            }
-        }
-        .pickerStyle(.segmented)
-        .padding(.horizontal, 16)
-        .padding(.bottom, 16)
-    }
+    // MARK: - Tools Grid
 
-    private var toolsSection: some View {
+    private var toolsGrid: some View {
         ScrollView {
-            LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 12) {
+            let twoColumns = [GridItem(.flexible(), spacing: 12), GridItem(.flexible(), spacing: 12)]
+
+            LazyVGrid(columns: twoColumns, spacing: 12) {
                 ForEach(audioTools) { tool in
                     Button {
                         handleToolTap(tool)
@@ -297,33 +304,28 @@ struct AudioConverterView: View {
                 }
             }
             .padding(.horizontal, 16)
+            .padding(.top, 4)
         }
     }
 
     private func toolCard(_ tool: AudioTool) -> some View {
-        VStack(spacing: 10) {
-            Image(systemName: tool.icon)
-                .font(.title2)
+        VStack(spacing: 8) {
+            Image(tool.icon)
+                .resizable()
+                .frame(width: 28, height: 28)
+
             Text(tool.title)
-                .font(.subheadline.weight(.medium))
-                .multilineTextAlignment(.center)
+                .font(.system(size: 16, weight: .semibold))
+                .foregroundColor(Color(hex: "1D1D1D"))
+                .tracking(-0.408)
         }
-        .foregroundStyle(tool.isAvailable ? .primary : .secondary)
         .frame(maxWidth: .infinity)
-        .padding(.vertical, 24)
-        .background(.quaternary, in: RoundedRectangle(cornerRadius: 12))
-        .overlay(alignment: .topTrailing) {
-            if !tool.isAvailable {
-                Text("Soon")
-                    .font(.caption2.weight(.semibold))
-                    .foregroundStyle(.white)
-                    .padding(.horizontal, 6)
-                    .padding(.vertical, 2)
-                    .background(.secondary, in: Capsule())
-                    .padding(8)
-            }
-        }
+        .frame(height: 106)
+        .background(Color.white)
+        .cornerRadius(16)
     }
+
+    // MARK: - Tool Actions
 
     private func handleToolTap(_ tool: AudioTool) {
         if tool.isAvailable {
@@ -345,38 +347,6 @@ struct AudioConverterView: View {
             }
         } else {
             showComingSoon = true
-        }
-    }
-
-    @ViewBuilder
-    private var historySection: some View {
-        if history.isEmpty {
-            Spacer()
-            VStack(spacing: 12) {
-                Image(systemName: "clock.arrow.circlepath")
-                    .font(.largeTitle)
-                    .foregroundStyle(.tertiary)
-                Text("No conversions yet")
-                    .font(.subheadline)
-                    .foregroundStyle(.secondary)
-            }
-            Spacer()
-        } else {
-            List {
-                ForEach(history) { record in
-                    Button {
-                        selectedRecord = record
-                    } label: {
-                        HistoryRowView(record: record)
-                    }
-                    .buttonStyle(.plain)
-                }
-            }
-            .listStyle(.plain)
-            .sheet(item: $selectedRecord) { record in
-                HistoryResultSheet(record: record)
-                    .environmentObject(historyStore)
-            }
         }
     }
 }

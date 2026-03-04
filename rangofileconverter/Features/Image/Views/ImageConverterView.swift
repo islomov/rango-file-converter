@@ -171,7 +171,9 @@ struct ImageConverterView: View {
                         showCompressView = false
                         showAssetPicker = false
                         toolFileURL = nil
+                        onNavigateToHistory?()
                     }
+                    .hidesFloatingTabBar()
                 }
             }
             .navigationDestination(isPresented: $showGifView) {

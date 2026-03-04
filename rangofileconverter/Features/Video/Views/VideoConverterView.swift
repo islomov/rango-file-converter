@@ -1,32 +1,36 @@
 import SwiftUI
 
-private enum VideoTab: String, CaseIterable {
-    case tools = "Tools"
-    case history = "History"
-}
-
 private struct VideoTool: Identifiable, Hashable {
     let id: String
     let title: String
     let icon: String
     let isAvailable: Bool
+
+    init(id: String, title: String, icon: String, isAvailable: Bool = true) {
+        self.id = id
+        self.title = title
+        self.icon = icon
+        self.isAvailable = isAvailable
+    }
 }
 
 private let videoTools: [VideoTool] = [
-    VideoTool(id: "convert", title: "Format Conversion", icon: "arrow.triangle.2.circlepath", isAvailable: true),
-    VideoTool(id: "extract_audio", title: "Extract Audio", icon: "music.note", isAvailable: true),
-    VideoTool(id: "compress", title: "Video Compression", icon: "arrow.down.right.and.arrow.up.left", isAvailable: true),
-    VideoTool(id: "speed", title: "Speed Change", icon: "gauge.with.dots.needle.33percent", isAvailable: true),
-    VideoTool(id: "merge", title: "Merge Videos", icon: "square.stack.3d.up", isAvailable: true),
-    VideoTool(id: "ratio", title: "Video Ratio", icon: "aspectratio", isAvailable: true),
-    VideoTool(id: "gif", title: "Convert GIF", icon: "photo.stack", isAvailable: true),
-    VideoTool(id: "time_clip", title: "Video Time Clip", icon: "timeline.selection", isAvailable: true),
+    VideoTool(id: "convert", title: "Convert", icon: "icon_convert"),
+    VideoTool(id: "extract_audio", title: "Extract audio", icon: "icon_extract_audio"),
+    VideoTool(id: "compress", title: "Compress", icon: "icon_compress"),
+    VideoTool(id: "speed", title: "Speed change", icon: "icon_speed"),
+    VideoTool(id: "merge", title: "Merge videos", icon: "icon_merge"),
+    VideoTool(id: "ratio", title: "Video ratio", icon: "icon_ratio"),
+    VideoTool(id: "gif", title: "Make GIF", icon: "icon_gif"),
+    VideoTool(id: "time_clip", title: "Video time clip", icon: "icon_clip"),
 ]
 
 struct VideoConverterView: View {
+    var onBack: (() -> Void)?
+    var onNavigateToHistory: (() -> Void)?
+
     @StateObject private var viewModel = VideoConverterViewModel()
     @EnvironmentObject private var historyStore: HistoryStore
-    @State private var selectedTab: VideoTab = .tools
     @State private var showVideoPicker = false
     @State private var activeTool: String = "convert"
     @State private var showTimeClipView = false
@@ -46,32 +50,20 @@ struct VideoConverterView: View {
     @State private var compressFileName: String = ""
     @State private var compressFileURL: URL?
 
-    // Settings
-    @State private var showSettings = false
-
-    // History sheet state
-    @State private var selectedRecord: ConversionRecord?
-
     // Merge tool state
     @State private var showMergePicker = false
     @State private var showMergeView = false
     @State private var mergeVideos: [(thumbnail: UIImage, fileName: String, url: URL)] = []
 
-    private var history: [ConversionRecord] {
-        historyStore.records(for: "video")
-    }
-
     var body: some View {
         NavigationStack {
-            VStack(spacing: 0) {
-                header
-                tabPicker
+            ZStack {
+                Color(hex: "F2F2F6")
+                    .ignoresSafeArea()
 
-                switch selectedTab {
-                case .tools:
-                    toolsSection
-                case .history:
-                    historySection
+                VStack(spacing: 0) {
+                    header
+                    toolsGrid
                 }
             }
             .navigationBarHidden(true)
@@ -79,6 +71,7 @@ struct VideoConverterView: View {
                 VideoPickerView { thumbnail, fileName, url in
                     handleVideoSelected(thumbnail: thumbnail, fileName: fileName, url: url)
                 }
+                .hidesFloatingTabBar()
             }
             .navigationDestination(isPresented: $showSpeedView) {
                 if let thumbnail = speedThumbnail, let url = speedVideoURL {
@@ -95,8 +88,9 @@ struct VideoConverterView: View {
                         )
                         showSpeedView = false
                         showVideoPicker = false
-                        selectedTab = .history
+                        onNavigateToHistory?()
                     }
+                    .hidesFloatingTabBar()
                 }
             }
             .navigationDestination(isPresented: $viewModel.showGifDetail) {
@@ -116,8 +110,9 @@ struct VideoConverterView: View {
                         )
                         viewModel.showGifDetail = false
                         showVideoPicker = false
-                        selectedTab = .history
+                        onNavigateToHistory?()
                     }
+                    .hidesFloatingTabBar()
                 }
             }
             .navigationDestination(isPresented: $viewModel.showConversionDetail) {
@@ -136,8 +131,9 @@ struct VideoConverterView: View {
                         )
                         viewModel.showConversionDetail = false
                         showVideoPicker = false
-                        selectedTab = .history
+                        onNavigateToHistory?()
                     }
+                    .hidesFloatingTabBar()
                 }
             }
             .navigationDestination(isPresented: $showTimeClipView) {
@@ -156,8 +152,9 @@ struct VideoConverterView: View {
                         )
                         showTimeClipView = false
                         showVideoPicker = false
-                        selectedTab = .history
+                        onNavigateToHistory?()
                     }
+                    .hidesFloatingTabBar()
                 }
             }
             .navigationDestination(isPresented: $showCompressView) {
@@ -178,8 +175,9 @@ struct VideoConverterView: View {
                         )
                         showCompressView = false
                         showVideoPicker = false
-                        selectedTab = .history
+                        onNavigateToHistory?()
                     }
+                    .hidesFloatingTabBar()
                 }
             }
             .navigationDestination(isPresented: $viewModel.showExtractAudioDetail) {
@@ -198,8 +196,9 @@ struct VideoConverterView: View {
                         )
                         viewModel.showExtractAudioDetail = false
                         showVideoPicker = false
-                        selectedTab = .history
+                        onNavigateToHistory?()
                     }
+                    .hidesFloatingTabBar()
                 }
             }
             .navigationDestination(isPresented: $viewModel.showVideoRatio) {
@@ -221,8 +220,9 @@ struct VideoConverterView: View {
                         )
                         viewModel.showVideoRatio = false
                         showVideoPicker = false
-                        selectedTab = .history
+                        onNavigateToHistory?()
                     }
+                    .hidesFloatingTabBar()
                 }
             }
             .navigationDestination(isPresented: $showMergePicker) {
@@ -230,6 +230,7 @@ struct VideoConverterView: View {
                     mergeVideos = results.map { (thumbnail: $0.0, fileName: $0.1, url: $0.2) }
                     showMergeView = true
                 }
+                .hidesFloatingTabBar()
             }
             .navigationDestination(isPresented: $showMergeView) {
                 if !mergeVideos.isEmpty {
@@ -241,47 +242,48 @@ struct VideoConverterView: View {
                         )
                         showMergeView = false
                         showMergePicker = false
-                        selectedTab = .history
+                        onNavigateToHistory?()
                     }
+                    .hidesFloatingTabBar()
                 }
             }
-
         }
     }
+
+    // MARK: - Header
 
     private var header: some View {
-        HStack {
+        ZStack {
             Text("Video")
-                .font(.title.bold())
-            Spacer()
-            Button { showSettings = true } label: {
-                Image(systemName: "gearshape")
-                    .font(.title3)
-                    .foregroundStyle(.primary)
-            }
-            .sheet(isPresented: $showSettings) {
-                SettingsView()
-                    .environmentObject(historyStore)
+                .font(.system(size: 20, weight: .semibold))
+                .foregroundColor(Color(hex: "1D1D1D"))
+                .tracking(-0.408)
+
+            HStack {
+                Button {
+                    onBack?()
+                } label: {
+                    Image("icon_arrow_left")
+                        .resizable()
+                        .renderingMode(.template)
+                        .frame(width: 24, height: 24)
+                        .foregroundColor(Color(hex: "1D1D1D"))
+                        .frame(width: 40, height: 40)
+                }
+                Spacer()
             }
         }
-        .padding(.horizontal, 16)
-        .padding(.vertical, 12)
+        .frame(height: 56)
+        .padding(.horizontal, 8)
     }
 
-    private var tabPicker: some View {
-        Picker("", selection: $selectedTab) {
-            ForEach(VideoTab.allCases, id: \.self) { tab in
-                Text(tab.rawValue).tag(tab)
-            }
-        }
-        .pickerStyle(.segmented)
-        .padding(.horizontal, 16)
-        .padding(.bottom, 16)
-    }
+    // MARK: - Tools Grid
 
-    private var toolsSection: some View {
+    private var toolsGrid: some View {
         ScrollView {
-            LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 12) {
+            let twoColumns = [GridItem(.flexible(), spacing: 12), GridItem(.flexible(), spacing: 12)]
+
+            LazyVGrid(columns: twoColumns, spacing: 12) {
                 ForEach(videoTools) { tool in
                     Button {
                         handleToolTap(tool)
@@ -291,21 +293,28 @@ struct VideoConverterView: View {
                 }
             }
             .padding(.horizontal, 16)
+            .padding(.top, 4)
         }
     }
 
     private func toolCard(_ tool: VideoTool) -> some View {
-        VStack(spacing: 10) {
-            Image(systemName: tool.icon)
-                .font(.title2)
+        VStack(spacing: 8) {
+            Image(tool.icon)
+                .resizable()
+                .frame(width: 28, height: 28)
+
             Text(tool.title)
-                .font(.subheadline.weight(.medium))
+                .font(.system(size: 16, weight: .semibold))
+                .foregroundColor(Color(hex: "1D1D1D"))
+                .tracking(-0.408)
         }
-        .foregroundStyle(.primary)
         .frame(maxWidth: .infinity)
-        .padding(.vertical, 24)
-        .background(.quaternary, in: RoundedRectangle(cornerRadius: 12))
+        .frame(height: 106)
+        .background(Color.white)
+        .cornerRadius(16)
     }
+
+    // MARK: - Tool Actions
 
     private func handleToolTap(_ tool: VideoTool) {
         activeTool = tool.id
@@ -346,38 +355,6 @@ struct VideoConverterView: View {
             showCompressView = true
         default:
             break
-        }
-    }
-
-    @ViewBuilder
-    private var historySection: some View {
-        if history.isEmpty {
-            Spacer()
-            VStack(spacing: 12) {
-                Image(systemName: "clock.arrow.circlepath")
-                    .font(.largeTitle)
-                    .foregroundStyle(.tertiary)
-                Text("No conversions yet")
-                    .font(.subheadline)
-                    .foregroundStyle(.secondary)
-            }
-            Spacer()
-        } else {
-            List {
-                ForEach(history) { record in
-                    Button {
-                        selectedRecord = record
-                    } label: {
-                        HistoryRowView(record: record)
-                    }
-                    .buttonStyle(.plain)
-                }
-            }
-            .listStyle(.plain)
-            .sheet(item: $selectedRecord) { record in
-                HistoryResultSheet(record: record)
-                    .environmentObject(historyStore)
-            }
         }
     }
 }

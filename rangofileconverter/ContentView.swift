@@ -62,7 +62,7 @@ struct ContentView: View {
     private func categoryView(for category: MediaCategory) -> some View {
         switch category {
         case .image:
-            ImageConverterView()
+            ImageConverterView(onBack: { selectedCategory = nil })
         case .video:
             VideoConverterView()
         case .audio:

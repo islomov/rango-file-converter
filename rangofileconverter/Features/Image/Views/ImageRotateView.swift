@@ -121,7 +121,6 @@ struct ImageRotateView: View {
             Image(systemName: "arrow.right")
                 .font(.system(size: 10))
                 .foregroundColor(Color(hex: "1D1D1D"))
-                .rotationEffect(.degrees(0))
 
             Text(formatBytes(estimatedSize))
                 .font(.system(size: 12, weight: .semibold))
@@ -269,12 +268,9 @@ struct ImageRotateView: View {
     }
 
     private func updateEstimatedSize() {
-        // Rotation doesn't change file size significantly; estimate same as original
-        // with slight overhead for re-encoding
         if rotation == 0 && !flipH && !flipV {
             estimatedSize = originalSize
         } else {
-            // Re-encoding as PNG typically increases size slightly
             let multiplier: Double = 1.05
             estimatedSize = Int64(Double(originalSize) * multiplier)
         }

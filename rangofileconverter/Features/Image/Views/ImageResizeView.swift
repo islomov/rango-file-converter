@@ -34,11 +34,13 @@ struct ImageResizeView: View {
     let fileName: String
     let onApply: (Int, Int) -> Void
 
+    @Environment(\.dismiss) private var dismiss
     @State private var previewImage: UIImage?
     @State private var width: Int = 0
     @State private var height: Int = 0
     @State private var lockAspectRatio = true
     @State private var activeField: Field?
+    @State private var originalSize: Int64 = 0
 
     private let originalWidth: Int
     private let originalHeight: Int
@@ -68,67 +70,110 @@ struct ImageResizeView: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            Spacer()
-
-            preview
-
-            Spacer()
+            previewSection
 
             controls
+
+            Spacer(minLength: 0)
+
+            bottomButtons
         }
-        .navigationTitle("Resize")
-        .navigationBarTitleDisplayMode(.inline)
-        .toolbar {
-            ToolbarItem(placement: .navigationBarTrailing) {
-                Button("Reset") {
-                    width = originalWidth
-                    height = originalHeight
-                }
-                .disabled(!dimensionsChanged)
-            }
-        }
+        .background(Color.white)
+        .navigationBarHidden(true)
         .onAppear {
             previewImage = ImageConverterViewModel.loadPreviewImage(from: fileURL)
+            if let attrs = try? FileManager.default.attributesOfItem(atPath: fileURL.path),
+               let size = attrs[.size] as? Int64 {
+                originalSize = size
+            }
         }
     }
 
-    // MARK: - Preview
+    // MARK: - Header
 
-    private var preview: some View {
-        VStack(spacing: 16) {
+    private var header: some View {
+        ZStack {
+            Text("Resize image")
+                .font(.system(size: 20, weight: .semibold))
+                .foregroundColor(Color(hex: "1D1D1D"))
+                .tracking(-0.408)
+
+            HStack {
+                Spacer()
+                Button {
+                    dismiss()
+                } label: {
+                    Image(systemName: "xmark")
+                        .font(.system(size: 14, weight: .semibold))
+                        .foregroundColor(Color(hex: "1D1D1D"))
+                        .frame(width: 40, height: 40)
+                        .background(
+                            Circle()
+                                .fill(Color(hex: "888888").opacity(0.08))
+                        )
+                }
+            }
+        }
+        .frame(height: 56)
+        .padding(.horizontal, 8)
+    }
+
+    // MARK: - Preview Section
+
+    private var previewSection: some View {
+        VStack(spacing: 0) {
+            header
+
             if let previewImage {
                 Image(uiImage: previewImage)
                     .resizable()
                     .aspectRatio(contentMode: .fit)
-                    .frame(maxHeight: 300)
-                    .clipShape(RoundedRectangle(cornerRadius: 8))
+                    .frame(maxHeight: 260)
+                    .clipShape(RoundedRectangle(cornerRadius: 16))
+                    .padding(.horizontal, 16)
+                    .padding(.vertical, 24)
             } else {
                 ProgressView()
-                    .frame(height: 300)
+                    .frame(height: 260)
+                    .padding(.vertical, 24)
             }
 
-            HStack(spacing: 8) {
-                Text("\(originalWidth) \u{00D7} \(originalHeight)")
-                    .font(.subheadline.weight(.medium))
-                    .foregroundStyle(.secondary)
+            fileSizeInfo
+                .padding(.bottom, 12)
+        }
+        .background(Color.white)
+        .overlay(
+            Rectangle()
+                .fill(Color(hex: "565656").opacity(0.08))
+                .frame(height: 1),
+            alignment: .bottom
+        )
+    }
 
-                if dimensionsChanged {
-                    Image(systemName: "arrow.right")
-                        .font(.caption)
-                        .foregroundStyle(.tertiary)
+    private var fileSizeInfo: some View {
+        HStack(spacing: 4) {
+            Text("\(originalWidth) \u{00D7} \(originalHeight)")
+                .font(.system(size: 12, weight: .semibold))
+                .foregroundColor(Color(hex: "1D1D1D"))
+                .tracking(-0.408)
 
-                    Text("\(width) \u{00D7} \(height)")
-                        .font(.subheadline.weight(.medium))
-                        .foregroundStyle(.orange)
+            if dimensionsChanged {
+                Image(systemName: "arrow.right")
+                    .font(.system(size: 10))
+                    .foregroundColor(Color(hex: "1D1D1D"))
 
-                    let ratio = Double(width * height) / Double(originalWidth * originalHeight) * 100
-                    Text(String(format: "(%.0f%%)", ratio))
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                }
+                Text("\(width) \u{00D7} \(height)")
+                    .font(.system(size: 12, weight: .semibold))
+                    .foregroundColor(Color(hex: "F4800D"))
+                    .tracking(-0.408)
+
+                let ratio = Double(width * height) / Double(originalWidth * originalHeight) * 100
+                Text(String(format: "(%.0f%%)", ratio))
+                    .font(.system(size: 12, weight: .semibold))
+                    .foregroundColor(Color(hex: "888888"))
+                    .tracking(-0.408)
             }
         }
-        .padding(.horizontal, 20)
     }
 
     // MARK: - Controls
@@ -137,7 +182,9 @@ struct ImageResizeView: View {
         VStack(spacing: 20) {
             VStack(spacing: 8) {
                 Text("Presets")
-                    .font(.subheadline.weight(.medium))
+                    .font(.system(size: 14, weight: .semibold))
+                    .foregroundColor(Color(hex: "888888"))
+                    .tracking(-0.408)
                     .frame(maxWidth: .infinity, alignment: .leading)
                 presetPicker
             }
@@ -151,29 +198,71 @@ struct ImageResizeView: View {
                     } label: {
                         Image(systemName: lockAspectRatio ? "lock.fill" : "lock.open")
                             .font(.body)
-                            .foregroundStyle(lockAspectRatio ? .orange : .secondary)
+                            .foregroundColor(lockAspectRatio ? Color(hex: "F4800D") : Color(hex: "888888"))
                             .frame(width: 36, height: 36)
-                            .background(.quaternary, in: RoundedRectangle(cornerRadius: 8))
+                            .background(Color(hex: "888888").opacity(0.12))
+                            .clipShape(RoundedRectangle(cornerRadius: 8))
                     }
 
                     dimensionField(label: "H", value: $height, field: .height)
                 }
             }
-
-            Button {
-                onApply(width, height)
-            } label: {
-                Text("Resize")
-                    .font(.headline)
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 14)
-            }
-            .buttonStyle(.borderedProminent)
-            .tint(.orange)
-            .disabled(!dimensionsChanged || width < 1 || height < 1)
         }
-        .padding(20)
-        .background(.bar)
+        .padding(16)
+    }
+
+    // MARK: - Bottom Buttons
+
+    private var bottomButtons: some View {
+        GeometryReader { geo in
+            let totalWidth = geo.size.width - 32
+            let spacing: CGFloat = 8
+            let resetWidth = (totalWidth - spacing) * 0.3
+            let resizeWidth = (totalWidth - spacing) * 0.7
+
+            HStack(spacing: spacing) {
+                // Reset button (30%)
+                Button {
+                    width = originalWidth
+                    height = originalHeight
+                } label: {
+                    Text("Reset")
+                        .font(.system(size: 16, weight: .semibold))
+                        .foregroundColor(Color(hex: "1D1D1D"))
+                        .tracking(-0.408)
+                        .frame(width: resetWidth, height: 60)
+                        .background(Color(hex: "888888").opacity(0.12))
+                        .clipShape(RoundedRectangle(cornerRadius: 16))
+                }
+                .disabled(!dimensionsChanged)
+                .opacity(dimensionsChanged ? 1.0 : 0.5)
+
+                // Resize button (70%)
+                Button {
+                    onApply(width, height)
+                } label: {
+                    Text("Resize")
+                        .font(.system(size: 16, weight: .semibold))
+                        .foregroundColor(.white)
+                        .tracking(-0.408)
+                        .frame(width: resizeWidth, height: 60)
+                        .background(
+                            LinearGradient(
+                                colors: dimensionsChanged && width > 0 && height > 0
+                                    ? [Color(hex: "FFA05C"), Color(hex: "EF731A")]
+                                    : [Color(hex: "FFD9B8"), Color(hex: "F8C192"), Color(hex: "FFD9B8")],
+                                startPoint: .leading,
+                                endPoint: .trailing
+                            )
+                        )
+                        .clipShape(RoundedRectangle(cornerRadius: 16))
+                }
+                .disabled(!dimensionsChanged || width < 1 || height < 1)
+            }
+            .padding(.horizontal, 16)
+        }
+        .frame(height: 60)
+        .padding(.vertical, 24)
     }
 
     private var presetPicker: some View {

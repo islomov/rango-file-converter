@@ -13,14 +13,17 @@ private struct DocumentTool: Identifiable, Hashable {
 }
 
 private let documentTools: [DocumentTool] = [
-    DocumentTool(id: "convert", title: "Format Conversion", icon: "arrow.triangle.2.circlepath", isAvailable: true),
-    DocumentTool(id: "merge", title: "Merge PDFs", icon: "doc.on.doc", isAvailable: true),
-    DocumentTool(id: "split", title: "Split PDF", icon: "scissors", isAvailable: true),
-    DocumentTool(id: "reorder", title: "Reorder Pages", icon: "arrow.up.arrow.down", isAvailable: true),
-    DocumentTool(id: "protect", title: "Protect PDF", icon: "lock.doc", isAvailable: true),
+    DocumentTool(id: "convert", title: "Convert", icon: "icon_doc_convert", isAvailable: true),
+    DocumentTool(id: "merge", title: "Merge PDF", icon: "icon_doc_merge", isAvailable: true),
+    DocumentTool(id: "split", title: "Split PDF", icon: "icon_doc_split", isAvailable: true),
+    DocumentTool(id: "reorder", title: "Reorder pages", icon: "icon_doc_reorder", isAvailable: true),
+    DocumentTool(id: "protect", title: "Protect PDF", icon: "icon_doc_protect", isAvailable: true),
 ]
 
 struct DocumentConverterView: View {
+    var onBack: (() -> Void)?
+    var onNavigateToHistory: (() -> Void)?
+
     @StateObject private var viewModel = DocumentConverterViewModel()
     @EnvironmentObject private var historyStore: HistoryStore
     @State private var selectedTab: DocumentTab = .tools
@@ -38,15 +41,19 @@ struct DocumentConverterView: View {
 
     var body: some View {
         NavigationStack {
-            VStack(spacing: 0) {
-                header
-                tabPicker
+            ZStack {
+                Color(hex: "F2F2F6")
+                    .ignoresSafeArea()
 
-                switch selectedTab {
-                case .tools:
-                    toolsSection
-                case .history:
-                    historySection
+                VStack(spacing: 0) {
+                    header
+
+                    switch selectedTab {
+                    case .tools:
+                        toolsSection
+                    case .history:
+                        historySection
+                    }
                 }
             }
             .navigationBarHidden(true)
@@ -70,6 +77,7 @@ struct DocumentConverterView: View {
                         viewModel.showConversionDetail = false
                         showDocumentPicker = false
                         selectedTab = .history
+                        onNavigateToHistory?()
                     }
                 }
             }
@@ -79,6 +87,7 @@ struct DocumentConverterView: View {
                     viewModel.mergePDFs(fileURLs: urls, fileNames: names)
                     showMergeView = false
                     selectedTab = .history
+                    onNavigateToHistory?()
                 }
             }
             // PDF Split
@@ -87,6 +96,7 @@ struct DocumentConverterView: View {
                     viewModel.splitPDF(inputURL: url, fileName: name, pages: pages)
                     showSplitView = false
                     selectedTab = .history
+                    onNavigateToHistory?()
                 }
             }
             // PDF Reorder
@@ -95,6 +105,7 @@ struct DocumentConverterView: View {
                     viewModel.reorderPDF(inputURL: url, fileName: name, pageOrder: order)
                     showReorderView = false
                     selectedTab = .history
+                    onNavigateToHistory?()
                 }
             }
             // PDF Protect
@@ -103,44 +114,42 @@ struct DocumentConverterView: View {
                     viewModel.protectPDF(inputURL: url, fileName: name, password: password)
                     showProtectView = false
                     selectedTab = .history
+                    onNavigateToHistory?()
                 }
             }
         }
     }
 
     private var header: some View {
-        HStack {
+        ZStack {
             Text("Document")
-                .font(.title.bold())
-            Spacer()
-            Button { showSettings = true } label: {
-                Image(systemName: "gearshape")
-                    .font(.title3)
-                    .foregroundStyle(.primary)
-            }
-            .sheet(isPresented: $showSettings) {
-                SettingsView()
-                    .environmentObject(historyStore)
+                .font(.system(size: 20, weight: .semibold))
+                .foregroundColor(Color(hex: "1D1D1D"))
+
+            HStack {
+                Button {
+                    onBack?()
+                } label: {
+                    Image("icon_arrow_left")
+                        .resizable()
+                        .renderingMode(.template)
+                        .frame(width: 24, height: 24)
+                        .foregroundColor(Color(hex: "1D1D1D"))
+                        .frame(width: 40, height: 40)
+                }
+                Spacer()
             }
         }
-        .padding(.horizontal, 16)
-        .padding(.vertical, 12)
+        .frame(height: 56)
+        .padding(.horizontal, 8)
     }
 
-    private var tabPicker: some View {
-        Picker("", selection: $selectedTab) {
-            ForEach(DocumentTab.allCases, id: \.self) { tab in
-                Text(tab.rawValue).tag(tab)
-            }
-        }
-        .pickerStyle(.segmented)
-        .padding(.horizontal, 16)
-        .padding(.bottom, 16)
-    }
 
     private var toolsSection: some View {
         ScrollView {
-            LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 12) {
+            let twoColumns = [GridItem(.flexible(), spacing: 12), GridItem(.flexible(), spacing: 12)]
+
+            LazyVGrid(columns: twoColumns, spacing: 12) {
                 ForEach(documentTools) { tool in
                     Button {
                         handleToolTap(tool)
@@ -150,32 +159,26 @@ struct DocumentConverterView: View {
                 }
             }
             .padding(.horizontal, 16)
+            .padding(.top, 4)
         }
     }
 
     private func toolCard(_ tool: DocumentTool) -> some View {
-        VStack(spacing: 10) {
-            Image(systemName: tool.icon)
-                .font(.title2)
+        VStack(spacing: 8) {
+            Image(tool.icon)
+                .resizable()
+                .aspectRatio(contentMode: .fit)
+                .frame(width: 28, height: 28)
+
             Text(tool.title)
-                .font(.subheadline.weight(.medium))
-                .multilineTextAlignment(.center)
+                .font(.system(size: 16, weight: .semibold))
+                .foregroundColor(Color(hex: "1D1D1D"))
+                .tracking(-0.408)
         }
-        .foregroundStyle(tool.isAvailable ? .primary : .secondary)
         .frame(maxWidth: .infinity)
-        .padding(.vertical, 24)
-        .background(.quaternary, in: RoundedRectangle(cornerRadius: 12))
-        .overlay(alignment: .topTrailing) {
-            if !tool.isAvailable {
-                Text("Soon")
-                    .font(.caption2.weight(.semibold))
-                    .foregroundStyle(.white)
-                    .padding(.horizontal, 6)
-                    .padding(.vertical, 2)
-                    .background(.secondary, in: Capsule())
-                    .padding(8)
-            }
-        }
+        .frame(height: 106)
+        .background(Color.white)
+        .cornerRadius(16)
     }
 
     private func handleToolTap(_ tool: DocumentTool) {

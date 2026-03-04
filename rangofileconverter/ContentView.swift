@@ -95,7 +95,13 @@ struct ContentView: View {
                 }
             )
         case .document:
-            DocumentConverterView()
+            DocumentConverterView(
+                onBack: { selectedCategory = nil },
+                onNavigateToHistory: {
+                    selectedCategory = nil
+                    selectedTab = .history
+                }
+            )
         }
     }
 }

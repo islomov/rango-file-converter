@@ -13,11 +13,11 @@ private struct DocumentTool: Identifiable, Hashable {
 }
 
 private let documentTools: [DocumentTool] = [
-    DocumentTool(id: "convert", title: "Convert", icon: "icon_convert", isAvailable: true),
-    DocumentTool(id: "merge", title: "Merge PDF", icon: "doc.on.doc", isAvailable: true),
-    DocumentTool(id: "split", title: "Split PDF", icon: "scissors", isAvailable: true),
-    DocumentTool(id: "reorder", title: "Reorder pages", icon: "arrow.up.arrow.down", isAvailable: true),
-    DocumentTool(id: "protect", title: "Protect PDF", icon: "lock.doc", isAvailable: true),
+    DocumentTool(id: "convert", title: "Convert", icon: "icon_doc_convert", isAvailable: true),
+    DocumentTool(id: "merge", title: "Merge PDF", icon: "icon_doc_merge", isAvailable: true),
+    DocumentTool(id: "split", title: "Split PDF", icon: "icon_doc_split", isAvailable: true),
+    DocumentTool(id: "reorder", title: "Reorder pages", icon: "icon_doc_reorder", isAvailable: true),
+    DocumentTool(id: "protect", title: "Protect PDF", icon: "icon_doc_protect", isAvailable: true),
 ]
 
 struct DocumentConverterView: View {
@@ -165,19 +165,10 @@ struct DocumentConverterView: View {
 
     private func toolCard(_ tool: DocumentTool) -> some View {
         VStack(spacing: 8) {
-            // Try to load as image asset first, fall back to system icon
-            if tool.icon.starts(with: "icon_") {
-                Image(tool.icon)
-                    .resizable()
-                    .aspectRatio(contentMode: .fit)
-                    .frame(width: 28, height: 28)
-            } else {
-                Image(systemName: tool.icon)
-                    .resizable()
-                    .aspectRatio(contentMode: .fit)
-                    .frame(width: 28, height: 28)
-                    .foregroundColor(Color(hex: "F4800D"))
-            }
+            Image(tool.icon)
+                .resizable()
+                .aspectRatio(contentMode: .fit)
+                .frame(width: 28, height: 28)
 
             Text(tool.title)
                 .font(.system(size: 16, weight: .semibold))

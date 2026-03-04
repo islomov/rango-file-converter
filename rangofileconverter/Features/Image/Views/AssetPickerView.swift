@@ -50,23 +50,35 @@ struct AssetPickerView: View {
     }
 
     private let columns = [
-        GridItem(.flexible(), spacing: 2),
-        GridItem(.flexible(), spacing: 2),
-        GridItem(.flexible(), spacing: 2),
+        GridItem(.flexible(), spacing: 4),
+        GridItem(.flexible(), spacing: 4),
+        GridItem(.flexible(), spacing: 4),
     ]
 
     var body: some View {
-        VStack(spacing: 0) {
-            content
+        ZStack {
+            Color(hex: "F2F2F6")
+                .ignoresSafeArea()
 
-            if isMultiSelect {
-                multiSelectBar
-            } else {
-                sourceBar
+            VStack(spacing: 0) {
+                // Custom navigation bar
+                navBar
+
+                // Gallery / Files toggle
+                sourceToggle
+                    .padding(.horizontal, 16)
+                    .padding(.top, 16)
+                    .padding(.bottom, 12)
+
+                // Content
+                content
+
+                if isMultiSelect {
+                    multiSelectBar
+                }
             }
         }
-        .navigationTitle(isMultiSelect ? "Select Images" : "Select Image")
-        .navigationBarTitleDisplayMode(.inline)
+        .navigationBarHidden(true)
         .onAppear {
             photoVM.requestAccessAndFetch()
         }
@@ -89,6 +101,69 @@ struct AssetPickerView: View {
             }
         }
     }
+
+    // MARK: - Navigation Bar
+
+    private var navBar: some View {
+        ZStack {
+            Text(isMultiSelect ? "Select images" : "Choose image")
+                .font(.system(size: 20, weight: .semibold))
+                .foregroundColor(Color(hex: "1D1D1D"))
+                .tracking(-0.408)
+
+            HStack {
+                Button {
+                    dismiss()
+                } label: {
+                    Image(systemName: "chevron.left")
+                        .font(.system(size: 18, weight: .medium))
+                        .foregroundColor(Color(hex: "1D1D1D"))
+                        .frame(width: 40, height: 40)
+                }
+
+                Spacer()
+            }
+        }
+        .frame(height: 56)
+        .padding(.horizontal, 8)
+    }
+
+    // MARK: - Source Toggle
+
+    private var sourceToggle: some View {
+        HStack(spacing: 0) {
+            ForEach(AssetSource.allCases, id: \.self) { source in
+                Button {
+                    withAnimation(.easeInOut(duration: 0.2)) {
+                        selectedSource = source
+                    }
+                } label: {
+                    Text(source.rawValue)
+                        .font(.system(size: 14, weight: .semibold))
+                        .foregroundColor(Color(hex: "1D1D1D"))
+                        .frame(maxWidth: .infinity)
+                        .frame(height: 36)
+                        .background(
+                            Group {
+                                if selectedSource == source {
+                                    RoundedRectangle(cornerRadius: 10)
+                                        .fill(Color.white)
+                                        .shadow(color: Color(hex: "2F2E41").opacity(0.12), radius: 4, x: 0, y: 0)
+                                }
+                            }
+                        )
+                }
+                .buttonStyle(.plain)
+            }
+        }
+        .padding(4)
+        .background(
+            RoundedRectangle(cornerRadius: 12)
+                .fill(Color.white)
+        )
+    }
+
+    // MARK: - Content
 
     @ViewBuilder
     private var content: some View {
@@ -121,11 +196,12 @@ struct AssetPickerView: View {
                     Spacer()
                 } else {
                     ScrollView {
-                        LazyVGrid(columns: columns, spacing: 2) {
+                        LazyVGrid(columns: columns, spacing: 4) {
                             ForEach(photoVM.assets, id: \.localIdentifier) { asset in
                                 thumbnailCell(for: asset)
                             }
                         }
+                        .padding(.horizontal, 16)
                     }
                 }
             case .denied, .restricted:
@@ -171,7 +247,7 @@ struct AssetPickerView: View {
                             .clipped()
                     } else {
                         Rectangle()
-                            .fill(.quaternary)
+                            .fill(Color(hex: "E6E6EC"))
                             .frame(width: geo.size.width, height: geo.size.width)
                     }
 
@@ -196,6 +272,7 @@ struct AssetPickerView: View {
                 }
             }
             .aspectRatio(1, contentMode: .fit)
+            .clipShape(RoundedRectangle(cornerRadius: 8))
             .onAppear {
                 photoVM.loadThumbnail(for: asset)
             }
@@ -225,47 +302,22 @@ struct AssetPickerView: View {
         VStack(spacing: 0) {
             Divider()
             HStack {
-                HStack(spacing: 16) {
-                    Button {
-                        selectedSource = .gallery
-                    } label: {
-                        VStack(spacing: 2) {
-                            Image(systemName: "photo.on.rectangle")
-                                .font(.body)
-                            Text("Gallery")
-                                .font(.caption2)
-                        }
-                        .foregroundStyle(selectedSource == .gallery ? .primary : .secondary)
-                    }
-
-                    Button {
-                        selectedSource = .files
-                    } label: {
-                        VStack(spacing: 2) {
-                            Image(systemName: "folder")
-                                .font(.body)
-                            Text("Files")
-                                .font(.caption2)
-                        }
-                        .foregroundStyle(selectedSource == .files ? .primary : .secondary)
-                    }
-                }
-
-                Spacer()
-
                 Text("\(selectedAssetIDs.count) selected")
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
 
+                Spacer()
+
                 Button("Done") {
                     loadSelectedAndFinish()
                 }
-                .font(.headline)
+                .font(.system(size: 16, weight: .semibold))
+                .foregroundColor(Color(hex: "1D1D1D"))
                 .disabled(selectedAssetIDs.count < minCount || isLoadingFullImage)
             }
             .padding(.horizontal, 16)
-            .padding(.vertical, 10)
-            .background(.bar)
+            .padding(.vertical, 12)
+            .background(Color.white)
         }
     }
 
@@ -285,29 +337,7 @@ struct AssetPickerView: View {
         }
     }
 
-    // MARK: - Source Bar (single mode)
-
-    private var sourceBar: some View {
-        HStack(spacing: 0) {
-            ForEach(AssetSource.allCases, id: \.self) { source in
-                Button {
-                    selectedSource = source
-                } label: {
-                    VStack(spacing: 4) {
-                        Image(systemName: source == .gallery ? "photo.on.rectangle" : "folder")
-                            .font(.title3)
-                        Text(source.rawValue)
-                            .font(.caption2)
-                    }
-                    .foregroundStyle(selectedSource == source ? .primary : .secondary)
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 8)
-                }
-            }
-        }
-        .padding(.top, 4)
-        .background(.bar)
-    }
+    // MARK: - Files Placeholder
 
     private var filesPlaceholder: some View {
         VStack(spacing: 16) {

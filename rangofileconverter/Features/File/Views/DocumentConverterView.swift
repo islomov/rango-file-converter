@@ -59,7 +59,7 @@ struct DocumentConverterView: View {
             .navigationBarHidden(true)
             // Format conversion flow
             .navigationDestination(isPresented: $showDocumentPicker) {
-                DocumentPickerView { fileName, url in
+                DocumentPickerView(config: .convert) { fileName, url in
                     viewModel.selectDocument(fileName: fileName, fileURL: url)
                 }
             }

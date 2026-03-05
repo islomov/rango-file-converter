@@ -7,6 +7,7 @@ struct VideoTimeClipView: View {
     let fileName: String
     let onApply: (_ startTime: Double, _ endTime: Double) -> Void
 
+    @Environment(\.dismiss) private var dismiss
     @State private var duration: Double = 0
     @State private var startTime: Double = 0
     @State private var endTime: Double = 0
@@ -18,13 +19,16 @@ struct VideoTimeClipView: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            Spacer()
-            videoPreview
-            Spacer()
-            controls
+            previewSection
+
+            controlsSection
+
+            Spacer(minLength: 0)
+
+            bottomButton
         }
-        .navigationTitle("Time Clip")
-        .navigationBarTitleDisplayMode(.inline)
+        .background(Color.white)
+        .navigationBarHidden(true)
         .task {
             await setupPlayer()
         }
@@ -33,72 +37,128 @@ struct VideoTimeClipView: View {
         }
     }
 
-    // MARK: - Video Preview
+    // MARK: - Header
 
-    private var videoPreview: some View {
-        VStack(spacing: 12) {
+    private var header: some View {
+        ZStack {
+            Text("Time Clip")
+                .font(.system(size: 20, weight: .semibold))
+                .foregroundColor(Color(hex: "1D1D1D"))
+                .tracking(-0.408)
+
+            HStack {
+                Spacer()
+                Button {
+                    cleanupPlayer()
+                    dismiss()
+                } label: {
+                    Image(systemName: "xmark")
+                        .font(.system(size: 14, weight: .semibold))
+                        .foregroundColor(Color(hex: "1D1D1D"))
+                        .frame(width: 40, height: 40)
+                        .background(
+                            Circle()
+                                .fill(Color(hex: "888888").opacity(0.08))
+                        )
+                }
+            }
+        }
+        .frame(height: 56)
+        .padding(.horizontal, 8)
+    }
+
+    // MARK: - Preview Section
+
+    private var previewSection: some View {
+        VStack(spacing: 0) {
+            header
+
             ZStack {
                 if let player {
                     PlayerView(player: player)
                         .aspectRatio(videoAspectRatio ?? (thumbnail.size.width / thumbnail.size.height), contentMode: .fit)
-                        .clipShape(RoundedRectangle(cornerRadius: 8))
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 8)
-                                .stroke(.quaternary, lineWidth: 1)
-                        )
+                        .clipShape(RoundedRectangle(cornerRadius: 16))
                         .contentShape(Rectangle())
                         .onTapGesture { togglePlayback() }
-                        .overlay {
-                            Image(systemName: isPlaying ? "pause.fill" : "play.fill")
-                                .font(.title)
-                                .foregroundStyle(.white)
-                                .padding(16)
-                                .background(.black.opacity(0.4), in: Circle())
-                                .opacity(isPlaying ? 0 : 1)
-                                .animation(.easeInOut(duration: 0.2), value: isPlaying)
-                        }
                 } else {
                     Image(uiImage: thumbnail)
                         .resizable()
                         .aspectRatio(contentMode: .fit)
-                        .clipShape(RoundedRectangle(cornerRadius: 8))
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 8)
-                                .stroke(.quaternary, lineWidth: 1)
-                        )
+                        .clipShape(RoundedRectangle(cornerRadius: 16))
                 }
             }
-            .frame(maxHeight: 400)
+            .frame(maxHeight: 286)
+            .padding(.horizontal, 16)
+            .padding(.vertical, 24)
 
-            HStack(spacing: 4) {
-                Text(fileName)
-                    .lineLimit(1)
-                if duration > 0 {
-                    Text("·")
-                    Text(formatTime(currentTime))
-                        .monospacedDigit()
-                }
+            if duration > 0 {
+                Text(formatTime(currentTime))
+                    .font(.system(size: 12, weight: .semibold))
+                    .foregroundColor(Color(hex: "1D1D1D"))
+                    .tracking(-0.408)
+                    .monospacedDigit()
+                    .padding(.bottom, 12)
             }
-            .font(.caption)
-            .foregroundStyle(.secondary)
         }
-        .padding(.horizontal, 20)
+        .background(Color.white)
+        .overlay(
+            Rectangle()
+                .fill(Color(hex: "565656").opacity(0.08))
+                .frame(height: 1),
+            alignment: .bottom
+        )
     }
 
-    // MARK: - Controls
+    // MARK: - Controls Section
 
-    private var controls: some View {
-        VStack(spacing: 20) {
-            HStack {
-                Text("Duration")
-                    .font(.subheadline.weight(.medium))
-                Spacer()
-                Text(formatTime(duration))
-                    .font(.subheadline)
-                    .foregroundStyle(.secondary)
+    private var controlsSection: some View {
+        VStack(spacing: 24) {
+            // Playback controls
+            HStack(spacing: 12) {
+                Button {
+                    pauseAndSeek(to: startTime)
+                } label: {
+                    Image(systemName: "backward.fill")
+                        .font(.system(size: 22))
+                        .foregroundColor(Color(hex: "1D1D1D"))
+                        .frame(width: 32, height: 32)
+                }
+
+                Button {
+                    togglePlayback()
+                } label: {
+                    Image(systemName: isPlaying ? "pause.circle.fill" : "play.circle.fill")
+                        .font(.system(size: 56))
+                        .foregroundColor(Color(hex: "F4800D"))
+                }
+
+                Button {
+                    pauseAndSeek(to: max(startTime, endTime - 0.5))
+                } label: {
+                    Image(systemName: "forward.fill")
+                        .font(.system(size: 22))
+                        .foregroundColor(Color(hex: "1D1D1D"))
+                        .frame(width: 32, height: 32)
+                }
             }
 
+            // Time info + slider
             VStack(spacing: 12) {
+                HStack {
+                    Text("Start: \(formatTime(startTime))")
+                        .font(.system(size: 14, weight: .semibold))
+                        .foregroundColor(Color(hex: "888888"))
+                        .tracking(-0.408)
+
+                    Spacer()
+
+                    Text("End: \(formatTime(endTime))")
+                        .font(.system(size: 14, weight: .semibold))
+                        .foregroundColor(Color(hex: "888888"))
+                        .tracking(-0.408)
+                }
+                .monospacedDigit()
+
                 RangeSliderView(
                     lowerValue: $startTime,
                     upperValue: $endTime,
@@ -111,75 +171,45 @@ struct VideoTimeClipView: View {
                     }
                 )
 
-                HStack {
-                    VStack(alignment: .leading, spacing: 4) {
-                        Text("Start")
-                            .font(.caption2)
-                            .foregroundStyle(.secondary)
-                        Text(formatTime(startTime))
-                            .font(.subheadline.monospacedDigit())
-                    }
-                    Spacer()
-                    VStack(spacing: 4) {
-                        Text("Clip Length")
-                            .font(.caption2)
-                            .foregroundStyle(.secondary)
-                        Text(formatTime(max(endTime - startTime, 0)))
-                            .font(.subheadline.monospacedDigit().weight(.medium))
-                            .foregroundStyle(.mint)
-                    }
-                    Spacer()
-                    VStack(alignment: .trailing, spacing: 4) {
-                        Text("End")
-                            .font(.caption2)
-                            .foregroundStyle(.secondary)
-                        Text(formatTime(endTime))
-                            .font(.subheadline.monospacedDigit())
-                    }
-                }
+                Text("Clip length \(formatTime(max(endTime - startTime, 0)))")
+                    .font(.system(size: 14, weight: .semibold))
+                    .foregroundColor(Color(hex: "888888"))
+                    .tracking(-0.408)
+                    .monospacedDigit()
             }
+        }
+        .padding(16)
+    }
 
-            // Playback controls
-            HStack(spacing: 24) {
-                Button {
-                    pauseAndSeek(to: startTime)
-                } label: {
-                    Image(systemName: "backward.end.fill")
-                        .font(.title3)
-                }
+    // MARK: - Bottom Button
 
-                Button {
-                    togglePlayback()
-                } label: {
-                    Image(systemName: isPlaying ? "pause.circle.fill" : "play.circle.fill")
-                        .font(.largeTitle)
-                }
-
-                Button {
-                    pauseAndSeek(to: max(startTime, endTime - 0.5))
-                } label: {
-                    Image(systemName: "forward.end.fill")
-                        .font(.title3)
-                }
-            }
-            .foregroundStyle(.primary)
-
+    private var bottomButton: some View {
+        VStack(spacing: 0) {
             Button {
                 player?.pause()
                 isPlaying = false
                 onApply(startTime, endTime)
             } label: {
-                Text("Clip Video")
-                    .font(.headline)
+                Text("Clip video")
+                    .font(.system(size: 16, weight: .semibold))
+                    .foregroundColor(.white)
+                    .tracking(-0.408)
                     .frame(maxWidth: .infinity)
-                    .padding(.vertical, 14)
+                    .frame(height: 60)
+                    .background(
+                        LinearGradient(
+                            colors: [Color(hex: "FFAD5B"), Color(hex: "F4800D"), Color(hex: "FFAD5B")],
+                            startPoint: .topTrailing,
+                            endPoint: .bottomLeading
+                        )
+                    )
+                    .clipShape(RoundedRectangle(cornerRadius: 16))
             }
-            .buttonStyle(.borderedProminent)
-            .tint(.mint)
             .disabled(endTime - startTime < 0.1)
+            .opacity(endTime - startTime < 0.1 ? 0.5 : 1)
+            .padding(.horizontal, 16)
         }
-        .padding(20)
-        .background(.bar)
+        .padding(.vertical, 24)
     }
 
     // MARK: - Player
@@ -280,5 +310,3 @@ struct VideoTimeClipView: View {
         return String(format: "%02d:%02d", minutes, secs)
     }
 }
-
-// RangeSliderView is now in Shared/RangeSliderView.swift

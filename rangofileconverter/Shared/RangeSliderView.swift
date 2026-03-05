@@ -4,14 +4,15 @@ struct RangeSliderView: View {
     @Binding var lowerValue: Double
     @Binding var upperValue: Double
     let bounds: ClosedRange<Double>
+    var accentColor: Color = Color(hex: "F4800D")
     var onLowerChanged: () -> Void = {}
     var onUpperChanged: () -> Void = {}
 
     @State private var isDraggingLower = false
     @State private var isDraggingUpper = false
 
-    private let trackHeight: CGFloat = 6
-    private let thumbSize: CGFloat = 24
+    private let trackHeight: CGFloat = 4
+    private let thumbSize: CGFloat = 20
 
     var body: some View {
         GeometryReader { geo in
@@ -20,14 +21,14 @@ struct RangeSliderView: View {
 
             ZStack(alignment: .leading) {
                 Capsule()
-                    .fill(.quaternary)
+                    .fill(Color(hex: "888888").opacity(0.16))
                     .frame(height: trackHeight)
                     .padding(.horizontal, thumbSize / 2)
 
                 let lowerFraction = range > 0 ? (lowerValue - bounds.lowerBound) / range : 0
                 let upperFraction = range > 0 ? (upperValue - bounds.lowerBound) / range : 1
                 Capsule()
-                    .fill(.mint)
+                    .fill(accentColor)
                     .frame(
                         width: CGFloat(upperFraction - lowerFraction) * width,
                         height: trackHeight
@@ -38,7 +39,7 @@ struct RangeSliderView: View {
                     .fill(.white)
                     .shadow(color: .black.opacity(0.15), radius: 2, y: 1)
                     .frame(width: thumbSize, height: thumbSize)
-                    .overlay(Circle().stroke(.mint, lineWidth: 2))
+                    .overlay(Circle().stroke(accentColor, lineWidth: 2))
                     .offset(x: CGFloat(lowerFraction) * width)
                     .gesture(
                         DragGesture()
@@ -55,7 +56,7 @@ struct RangeSliderView: View {
                     .fill(.white)
                     .shadow(color: .black.opacity(0.15), radius: 2, y: 1)
                     .frame(width: thumbSize, height: thumbSize)
-                    .overlay(Circle().stroke(.mint, lineWidth: 2))
+                    .overlay(Circle().stroke(accentColor, lineWidth: 2))
                     .offset(x: CGFloat(upperFraction) * width)
                     .gesture(
                         DragGesture()

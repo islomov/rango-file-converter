@@ -5,19 +5,21 @@ enum AppTab: Int, CaseIterable {
     case history
     case settings
 
-    var iconName: String {
+    /// Outline icon for unselected state (template-rendered, tinted gray)
+    var unselectedIconName: String {
         switch self {
-        case .home: return "icon_home_bold"
+        case .home: return "icon_home_linear"
         case .history: return "icon_task_square"
         case .settings: return "icon_setting"
         }
     }
 
-    /// Whether this tab's icon uses original rendering (e.g. gradient) vs template tinting
-    var usesOriginalRendering: Bool {
+    /// Bold/filled icon for selected state (original rendering with built-in gradient)
+    var selectedIconName: String {
         switch self {
-        case .home: return true
-        case .history, .settings: return false
+        case .home: return "icon_home_bold"
+        case .history: return "icon_task_square_bold"
+        case .settings: return "icon_setting_bold"
         }
     }
 }
@@ -138,7 +140,7 @@ struct FloatingTabBar: View {
             .padding(.vertical, 8)
             .background(
                 Capsule()
-                    .fill(Color.white.opacity(0.88))
+                    .fill(Color.white)
                     .shadow(color: Color(hex: "505050").opacity(0.2), radius: 10, y: 0)
             )
         }
@@ -147,22 +149,19 @@ struct FloatingTabBar: View {
 
     @ViewBuilder
     private func tabIcon(for tab: AppTab) -> some View {
-        if tab.usesOriginalRendering {
-            // Home icon has a built-in gradient — use original rendering
-            Image(tab.iconName)
+        let isSelected = selectedTab == tab
+        if isSelected {
+            // Selected: bold/filled icon with built-in gradient (original rendering)
+            Image(tab.selectedIconName)
                 .resizable()
                 .frame(width: 28, height: 28)
         } else {
-            // History & Settings icons — tint based on selection
-            Image(tab.iconName)
+            // Unselected: outline icon tinted dark gray (template rendering)
+            Image(tab.unselectedIconName)
                 .resizable()
                 .renderingMode(.template)
                 .frame(width: 28, height: 28)
-                .foregroundColor(
-                    selectedTab == tab
-                    ? Color(hex: "F4800D")
-                    : Color(hex: "888888")
-                )
+                .foregroundColor(Color(hex: "1D1D1D"))
         }
     }
 }

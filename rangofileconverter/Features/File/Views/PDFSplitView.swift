@@ -11,91 +11,21 @@ struct PDFSplitView: View {
     @State private var pageRangeText: String = ""
     @State private var showFilePicker = false
     @State private var errorMessage: String?
+    @Environment(\.dismiss) private var dismiss
 
     var body: some View {
-        ScrollView {
-            VStack(spacing: 24) {
-                if fileURL == nil {
-                    Spacer(minLength: 80)
-                    VStack(spacing: 12) {
-                        Image(systemName: "scissors")
-                            .font(.system(size: 48))
-                            .foregroundStyle(.secondary)
-                        Text("Select a PDF to split")
-                            .font(.headline)
-                            .foregroundStyle(.secondary)
-                    }
+        ZStack {
+            Color(hex: "F2F2F6")
+                .ignoresSafeArea()
 
-                    Button {
-                        showFilePicker = true
-                    } label: {
-                        Label("Choose PDF", systemImage: "folder")
-                            .font(.headline)
-                            .frame(maxWidth: .infinity)
-                            .padding(.vertical, 14)
-                    }
-                    .buttonStyle(.borderedProminent)
-                    .padding(.horizontal, 40)
-                } else {
-                    // File info
-                    HStack {
-                        Image(systemName: "doc.richtext")
-                            .font(.title2)
-                            .foregroundStyle(.red)
-                        VStack(alignment: .leading, spacing: 4) {
-                            Text(fileName)
-                                .font(.headline)
-                            Text("\(pageCount) pages")
-                                .font(.subheadline)
-                                .foregroundStyle(.secondary)
-                        }
-                        Spacer()
-                        Button {
-                            showFilePicker = true
-                        } label: {
-                            Text("Change")
-                                .font(.subheadline)
-                        }
-                    }
-                    .padding()
-                    .background(.quaternary, in: RoundedRectangle(cornerRadius: 12))
-
-                    // Page range input
-                    VStack(alignment: .leading, spacing: 8) {
-                        Text("Pages to extract")
-                            .font(.subheadline)
-                            .foregroundStyle(.secondary)
-                        TextField("e.g., 1-3, 5, 7-10", text: $pageRangeText)
-                            .textFieldStyle(.roundedBorder)
-                            .keyboardType(.numbersAndPunctuation)
-                        Text("Enter page numbers and ranges separated by commas")
-                            .font(.caption)
-                            .foregroundStyle(.tertiary)
-                    }
-
-                    if let errorMessage {
-                        Text(errorMessage)
-                            .font(.caption)
-                            .foregroundStyle(.red)
-                    }
-
-                    // Split button
-                    Button {
-                        performSplit()
-                    } label: {
-                        Text("Split PDF")
-                            .font(.headline)
-                            .frame(maxWidth: .infinity)
-                            .padding(.vertical, 14)
-                    }
-                    .buttonStyle(.borderedProminent)
-                    .disabled(pageRangeText.trimmingCharacters(in: .whitespaces).isEmpty)
-                }
+            if fileURL == nil {
+                emptyState
+            } else {
+                detailState
             }
-            .padding(20)
         }
-        .navigationTitle("Split PDF")
-        .navigationBarTitleDisplayMode(.inline)
+        .navigationBarHidden(true)
+        .hidesFloatingTabBar()
         .fileImporter(
             isPresented: $showFilePicker,
             allowedContentTypes: [.pdf],
@@ -104,6 +34,206 @@ struct PDFSplitView: View {
             handleFileImport(result)
         }
     }
+
+    // MARK: - Empty State
+
+    private var emptyState: some View {
+        VStack(spacing: 0) {
+            navBar
+
+            Spacer()
+
+            VStack(spacing: 24) {
+                VStack(spacing: 12) {
+                    Image("icon_doc_split")
+                        .resizable()
+                        .renderingMode(.original)
+                        .frame(width: 56, height: 56)
+
+                    Text("Select a PDF to split")
+                        .font(.system(size: 20, weight: .semibold))
+                        .foregroundColor(Color(hex: "1D1D1D"))
+                        .tracking(-0.408)
+                        .multilineTextAlignment(.center)
+                }
+
+                Button {
+                    showFilePicker = true
+                } label: {
+                    Text("Choose PDF")
+                        .font(.system(size: 14, weight: .semibold))
+                        .foregroundColor(.white)
+                        .tracking(-0.408)
+                        .padding(16)
+                        .frame(width: 180)
+                        .background(
+                            LinearGradient(
+                                colors: [Color(hex: "FFAD5B"), Color(hex: "F4800D"), Color(hex: "FFAD5B")],
+                                startPoint: .topTrailing,
+                                endPoint: .bottomLeading
+                            )
+                        )
+                        .clipShape(RoundedRectangle(cornerRadius: 16))
+                }
+            }
+            .padding(.horizontal, 16)
+
+            Spacer()
+        }
+    }
+
+    // MARK: - Detail State
+
+    private var detailState: some View {
+        VStack(spacing: 0) {
+            navBar
+
+            ScrollView {
+                VStack(spacing: 24) {
+                    // File info
+                    HStack(spacing: 12) {
+                        ZStack {
+                            RoundedRectangle(cornerRadius: 8.32)
+                                .fill(Color(hex: "E6E6EC"))
+                                .frame(width: 56, height: 56)
+
+                            Image("icon_doc_split")
+                                .resizable()
+                                .renderingMode(.template)
+                                .foregroundColor(Color(hex: "888888"))
+                                .frame(width: 24, height: 24)
+                        }
+
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text(fileName)
+                                .font(.system(size: 14, weight: .semibold))
+                                .foregroundColor(Color(hex: "1D1D1D"))
+                                .tracking(-0.408)
+                                .lineLimit(1)
+
+                            Text("\(pageCount) pages")
+                                .font(.system(size: 12, weight: .semibold))
+                                .foregroundColor(Color(hex: "888888"))
+                                .tracking(-0.408)
+                        }
+
+                        Spacer()
+
+                        Button {
+                            showFilePicker = true
+                        } label: {
+                            Text("Change")
+                                .font(.system(size: 14, weight: .semibold))
+                                .foregroundColor(Color(hex: "F4800D"))
+                                .tracking(-0.408)
+                        }
+                    }
+                    .padding(16)
+                    .background(
+                        RoundedRectangle(cornerRadius: 16)
+                            .fill(Color.white)
+                    )
+
+                    // Page range input
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text("Pages to extract")
+                            .font(.system(size: 14, weight: .semibold))
+                            .foregroundColor(Color(hex: "888888"))
+                            .tracking(-0.408)
+
+                        TextField("e.g., 1-3, 5, 7-10", text: $pageRangeText)
+                            .font(.system(size: 14, weight: .semibold))
+                            .tracking(-0.408)
+                            .padding(16)
+                            .background(
+                                RoundedRectangle(cornerRadius: 12)
+                                    .fill(Color.white)
+                            )
+                            .keyboardType(.numbersAndPunctuation)
+
+                        Text("Enter page numbers and ranges separated by commas")
+                            .font(.system(size: 12, weight: .semibold))
+                            .foregroundColor(Color(hex: "888888"))
+                            .tracking(-0.408)
+                    }
+
+                    if let errorMessage {
+                        Text(errorMessage)
+                            .font(.system(size: 12, weight: .semibold))
+                            .foregroundColor(Color(hex: "F21414"))
+                            .tracking(-0.408)
+                    }
+                }
+                .padding(.horizontal, 16)
+                .padding(.top, 16)
+            }
+
+            // Split button
+            Button {
+                performSplit()
+            } label: {
+                Text("Split PDF")
+                    .font(.system(size: 16, weight: .semibold))
+                    .foregroundColor(.white)
+                    .tracking(-0.408)
+                    .frame(maxWidth: .infinity)
+                    .frame(height: 60)
+                    .background(
+                        RoundedRectangle(cornerRadius: 16)
+                            .fill(splitButtonGradient)
+                    )
+            }
+            .disabled(pageRangeText.trimmingCharacters(in: .whitespaces).isEmpty)
+            .padding(.horizontal, 16)
+            .padding(.vertical, 24)
+        }
+    }
+
+    // MARK: - Navigation Bar
+
+    private var navBar: some View {
+        ZStack {
+            Text("Split PDF")
+                .font(.system(size: 20, weight: .semibold))
+                .foregroundColor(Color(hex: "1D1D1D"))
+                .tracking(-0.408)
+
+            HStack {
+                Button {
+                    dismiss()
+                } label: {
+                    Image("icon_arrow_left")
+                        .resizable()
+                        .renderingMode(.template)
+                        .frame(width: 24, height: 24)
+                        .foregroundColor(Color(hex: "1D1D1D"))
+                        .frame(width: 40, height: 40)
+                }
+                Spacer()
+            }
+        }
+        .frame(height: 56)
+        .padding(.horizontal, 8)
+    }
+
+    private var splitButtonGradient: LinearGradient {
+        let isEmpty = pageRangeText.trimmingCharacters(in: .whitespaces).isEmpty
+        if isEmpty {
+            return LinearGradient(
+                colors: [Color(hex: "FFD9B8"), Color(hex: "F8C192"), Color(hex: "FFD9B8")],
+                startPoint: .topTrailing,
+                endPoint: .bottomLeading
+            )
+        } else {
+            return LinearGradient(
+                colors: [Color(hex: "FFAD5B"), Color(hex: "F4800D"), Color(hex: "FFAD5B")],
+                startPoint: .topTrailing,
+                endPoint: .bottomLeading
+            )
+        }
+    }
+
+    // MARK: - File Import
 
     private func handleFileImport(_ result: Result<[URL], Error>) {
         guard case .success(let urls) = result, let sourceURL = urls.first else { return }
@@ -141,12 +271,10 @@ struct PDFSplitView: View {
             return
         }
 
-        // Convert to 0-indexed
         let zeroIndexedPages = pages.map { $0 - 1 }
         onSplit(url, fileName, zeroIndexedPages)
     }
 
-    /// Parses page range text like "1-3, 5, 7-10" into an array of 1-indexed page numbers.
     private func parsePageRanges(_ text: String, maxPage: Int) -> [Int]? {
         let parts = text.components(separatedBy: ",").map { $0.trimmingCharacters(in: .whitespaces) }
         var pages: [Int] = []

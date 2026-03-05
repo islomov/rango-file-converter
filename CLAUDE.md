@@ -62,5 +62,10 @@ FFmpegKit (format conversion), Firebase, Kingfisher, swift-algorithms
 - Image < 2s, Video (1min 1080p) < 30s, Audio (5min) < 5s, Document < 3s
 - Cold launch < 1.5s, Memory < 200MB
 
+## Testing
+- **No automated tests** — the user performs manual testing on device/simulator
+- After making changes, verify the build succeeds with `xcodebuild build` but do **not** run UI tests or attempt to launch the simulator
+- Use a valid simulator destination (e.g. `iPhone 17 Pro`) — older names like `iPhone 16` may not be available
+
 ## Agent Learnings
 Before starting work, check `.claude/learnings/` for known issues and patterns discovered by previous agents. When you discover a bug, workaround, or important pattern, save it as a markdown file in `.claude/learnings/` so future agents benefit.

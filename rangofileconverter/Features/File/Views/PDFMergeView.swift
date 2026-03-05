@@ -1,22 +1,28 @@
 import SwiftUI
 import UniformTypeIdentifiers
 
+private struct MergePDFItem: Identifiable {
+    let id = UUID()
+    let fileName: String
+    let url: URL
+}
+
 struct PDFMergeView: View {
     let onMerge: ([URL], [String]) -> Void
 
-    @State private var fileURLs: [URL] = []
-    @State private var fileNames: [String] = []
+    @State private var items: [MergePDFItem] = []
     @State private var showFilePicker = false
     @Environment(\.dismiss) private var dismiss
 
     var body: some View {
         ZStack {
-            Color(hex: "F2F2F6")
-                .ignoresSafeArea()
-
-            if fileURLs.isEmpty {
+            if items.isEmpty {
+                Color(hex: "F2F2F6")
+                    .ignoresSafeArea()
                 emptyState
             } else {
+                Color.white
+                    .ignoresSafeArea()
                 fileListState
             }
         }
@@ -35,7 +41,7 @@ struct PDFMergeView: View {
 
     private var emptyState: some View {
         VStack(spacing: 0) {
-            navBar
+            emptyNavBar
 
             Spacer()
 
@@ -90,66 +96,21 @@ struct PDFMergeView: View {
 
     private var fileListState: some View {
         VStack(spacing: 0) {
-            navBar
+            header
 
-            List {
-                ForEach(Array(fileNames.enumerated()), id: \.offset) { index, name in
-                    HStack(spacing: 12) {
-                        Text("\(index + 1)")
-                            .font(.system(size: 14, weight: .semibold))
-                            .foregroundColor(Color(hex: "888888"))
-                            .tracking(-0.408)
-                            .frame(width: 20)
+            // File info row
+            fileInfoRow
 
-                        ZStack {
-                            RoundedRectangle(cornerRadius: 8.32)
-                                .fill(Color(hex: "E6E6EC"))
-                                .frame(width: 56, height: 56)
-
-                            Image("icon_doc_merge")
-                                .resizable()
-                                .renderingMode(.template)
-                                .foregroundColor(Color(hex: "888888"))
-                                .frame(width: 24, height: 24)
-                        }
-
-                        Text(name)
-                            .font(.system(size: 12, weight: .semibold))
-                            .foregroundColor(Color(hex: "1D1D1D"))
-                            .tracking(-0.408)
-                            .lineLimit(1)
-
-                        Spacer()
-                    }
-                    .padding(.vertical, 12)
-                    .listRowInsets(EdgeInsets(top: 0, leading: 16, bottom: 0, trailing: 16))
-                    .listRowSeparator(.hidden)
-                    .overlay(alignment: .bottom) {
-                        Rectangle()
-                            .fill(Color(hex: "888888").opacity(0.12))
-                            .frame(height: 1)
-                            .padding(.leading, 48)
-                    }
-                }
-                .onMove { from, to in
-                    fileNames.move(fromOffsets: from, toOffset: to)
-                    fileURLs.move(fromOffsets: from, toOffset: to)
-                }
-                .onDelete { offsets in
-                    fileNames.remove(atOffsets: offsets)
-                    fileURLs.remove(atOffsets: offsets)
-                }
-            }
-            .listStyle(.plain)
-            .environment(\.editMode, .constant(.active))
+            // Page list
+            pageList
 
             bottomSection
         }
     }
 
-    // MARK: - Navigation Bar
+    // MARK: - Empty State Nav Bar
 
-    private var navBar: some View {
+    private var emptyNavBar: some View {
         ZStack {
             Text("Merge PDF")
                 .font(.system(size: 20, weight: .semibold))
@@ -174,6 +135,126 @@ struct PDFMergeView: View {
         .padding(.horizontal, 8)
     }
 
+    // MARK: - Header (with files)
+
+    private var header: some View {
+        ZStack {
+            Text("Merge PDF")
+                .font(.system(size: 20, weight: .semibold))
+                .foregroundColor(Color(hex: "1D1D1D"))
+                .tracking(-0.408)
+
+            HStack {
+                Spacer()
+                Button { dismiss() } label: {
+                    Image(systemName: "xmark")
+                        .font(.system(size: 14, weight: .semibold))
+                        .foregroundColor(Color(hex: "1D1D1D"))
+                        .frame(width: 40, height: 40)
+                        .background(Circle().fill(Color(hex: "888888").opacity(0.08)))
+                }
+            }
+        }
+        .frame(height: 56)
+        .padding(.horizontal, 8)
+    }
+
+    // MARK: - File Info Row
+
+    private var fileInfoRow: some View {
+        HStack(spacing: 12) {
+            Image("icon_doc_merge")
+                .resizable()
+                .renderingMode(.template)
+                .foregroundColor(Color(hex: "1D1D1D"))
+                .frame(width: 28, height: 28)
+
+            Text(mergedFileName)
+                .font(.system(size: 12, weight: .semibold))
+                .foregroundColor(Color(hex: "1D1D1D"))
+                .tracking(-0.408)
+                .lineLimit(1)
+
+            Spacer()
+
+            Button {
+                showFilePicker = true
+            } label: {
+                Text("Change")
+                    .font(.system(size: 12, weight: .semibold))
+                    .foregroundColor(Color(hex: "F4800D"))
+                    .tracking(-0.408)
+            }
+        }
+        .padding(.vertical, 16)
+        .padding(.horizontal, 16)
+        .overlay(alignment: .bottom) {
+            Rectangle()
+                .fill(Color(hex: "888888").opacity(0.12))
+                .frame(height: 1)
+        }
+    }
+
+    private var mergedFileName: String {
+        if items.count == 1 {
+            return items[0].fileName
+        } else if items.count > 1 {
+            let baseName = items[0].fileName.replacingOccurrences(of: ".pdf", with: "", options: .caseInsensitive)
+            return "\(baseName)_merged.pdf"
+        }
+        return "merged.pdf"
+    }
+
+    // MARK: - Page List
+
+    private var pageList: some View {
+        List {
+            ForEach(Array(items.enumerated()), id: \.element.id) { index, item in
+                HStack(spacing: 12) {
+                    RoundedRectangle(cornerRadius: 8.32)
+                        .fill(Color(hex: "E6E6EC"))
+                        .frame(width: 52, height: 56)
+
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("Page \(index + 1)")
+                            .font(.system(size: 12, weight: .semibold))
+                            .foregroundColor(Color(hex: "1D1D1D"))
+                            .tracking(-0.408)
+
+                        Text(item.fileName)
+                            .font(.system(size: 12, weight: .semibold))
+                            .foregroundColor(Color(hex: "888888"))
+                            .tracking(-0.408)
+                            .lineLimit(1)
+                    }
+
+                    Spacer()
+                }
+                .padding(.vertical, 12)
+                .listRowInsets(EdgeInsets(top: 0, leading: 16, bottom: 0, trailing: 16))
+                .listRowSeparator(.hidden)
+                .overlay(alignment: .bottom) {
+                    Rectangle()
+                        .fill(Color(hex: "888888").opacity(0.12))
+                        .frame(height: 1)
+                }
+            }
+            .onMove { from, to in
+                items.move(fromOffsets: from, toOffset: to)
+            }
+            .onDelete { offsets in
+                items.remove(atOffsets: offsets)
+            }
+        }
+        .listStyle(.plain)
+        .environment(\.editMode, .constant(.active))
+        .overlay(alignment: .top) {
+            Rectangle()
+                .fill(Color(hex: "565656").opacity(0.08))
+                .frame(height: 1)
+        }
+    }
+
     // MARK: - Bottom Section
 
     private var bottomSection: some View {
@@ -182,26 +263,11 @@ struct PDFMergeView: View {
                 .fill(Color(hex: "565656").opacity(0.08))
                 .frame(height: 1)
 
-            VStack(spacing: 12) {
+            VStack(spacing: 0) {
                 Button {
-                    showFilePicker = true
+                    onMerge(items.map(\.url), items.map(\.fileName))
                 } label: {
-                    Text("Add more PDFs")
-                        .font(.system(size: 14, weight: .semibold))
-                        .foregroundColor(Color(hex: "F4800D"))
-                        .tracking(-0.408)
-                        .frame(maxWidth: .infinity)
-                        .frame(height: 48)
-                        .background(
-                            RoundedRectangle(cornerRadius: 12)
-                                .fill(Color(hex: "F4800D").opacity(0.08))
-                        )
-                }
-
-                Button {
-                    onMerge(fileURLs, fileNames)
-                } label: {
-                    Text("Merge \(fileURLs.count) PDFs")
+                    Text("Merge \(items.count) PDFs")
                         .font(.system(size: 16, weight: .semibold))
                         .foregroundColor(.white)
                         .tracking(-0.408)
@@ -212,7 +278,7 @@ struct PDFMergeView: View {
                                 .fill(mergeButtonGradient)
                         )
                 }
-                .disabled(fileURLs.count < 2)
+                .disabled(items.count < 2)
             }
             .padding(.horizontal, 16)
             .padding(.vertical, 24)
@@ -220,7 +286,7 @@ struct PDFMergeView: View {
     }
 
     private var mergeButtonGradient: LinearGradient {
-        if fileURLs.count < 2 {
+        if items.count < 2 {
             return LinearGradient(
                 colors: [Color(hex: "FFD9B8"), Color(hex: "F8C192"), Color(hex: "FFD9B8")],
                 startPoint: .topTrailing,
@@ -253,8 +319,7 @@ struct PDFMergeView: View {
             try? FileManager.default.removeItem(at: destURL)
 
             if let _ = try? FileManager.default.copyItem(at: sourceURL, to: destURL) {
-                fileURLs.append(destURL)
-                fileNames.append(fileName)
+                items.append(MergePDFItem(fileName: fileName, url: destURL))
             }
         }
     }

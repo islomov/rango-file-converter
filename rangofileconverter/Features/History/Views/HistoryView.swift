@@ -4,24 +4,50 @@ struct HistoryView: View {
     @EnvironmentObject private var historyStore: HistoryStore
     @State private var selectedRecord: ConversionRecord?
     @State private var searchText: String = ""
+    @State private var showFilterSheet = false
+    @State private var filterState = HistoryFilterState()
 
     private let categories = ["image", "video", "audio", "document"]
 
-    private var groupedRecords: [(category: String, records: [ConversionRecord])] {
-        let allRecords: [ConversionRecord]
-        if searchText.isEmpty {
-            allRecords = historyStore.records
-        } else {
-            allRecords = historyStore.records.filter {
+    private var filteredRecords: [ConversionRecord] {
+        var records = historyStore.records
+
+        // Search filter
+        if !searchText.isEmpty {
+            records = records.filter {
                 $0.sourceFileName.localizedCaseInsensitiveContains(searchText)
             }
         }
 
-        let sorted = allRecords.sorted { $0.date > $1.date }
+        // Category filter
+        if !filterState.selectedCategories.isEmpty {
+            records = records.filter {
+                filterState.selectedCategories.contains($0.mediaCategory)
+            }
+        }
+
+        // Tool type filter
+        if !filterState.selectedToolTypes.isEmpty {
+            records = records.filter {
+                filterState.selectedToolTypes.contains($0.tool)
+            }
+        }
+
+        // Status filter
+        if !filterState.selectedStatuses.isEmpty {
+            records = records.filter {
+                filterState.selectedStatuses.contains($0.statusRaw)
+            }
+        }
+
+        return records.sorted { $0.date > $1.date }
+    }
+
+    private var groupedRecords: [(category: String, records: [ConversionRecord])] {
         var groups: [(category: String, records: [ConversionRecord])] = []
 
         for category in categories {
-            let categoryRecords = sorted.filter { $0.mediaCategory == category }
+            let categoryRecords = filteredRecords.filter { $0.mediaCategory == category }
             if !categoryRecords.isEmpty {
                 groups.append((category: category, records: categoryRecords))
             }
@@ -61,14 +87,18 @@ struct HistoryView: View {
                 .clipShape(RoundedRectangle(cornerRadius: 16))
 
                 Button {
-                    // Filter action placeholder
+                    showFilterSheet = true
                 } label: {
                     Image("icon_filter")
                         .resizable()
                         .frame(width: 24, height: 24)
                         .frame(width: 48, height: 48)
-                        .background(Color.white)
+                        .background(filterState.isActive ? Color(hex: "F4800D").opacity(0.12) : Color.white)
                         .clipShape(RoundedRectangle(cornerRadius: 16))
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 16)
+                                .stroke(filterState.isActive ? Color(hex: "F4800D") : Color.clear, lineWidth: 1.5)
+                        )
                 }
                 .buttonStyle(.plain)
             }
@@ -79,16 +109,17 @@ struct HistoryView: View {
             if groupedRecords.isEmpty {
                 Spacer()
                 VStack(spacing: 12) {
-                    Image(systemName: "clock.arrow.circlepath")
+                    Image(systemName: filterState.isActive ? "line.3.horizontal.decrease.circle" : "clock.arrow.circlepath")
                         .font(.system(size: 48))
                         .foregroundStyle(.tertiary)
-                    Text("No history yet")
+                    Text(filterState.isActive ? "No matching results" : "No history yet")
                         .font(.custom("Montserrat-SemiBold", size: 16))
                         .foregroundStyle(.secondary)
-                    Text("Your conversions will appear here")
+                    Text(filterState.isActive ? "Try adjusting your filters" : "Your conversions will appear here")
                         .font(.custom("Sora-Regular", size: 14))
                         .foregroundStyle(.tertiary)
                 }
+                .frame(maxWidth: .infinity)
                 Spacer()
             } else {
                 ScrollView {
@@ -124,6 +155,12 @@ struct HistoryView: View {
         .background(Color(hex: "F2F2F6"))
         .sheet(item: $selectedRecord) { record in
             HistoryResultSheet(record: record)
+        }
+        .sheet(isPresented: $showFilterSheet) {
+            HistoryFilterSheet(initialState: filterState) { applied in
+                filterState = applied
+            }
+            .presentationDetents([.large])
         }
     }
 

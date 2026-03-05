@@ -43,7 +43,7 @@ final class VideoConverterViewModel: ObservableObject {
         showVideoRatio = true
     }
 
-    func addHistoryRecord(fileName: String, thumbnail: UIImage?, outputURL: URL, toolType: String = "Convert") {
+    func addHistoryRecord(fileName: String, thumbnail: UIImage?, outputURL: URL, toolType: String = ToolType.convert.rawValue) {
         let ext = fileName.components(separatedBy: ".").last ?? "mp4"
         let formatDef = FormatRegistry.format(forExtension: ext)
 
@@ -87,7 +87,7 @@ final class VideoConverterViewModel: ObservableObject {
             targetFormatID: outputFormat,
             thumbnailData: thumbnailData,
             status: .converting,
-            toolType: "Compress",
+            toolType: ToolType.compress.rawValue,
             mediaCategory: "video"
         )
 
@@ -261,7 +261,7 @@ final class VideoConverterViewModel: ObservableObject {
             targetFormatID: format.id,
             thumbnailData: thumbnailData,
             status: .converting,
-            toolType: "Extract Audio",
+            toolType: ToolType.extractAudio.rawValue,
             mediaCategory: "video"
         )
 
@@ -343,7 +343,7 @@ final class VideoConverterViewModel: ObservableObject {
             targetFormatID: outputExt,
             thumbnailData: thumbnailData,
             status: .converting,
-            toolType: "Speed",
+            toolType: ToolType.speed.rawValue,
             mediaCategory: "video"
         )
 
@@ -432,7 +432,7 @@ final class VideoConverterViewModel: ObservableObject {
             targetFormatID: ext,
             thumbnailData: thumbnailData,
             status: .converting,
-            toolType: "Time Clip",
+            toolType: ToolType.timeClip.rawValue,
             mediaCategory: "video"
         )
 
@@ -498,7 +498,7 @@ final class VideoConverterViewModel: ObservableObject {
             targetFormatID: gifFormat.id,
             thumbnailData: thumbnailData,
             status: .converting,
-            toolType: "GIF",
+            toolType: ToolType.gif.rawValue,
             mediaCategory: "video"
         )
 
@@ -579,7 +579,7 @@ final class VideoConverterViewModel: ObservableObject {
             targetFormatID: outputExtension.lowercased(),
             thumbnailData: thumbnailData,
             status: .converting,
-            toolType: "Merge",
+            toolType: ToolType.merge.rawValue,
             mediaCategory: "video"
         )
 
@@ -670,7 +670,7 @@ final class VideoConverterViewModel: ObservableObject {
             targetFormatID: outputFormat.id,
             thumbnailData: thumbnailData,
             status: .converting,
-            toolType: "Ratio",
+            toolType: ToolType.ratio.rawValue,
             mediaCategory: "video"
         )
 

@@ -530,7 +530,7 @@ struct HistoryResultSheet: View {
 
         if record.mediaCategory == "document" || documentExtensions.contains(ext) {
             return .document
-        } else if audioExtensions.contains(ext) || record.toolType == "Extract Audio" {
+        } else if audioExtensions.contains(ext) || record.tool == .extractAudio {
             return .audio
         } else if imageExtensions.contains(ext) {
             return .image
@@ -634,19 +634,23 @@ struct HistoryResultSheet: View {
     }
 
     private var toolColor: Color {
-        switch record.toolType {
-        case "Rotate": return .blue
-        case "Compress": return .purple
-        case "Resize": return .orange
-        case "Crop": return .teal
-        case "GIF": return .pink
-        case "Stitch": return .mint
-        case "Convert": return .blue
-        case "Merge": return .indigo
-        case "Split": return .teal
-        case "Reorder": return .orange
-        case "Protect": return .purple
-        default: return .green
+        switch record.tool {
+        case .rotate: return .blue
+        case .compress: return .purple
+        case .resize: return .orange
+        case .crop: return .teal
+        case .gif: return .pink
+        case .stitch: return .mint
+        case .convert: return .blue
+        case .merge: return .indigo
+        case .splitPDF: return .teal
+        case .reorderPDF: return .orange
+        case .protectPDF: return .purple
+        case .speed: return .cyan
+        case .timeClip: return .orange
+        case .extractAudio: return .indigo
+        case .ratio: return .green
+        case .mergePDF: return .indigo
         }
     }
 }

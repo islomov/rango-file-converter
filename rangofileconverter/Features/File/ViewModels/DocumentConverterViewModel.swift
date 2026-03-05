@@ -48,7 +48,7 @@ final class DocumentConverterViewModel: ObservableObject {
             targetFormatID: format.id,
             thumbnailData: nil,
             status: .converting,
-            toolType: "Convert",
+            toolType: ToolType.convert.rawValue,
             mediaCategory: "document"
         )
 
@@ -102,7 +102,7 @@ final class DocumentConverterViewModel: ObservableObject {
             targetFormatID: "pdf",
             thumbnailData: nil,
             status: .converting,
-            toolType: "Merge PDF",
+            toolType: ToolType.mergePDF.rawValue,
             mediaCategory: "document"
         )
 
@@ -142,7 +142,7 @@ final class DocumentConverterViewModel: ObservableObject {
             targetFormatID: "pdf",
             thumbnailData: nil,
             status: .converting,
-            toolType: "Split PDF",
+            toolType: ToolType.splitPDF.rawValue,
             mediaCategory: "document"
         )
 
@@ -182,7 +182,7 @@ final class DocumentConverterViewModel: ObservableObject {
             targetFormatID: "pdf",
             thumbnailData: nil,
             status: .converting,
-            toolType: "Reorder PDF",
+            toolType: ToolType.reorderPDF.rawValue,
             mediaCategory: "document"
         )
 
@@ -222,7 +222,7 @@ final class DocumentConverterViewModel: ObservableObject {
             targetFormatID: "pdf",
             thumbnailData: nil,
             status: .converting,
-            toolType: "Protect PDF",
+            toolType: ToolType.protectPDF.rawValue,
             mediaCategory: "document"
         )
 

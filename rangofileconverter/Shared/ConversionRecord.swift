@@ -9,6 +9,25 @@ enum ConversionStatus: String, Codable {
     case failed
 }
 
+enum ToolType: String, Codable, CaseIterable {
+    case convert = "Convert"
+    case compress = "Compress"
+    case rotate = "Rotate"
+    case resize = "Resize"
+    case crop = "Crop"
+    case stitch = "Stitch"
+    case gif = "GIF"
+    case merge = "Merge"
+    case speed = "Speed"
+    case timeClip = "Time Clip"
+    case extractAudio = "Extract Audio"
+    case ratio = "Ratio"
+    case mergePDF = "Merge PDF"
+    case splitPDF = "Split PDF"
+    case reorderPDF = "Reorder PDF"
+    case protectPDF = "Protect PDF"
+}
+
 final class ConversionRecord: Identifiable, Codable, ObservableObject {
     let id: UUID
     var sourceFileName: String
@@ -33,7 +52,7 @@ final class ConversionRecord: Identifiable, Codable, ObservableObject {
         date: Date = Date(),
         outputPath: String? = nil,
         errorMessage: String? = nil,
-        toolType: String = "Convert",
+        toolType: String = ToolType.convert.rawValue,
         mediaCategory: String = "image"
     ) {
         self.id = id
@@ -86,6 +105,10 @@ final class ConversionRecord: Identifiable, Codable, ObservableObject {
     var status: ConversionStatus {
         get { ConversionStatus(rawValue: statusRaw) ?? .pending }
         set { statusRaw = newValue.rawValue }
+    }
+
+    var tool: ToolType {
+        ToolType(rawValue: toolType) ?? .convert
     }
 
     // MARK: - File Persistence

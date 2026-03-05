@@ -56,8 +56,9 @@ struct AudioCompressView: View {
         "mp3", "wav", "m4a", "aac", "aiff", "flac", "caf", "au", "mp2"
     ]
 
-    @State private var selectedBitrate: AudioBitrate = .k128
-    @State private var selectedSampleRate: AudioSampleRate = .original
+    @Environment(\.dismiss) private var dismiss
+    @State private var selectedBitrate: AudioBitrate = .k192
+    @State private var selectedSampleRate: AudioSampleRate = .hz44100
     @State private var selectedFormat: CompressOutputFormat = .mp3
     @State private var originalSize: Int64 = 0
 
@@ -72,19 +73,19 @@ struct AudioCompressView: View {
 
     var body: some View {
         VStack(spacing: 0) {
+            previewSection
+
             ScrollView {
-                VStack(spacing: 24) {
-                    preview
-                    if isAVPlayerCompatible {
-                        playbackControls
-                    }
-                }
-                .padding(20)
+                controlsSection
             }
-            controls
+
+            Spacer(minLength: 0)
+
+            bottomButton
         }
-        .navigationTitle("Compress")
-        .navigationBarTitleDisplayMode(.inline)
+        .background(Color.white)
+        .navigationBarHidden(true)
+        .hidesFloatingTabBar()
         .onAppear { loadOriginalSize() }
         .onReceive(NotificationCenter.default.publisher(for: .AVPlayerItemDidPlayToEndTime)) { notification in
             guard let item = notification.object as? AVPlayerItem,
@@ -95,86 +96,96 @@ struct AudioCompressView: View {
         .onDisappear { cleanupPlayer() }
     }
 
-    // MARK: - Preview
+    // MARK: - Header
 
-    private var preview: some View {
-        VStack(spacing: 16) {
+    private var header: some View {
+        ZStack {
+            Text("Convert audio")
+                .font(.system(size: 20, weight: .semibold))
+                .foregroundColor(Color(hex: "1D1D1D"))
+                .tracking(-0.408)
+
+            HStack {
+                Spacer()
+                Button {
+                    dismiss()
+                } label: {
+                    Image(systemName: "xmark")
+                        .font(.system(size: 14, weight: .semibold))
+                        .foregroundColor(Color(hex: "1D1D1D"))
+                        .frame(width: 40, height: 40)
+                        .background(
+                            Circle()
+                                .fill(Color(hex: "888888").opacity(0.08))
+                        )
+                }
+            }
+        }
+        .frame(height: 56)
+        .padding(.horizontal, 8)
+    }
+
+    // MARK: - Preview Section
+
+    private var previewSection: some View {
+        VStack(spacing: 0) {
+            header
+
             ZStack {
-                RoundedRectangle(cornerRadius: 12)
-                    .fill(.quaternary)
-                    .frame(height: 160)
+                RoundedRectangle(cornerRadius: 16)
+                    .fill(Color(hex: "E6E6EC"))
+                    .frame(height: 180)
 
                 VStack(spacing: 12) {
-                    Image(systemName: "waveform")
-                        .font(.system(size: 48))
-                        .foregroundStyle(.secondary)
+                    Image(systemName: "music.note")
+                        .font(.system(size: 32, weight: .bold))
+                        .foregroundColor(Color(hex: "1D1D1D"))
 
                     Text(sourceExtension.uppercased())
-                        .font(.caption.weight(.bold))
-                        .foregroundStyle(.white)
-                        .padding(.horizontal, 10)
+                        .font(.system(size: 14, weight: .semibold))
+                        .foregroundColor(Color(hex: "1D1D1D"))
+                        .tracking(-0.408)
+                        .padding(.horizontal, 8)
                         .padding(.vertical, 4)
-                        .background(.secondary, in: Capsule())
+                        .background(
+                            Color(hex: "888888").opacity(0.12),
+                            in: Capsule()
+                        )
                 }
             }
+            .padding(.horizontal, 16)
 
             Text(formatBytes(originalSize))
-                .font(.subheadline.weight(.medium))
-                .foregroundStyle(.secondary)
-
-            Text(fileName)
-                .font(.caption)
-                .foregroundStyle(.tertiary)
-                .lineLimit(1)
+                .font(.system(size: 12, weight: .semibold))
+                .foregroundColor(Color(hex: "888888"))
+                .tracking(-0.408)
+                .padding(.top, 12)
+                .padding(.bottom, 12)
         }
+        .background(Color.white)
+        .overlay(
+            Rectangle()
+                .fill(Color(hex: "565656").opacity(0.08))
+                .frame(height: 1),
+            alignment: .bottom
+        )
     }
 
-    // MARK: - Playback
+    // MARK: - Controls Section
 
-    private var playbackControls: some View {
-        HStack(spacing: 16) {
-            Button {
-                togglePlayback()
-            } label: {
-                Image(systemName: isPlaying ? "pause.circle.fill" : "play.circle.fill")
-                    .font(.system(size: 40))
-                    .foregroundStyle(.blue)
+    private var controlsSection: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            if isAVPlayerCompatible {
+                playbackControls
             }
 
-            VStack(spacing: 4) {
-                Slider(
-                    value: $currentTime,
-                    in: 0...max(duration, 1)
-                ) { editing in
-                    isSeeking = editing
-                    if !editing {
-                        seekTo(currentTime)
-                    }
-                }
-                .tint(.blue)
-
-                HStack {
-                    Text(formatTime(currentTime))
-                        .font(.caption2.monospacedDigit())
-                        .foregroundStyle(.secondary)
-                    Spacer()
-                    Text(formatTime(duration))
-                        .font(.caption2.monospacedDigit())
-                        .foregroundStyle(.secondary)
-                }
-            }
-        }
-    }
-
-    // MARK: - Controls
-
-    private var controls: some View {
-        VStack(spacing: 20) {
-            // Output format
-            VStack(spacing: 8) {
+            // Format
+            VStack(alignment: .leading, spacing: 8) {
                 Text("Format")
-                    .font(.subheadline.weight(.medium))
-                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .font(.system(size: 14, weight: .semibold))
+                    .foregroundColor(Color(hex: "888888"))
+                    .tracking(-0.408)
+
                 chipPicker(
                     items: CompressOutputFormat.allCases,
                     selected: selectedFormat,
@@ -184,10 +195,12 @@ struct AudioCompressView: View {
 
             // Bitrate (hidden for lossless)
             if !selectedFormat.isLossless {
-                VStack(spacing: 8) {
+                VStack(alignment: .leading, spacing: 8) {
                     Text("Bitrate")
-                        .font(.subheadline.weight(.medium))
-                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .font(.system(size: 14, weight: .semibold))
+                        .foregroundColor(Color(hex: "888888"))
+                        .tracking(-0.408)
+
                     chipPicker(
                         items: AudioBitrate.allCases,
                         selected: selectedBitrate,
@@ -197,35 +210,86 @@ struct AudioCompressView: View {
             }
 
             // Sample rate
-            VStack(spacing: 8) {
-                Text("Sample Rate")
-                    .font(.subheadline.weight(.medium))
-                    .frame(maxWidth: .infinity, alignment: .leading)
+            VStack(alignment: .leading, spacing: 8) {
+                Text("Sample rate")
+                    .font(.system(size: 14, weight: .semibold))
+                    .foregroundColor(Color(hex: "888888"))
+                    .tracking(-0.408)
+
                 chipPicker(
                     items: AudioSampleRate.allCases,
                     selected: selectedSampleRate,
                     label: \.label
                 ) { selectedSampleRate = $0 }
             }
-
-            // Compress button
-            Button {
-                onCompress(
-                    selectedBitrate.rawValue,
-                    selectedSampleRate.value,
-                    selectedFormat.fileExtension
-                )
-            } label: {
-                Text("Compress")
-                    .font(.headline)
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 14)
-            }
-            .buttonStyle(.borderedProminent)
-            .tint(.purple)
         }
-        .padding(20)
-        .background(.bar)
+        .padding(16)
+    }
+
+    // MARK: - Playback Controls
+
+    private var playbackControls: some View {
+        HStack(spacing: 12) {
+            Button {
+                togglePlayback()
+            } label: {
+                Image(systemName: isPlaying ? "pause.fill" : "play.fill")
+                    .font(.system(size: 20))
+                    .foregroundColor(.white)
+                    .frame(width: 56, height: 56)
+                    .background(Color(hex: "F4800D"))
+                    .clipShape(Circle())
+            }
+
+            Text(formatTime(currentTime))
+                .font(.system(size: 12, weight: .semibold))
+                .foregroundColor(Color(hex: "888888"))
+                .tracking(-0.408)
+                .monospacedDigit()
+
+            GeometryReader { geo in
+                ZStack(alignment: .leading) {
+                    Capsule()
+                        .fill(Color(hex: "F4800D").opacity(0.2))
+                        .frame(height: 4)
+
+                    Capsule()
+                        .fill(Color(hex: "F4800D"))
+                        .frame(width: max(0, progress * geo.size.width), height: 4)
+
+                    Circle()
+                        .fill(Color(hex: "F4800D"))
+                        .frame(width: 16, height: 16)
+                        .overlay(
+                            Circle()
+                                .fill(Color.white)
+                                .frame(width: 6, height: 6)
+                        )
+                        .offset(x: max(0, progress * geo.size.width - 8))
+                }
+                .frame(maxHeight: .infinity)
+                .contentShape(Rectangle())
+                .gesture(
+                    DragGesture(minimumDistance: 0)
+                        .onChanged { value in
+                            isSeeking = true
+                            let fraction = min(max(value.location.x / geo.size.width, 0), 1)
+                            currentTime = fraction * max(duration, 1)
+                        }
+                        .onEnded { _ in
+                            isSeeking = false
+                            seekTo(currentTime)
+                        }
+                )
+            }
+            .frame(height: 20)
+
+            Text(formatTime(duration))
+                .font(.system(size: 12, weight: .semibold))
+                .foregroundColor(Color(hex: "888888"))
+                .tracking(-0.408)
+                .monospacedDigit()
+        }
     }
 
     // MARK: - Chip Picker
@@ -243,24 +307,64 @@ struct AudioCompressView: View {
                         onSelect(item)
                     } label: {
                         Text(item[keyPath: label])
-                            .font(.subheadline.weight(.medium))
-                            .padding(.horizontal, 14)
+                            .font(.system(size: 14, weight: .semibold))
+                            .tracking(-0.408)
+                            .padding(.horizontal, 12)
                             .padding(.vertical, 8)
                             .background(
-                                selected == item ? Color.purple : Color(.systemGray5),
+                                selected == item
+                                    ? Color(hex: "F4800D")
+                                    : Color(hex: "888888").opacity(0.08),
                                 in: Capsule()
                             )
-                            .foregroundStyle(selected == item ? .white : .primary)
+                            .foregroundColor(selected == item ? .white : Color(hex: "1D1D1D"))
                     }
+                    .buttonStyle(.plain)
                 }
             }
         }
+    }
+
+    // MARK: - Bottom Button
+
+    private var bottomButton: some View {
+        VStack(spacing: 0) {
+            Button {
+                onCompress(
+                    selectedBitrate.rawValue,
+                    selectedSampleRate.value,
+                    selectedFormat.fileExtension
+                )
+            } label: {
+                Text("Compress")
+                    .font(.system(size: 16, weight: .semibold))
+                    .foregroundColor(.white)
+                    .tracking(-0.408)
+                    .frame(maxWidth: .infinity)
+                    .frame(height: 60)
+                    .background(
+                        LinearGradient(
+                            colors: [Color(hex: "FFAD5B"), Color(hex: "F4800D"), Color(hex: "FFAD5B")],
+                            startPoint: .topTrailing,
+                            endPoint: .bottomLeading
+                        )
+                    )
+                    .clipShape(RoundedRectangle(cornerRadius: 16))
+            }
+            .padding(.horizontal, 16)
+        }
+        .padding(.vertical, 24)
     }
 
     // MARK: - Audio Playback Helpers
 
     private var isAVPlayerCompatible: Bool {
         Self.playableExtensions.contains(sourceExtension.lowercased())
+    }
+
+    private var progress: CGFloat {
+        guard duration > 0 else { return 0 }
+        return CGFloat(currentTime / duration)
     }
 
     private func togglePlayback() {
@@ -344,7 +448,7 @@ struct AudioCompressView: View {
     }
 
     private func formatBytes(_ bytes: Int64) -> String {
-        if bytes == 0 { return "—" }
+        if bytes == 0 { return "\u{2014}" }
         let formatter = ByteCountFormatter()
         formatter.countStyle = .file
         return formatter.string(fromByteCount: bytes)

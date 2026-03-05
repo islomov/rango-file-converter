@@ -33,19 +33,20 @@ private enum VideoAspectRatio: String, CaseIterable, Identifiable {
         }
     }
 
-    var icon: String {
-        switch self {
-        case .r16_9: return "rectangle.landscape.rotate"
-        case .r9_16: return "rectangle.portrait.rotate"
-        case .r4_3: return "rectangle"
-        case .r3_4: return "rectangle.portrait"
-        case .r1_1: return "square"
-        case .r21_9: return "rectangle.landscape.rotate"
-        }
-    }
-
     var ratio: CGFloat {
         CGFloat(width) / CGFloat(height)
+    }
+
+    /// Visual rectangle proportions for the ratio card icon (width, height) normalized
+    var iconProportions: (width: CGFloat, height: CGFloat) {
+        switch self {
+        case .r16_9: return (45, 27)
+        case .r9_16: return (24, 36)
+        case .r4_3: return (24, 35)
+        case .r3_4: return (35, 24)
+        case .r1_1: return (24, 24)
+        case .r21_9: return (32, 24)
+        }
     }
 }
 
@@ -55,6 +56,7 @@ struct VideoRatioView: View {
     let fileURL: URL
     let onApply: (_ aspectRatio: (width: Int, height: Int), _ fitMode: RatioFitMode, _ cropPosition: CGPoint?, _ cropScale: CGFloat?) -> Void
 
+    @Environment(\.dismiss) private var dismiss
     @State private var selectedRatio: VideoAspectRatio = .r16_9
     @State private var fitMode: RatioFitMode = .crop
     @State private var player: AVPlayer?
@@ -75,24 +77,18 @@ struct VideoRatioView: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            Spacer()
-            preview
-            Spacer()
-            controls
-        }
-        .navigationTitle("Video Ratio")
-        .navigationBarTitleDisplayMode(.inline)
-        .toolbar {
-            ToolbarItem(placement: .navigationBarTrailing) {
-                Button("Reset") {
-                    withAnimation(.easeInOut(duration: 0.25)) {
-                        cropPositionX = 0.5
-                        cropPositionY = 0.5
-                        cropScale = 1.0
-                    }
-                }
+            previewSection
+
+            ScrollView {
+                controlsSection
             }
+
+            Spacer(minLength: 0)
+
+            bottomButtons
         }
+        .background(Color.white)
+        .navigationBarHidden(true)
         .task {
             await setupPlayer()
         }
@@ -113,17 +109,59 @@ struct VideoRatioView: View {
         }
     }
 
-    // MARK: - Preview
+    // MARK: - Header
 
-    private var preview: some View {
-        VStack(spacing: 12) {
+    private var header: some View {
+        ZStack {
+            Text("Video ratio")
+                .font(.system(size: 20, weight: .semibold))
+                .foregroundColor(Color(hex: "1D1D1D"))
+                .tracking(-0.408)
+
+            HStack {
+                Spacer()
+                Button {
+                    dismiss()
+                } label: {
+                    Image(systemName: "xmark")
+                        .font(.system(size: 14, weight: .semibold))
+                        .foregroundColor(Color(hex: "1D1D1D"))
+                        .frame(width: 40, height: 40)
+                        .background(
+                            Circle()
+                                .fill(Color(hex: "888888").opacity(0.08))
+                        )
+                }
+            }
+        }
+        .frame(height: 56)
+        .padding(.horizontal, 8)
+    }
+
+    // MARK: - Preview Section
+
+    private var previewSection: some View {
+        VStack(spacing: 0) {
+            header
+
             GeometryReader { geo in
                 let availableSize = geo.size
                 let videoRatio = videoAspectRatio ?? (thumbnail.size.width / thumbnail.size.height)
                 let videoDisplaySize = aspectFitSize(ratio: videoRatio, in: availableSize)
 
                 ZStack {
-                    // Video layer (no gestures — crop overlay handles all interaction)
+                    // Background
+                    RoundedRectangle(cornerRadius: 0)
+                        .fill(
+                            LinearGradient(
+                                colors: [Color(hex: "E6E6EC"), Color(hex: "E6E6EC")],
+                                startPoint: .leading,
+                                endPoint: .trailing
+                            )
+                            .shadow(.inner(color: .black.opacity(0.08), radius: 0, x: 0, y: 0))
+                        )
+
+                    // Video layer
                     if let player {
                         PlayerView(player: player)
                             .frame(width: videoDisplaySize.width, height: videoDisplaySize.height)
@@ -142,32 +180,31 @@ struct VideoRatioView: View {
                     } else {
                         padOverlay(videoSize: videoDisplaySize, videoRatio: videoRatio)
                     }
+
                 }
                 .frame(width: availableSize.width, height: availableSize.height)
             }
-            .frame(maxHeight: 400)
-
-            HStack {
-                Text(fileName)
-                    .font(.subheadline.weight(.medium))
-                    .lineLimit(1)
-                    .foregroundStyle(.secondary)
-
-                Spacer()
-
-                // Play/pause button
+            .frame(height: 341)
+            .overlay(alignment: .bottomTrailing) {
                 if player != nil {
                     Button {
                         togglePlayback()
                     } label: {
                         Image(systemName: isPlaying ? "pause.circle.fill" : "play.circle.fill")
-                            .font(.title2)
-                            .foregroundStyle(.mint)
+                            .font(.system(size: 32))
+                            .foregroundStyle(Color(hex: "F4800D"))
                     }
+                    .padding(8)
                 }
             }
         }
-        .padding(.horizontal, 20)
+        .background(Color.white)
+        .overlay(
+            Rectangle()
+                .fill(Color(hex: "565656").opacity(0.08))
+                .frame(height: 1),
+            alignment: .bottom
+        )
     }
 
     // MARK: - Crop Overlay
@@ -197,7 +234,7 @@ struct VideoRatioView: View {
         let cropSize = CGSize(width: cropW, height: cropH)
 
         return ZStack {
-            // Dim area outside the crop — tappable to dismiss/play
+            // Dim area outside the crop
             Rectangle()
                 .fill(.black.opacity(0.45))
                 .mask {
@@ -216,23 +253,18 @@ struct VideoRatioView: View {
 
             // Crop frame — draggable to move
             ZStack {
-                // Invisible fill for hit area
                 Rectangle()
                     .fill(.clear)
                     .contentShape(Rectangle())
 
-                // Border
                 Rectangle()
                     .stroke(.white, lineWidth: 2)
 
-                // Grid lines
                 gridLines(size: cropSize)
 
-                // Ratio label
                 VStack {
                     Spacer()
                     HStack {
-                        Spacer()
                         Text(selectedRatio.rawValue)
                             .font(.caption2.weight(.bold).monospacedDigit())
                             .foregroundStyle(.white)
@@ -240,6 +272,7 @@ struct VideoRatioView: View {
                             .padding(.vertical, 2)
                             .background(.black.opacity(0.55), in: Capsule())
                             .padding(4)
+                        Spacer()
                     }
                 }
             }
@@ -290,7 +323,6 @@ struct VideoRatioView: View {
         let handleSize: CGFloat = 44
         let visualSize: CGFloat = 20
 
-        // Corner positions: 0=topLeft, 1=topRight, 2=bottomRight, 3=bottomLeft
         let xSign: CGFloat = (corner == 0 || corner == 3) ? -1 : 1
         let ySign: CGFloat = (corner == 0 || corner == 1) ? -1 : 1
 
@@ -298,7 +330,6 @@ struct VideoRatioView: View {
         let handleY = offset.y + ySign * cropSize.height / 2
 
         return ZStack {
-            // Visual corner bracket
             CornerBracketShape()
                 .stroke(.white, lineWidth: 3)
                 .frame(width: visualSize, height: visualSize)
@@ -315,7 +346,6 @@ struct VideoRatioView: View {
         let barLength: CGFloat = 24
         let barThickness: CGFloat = 3
 
-        // Edge: 0=top, 1=right, 2=bottom, 3=left
         let isVertical = edge == 0 || edge == 2
         let xSign: CGFloat = edge == 1 ? 1 : (edge == 3 ? -1 : 0)
         let ySign: CGFloat = edge == 2 ? 1 : (edge == 0 ? -1 : 0)
@@ -340,9 +370,7 @@ struct VideoRatioView: View {
     private func resizeGesture(maxCropSize: CGSize, xSign: CGFloat, ySign: CGFloat) -> some Gesture {
         DragGesture()
             .updating($resizeDrag) { value, state, _ in
-                // Use the component that goes outward from the crop center
                 let outward = value.translation.width * xSign + value.translation.height * ySign
-                // Convert to scale delta based on the larger crop dimension
                 let refDim = max(maxCropSize.width, maxCropSize.height)
                 state = outward / refDim
             }
@@ -351,7 +379,6 @@ struct VideoRatioView: View {
                 let refDim = max(maxCropSize.width, maxCropSize.height)
                 let delta = outward / refDim
                 cropScale = clampScale(cropScale + delta)
-                // Re-clamp position after resize
                 reclampPosition()
             }
     }
@@ -395,7 +422,6 @@ struct VideoRatioView: View {
             VStack {
                 Spacer()
                 HStack {
-                    Spacer()
                     Text(selectedRatio.rawValue)
                         .font(.caption.weight(.bold).monospacedDigit())
                         .foregroundStyle(.white)
@@ -403,6 +429,7 @@ struct VideoRatioView: View {
                         .padding(.vertical, 3)
                         .background(.black.opacity(0.55), in: Capsule())
                         .padding(6)
+                    Spacer()
                 }
             }
         }
@@ -435,67 +462,158 @@ struct VideoRatioView: View {
 
     // MARK: - Controls
 
-    private var controls: some View {
-        VStack(spacing: 20) {
+    private var controlsSection: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            // Ratio grid
+            ratioGrid
+
+            // Fit mode
             VStack(alignment: .leading, spacing: 8) {
-                Text("Aspect Ratio")
-                    .font(.subheadline.weight(.medium))
-                LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible()), GridItem(.flexible())], spacing: 10) {
-                    ForEach(VideoAspectRatio.allCases) { ratio in
+                Text("Fit mode")
+                    .font(.system(size: 14, weight: .semibold))
+                    .foregroundColor(Color(hex: "888888"))
+                    .tracking(-0.408)
+
+                HStack(spacing: 8) {
+                    ForEach(RatioFitMode.allCases, id: \.self) { mode in
                         Button {
-                            selectedRatio = ratio
+                            fitMode = mode
                         } label: {
-                            VStack(spacing: 6) {
-                                Image(systemName: ratio.icon)
-                                    .font(.title3)
-                                Text(ratio.rawValue)
-                                    .font(.caption.weight(.medium))
-                            }
-                            .frame(maxWidth: .infinity)
-                            .padding(.vertical, 12)
-                            .background(
-                                selectedRatio == ratio ? Color.mint.opacity(0.15) : Color(.quaternarySystemFill),
-                                in: RoundedRectangle(cornerRadius: 10)
-                            )
-                            .overlay(
-                                RoundedRectangle(cornerRadius: 10)
-                                    .stroke(selectedRatio == ratio ? Color.mint : .clear, lineWidth: 2)
-                            )
+                            Text(mode.rawValue)
+                                .font(.system(size: 14, weight: .semibold))
+                                .tracking(-0.408)
+                                .foregroundColor(
+                                    fitMode == mode ? .white : Color(hex: "1D1D1D")
+                                )
+                                .frame(maxWidth: .infinity)
+                                .padding(.vertical, 8)
+                                .background(
+                                    Capsule()
+                                        .fill(
+                                            fitMode == mode
+                                                ? Color(hex: "F4800D")
+                                                : Color(hex: "888888").opacity(0.08)
+                                        )
+                                )
                         }
                         .buttonStyle(.plain)
                     }
                 }
             }
-
-            VStack(alignment: .leading, spacing: 8) {
-                Text("Fit Mode")
-                    .font(.subheadline.weight(.medium))
-                Picker("Fit Mode", selection: $fitMode) {
-                    ForEach(RatioFitMode.allCases, id: \.self) { mode in
-                        Text(mode.rawValue).tag(mode)
-                    }
-                }
-                .pickerStyle(.segmented)
-            }
-
-            Button {
-                player?.pause()
-                isPlaying = false
-                let position: CGPoint? = fitMode == .crop ? CGPoint(x: cropPositionX, y: cropPositionY) : nil
-                let scale: CGFloat? = fitMode == .crop ? cropScale : nil
-                onApply((width: selectedRatio.width, height: selectedRatio.height), fitMode, position, scale)
-            } label: {
-                Text("Apply Ratio")
-                    .font(.headline)
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 14)
-            }
-            .buttonStyle(.borderedProminent)
-            .tint(.mint)
-            .disabled(player == nil)
         }
-        .padding(20)
-        .background(.bar)
+        .padding(16)
+    }
+
+    // MARK: - Ratio Grid
+
+    private var ratioGrid: some View {
+        let columns = [
+            GridItem(.flexible(), spacing: 12),
+            GridItem(.flexible(), spacing: 12),
+            GridItem(.flexible(), spacing: 12)
+        ]
+
+        return LazyVGrid(columns: columns, spacing: 12) {
+            ForEach(VideoAspectRatio.allCases) { ratio in
+                Button {
+                    selectedRatio = ratio
+                } label: {
+                    ratioCard(ratio: ratio, isSelected: selectedRatio == ratio)
+                }
+                .buttonStyle(.plain)
+            }
+        }
+    }
+
+    private func ratioCard(ratio: VideoAspectRatio, isSelected: Bool) -> some View {
+        let props = ratio.iconProportions
+
+        return VStack {
+            ZStack {
+                // Rectangle shape representing the ratio
+                RoundedRectangle(cornerRadius: 3)
+                    .stroke(Color(hex: "1D1D1D"), lineWidth: 1.5)
+                    .frame(width: props.width, height: props.height)
+
+                // Ratio text
+                Text(ratio.rawValue)
+                    .font(.system(size: 9, weight: .semibold))
+                    .foregroundColor(Color(hex: "1D1D1D"))
+                    .tracking(-0.3)
+            }
+        }
+        .frame(maxWidth: .infinity)
+        .frame(height: 74)
+        .background(
+            RoundedRectangle(cornerRadius: 16)
+                .fill(
+                    isSelected
+                        ? Color(hex: "F4800D").opacity(0.08)
+                        : Color(hex: "888888").opacity(0.12)
+                )
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: 16)
+                .stroke(
+                    isSelected ? Color(hex: "FFAD5B") : .clear,
+                    lineWidth: 2
+                )
+        )
+    }
+
+    // MARK: - Bottom Buttons
+
+    private var bottomButtons: some View {
+        GeometryReader { geo in
+            let totalWidth = geo.size.width - 32
+            let spacing: CGFloat = 12
+            let resetWidth = (totalWidth - spacing) * 0.3
+            let convertWidth = (totalWidth - spacing) * 0.7
+
+            HStack(spacing: spacing) {
+                Button {
+                    withAnimation(.easeInOut(duration: 0.25)) {
+                        cropPositionX = 0.5
+                        cropPositionY = 0.5
+                        cropScale = 1.0
+                    }
+                } label: {
+                    Text("Reset")
+                        .font(.system(size: 16, weight: .semibold))
+                        .foregroundColor(Color(hex: "1D1D1D"))
+                        .tracking(-0.408)
+                        .frame(width: resetWidth, height: 60)
+                        .background(Color(hex: "888888").opacity(0.08))
+                        .clipShape(RoundedRectangle(cornerRadius: 16))
+                }
+
+                Button {
+                    player?.pause()
+                    isPlaying = false
+                    let position: CGPoint? = fitMode == .crop ? CGPoint(x: cropPositionX, y: cropPositionY) : nil
+                    let scale: CGFloat? = fitMode == .crop ? cropScale : nil
+                    onApply((width: selectedRatio.width, height: selectedRatio.height), fitMode, position, scale)
+                } label: {
+                    Text("Apply ratio")
+                        .font(.system(size: 16, weight: .semibold))
+                        .foregroundColor(.white)
+                        .tracking(-0.408)
+                        .frame(width: convertWidth, height: 60)
+                        .background(
+                            LinearGradient(
+                                colors: [Color(hex: "FFAD5B"), Color(hex: "F4800D"), Color(hex: "FFAD5B")],
+                                startPoint: .leading,
+                                endPoint: .trailing
+                            )
+                        )
+                        .clipShape(RoundedRectangle(cornerRadius: 16))
+                }
+                .disabled(player == nil)
+            }
+            .padding(.horizontal, 16)
+        }
+        .frame(height: 60)
+        .padding(.vertical, 24)
     }
 
     // MARK: - Player
@@ -598,8 +716,6 @@ struct VideoRatioView: View {
     }
 
     private func reclampPosition() {
-        // After resize, the crop frame may extend outside — nudge position back inward
-        // This is a simple clamp; the actual bounds depend on the new scale
         cropPositionX = clamp(cropPositionX, 0, 1)
         cropPositionY = clamp(cropPositionY, 0, 1)
     }

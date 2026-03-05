@@ -23,18 +23,28 @@ struct AudioPickerView: View {
     ]
 
     private let columns = [
-        GridItem(.flexible(), spacing: 2),
-        GridItem(.flexible(), spacing: 2),
-        GridItem(.flexible(), spacing: 2),
+        GridItem(.flexible(), spacing: 4),
+        GridItem(.flexible(), spacing: 4),
+        GridItem(.flexible(), spacing: 4),
     ]
 
     var body: some View {
-        VStack(spacing: 0) {
-            content
-            sourceBar
+        ZStack {
+            Color(hex: "F2F2F6")
+                .ignoresSafeArea()
+
+            VStack(spacing: 0) {
+                navBar
+
+                sourceToggle
+                    .padding(.horizontal, 16)
+                    .padding(.top, 16)
+                    .padding(.bottom, 12)
+
+                content
+            }
         }
-        .navigationTitle("Select Audio")
-        .navigationBarTitleDisplayMode(.inline)
+        .navigationBarHidden(true)
         .onAppear {
             videoVM.requestAccessAndFetch()
         }
@@ -57,6 +67,69 @@ struct AudioPickerView: View {
             }
         }
     }
+
+    // MARK: - Navigation Bar
+
+    private var navBar: some View {
+        ZStack {
+            Text("Select Audio")
+                .font(.system(size: 20, weight: .semibold))
+                .foregroundColor(Color(hex: "1D1D1D"))
+                .tracking(-0.408)
+
+            HStack {
+                Button {
+                    dismiss()
+                } label: {
+                    Image(systemName: "chevron.left")
+                        .font(.system(size: 18, weight: .medium))
+                        .foregroundColor(Color(hex: "1D1D1D"))
+                        .frame(width: 40, height: 40)
+                }
+
+                Spacer()
+            }
+        }
+        .frame(height: 56)
+        .padding(.horizontal, 8)
+    }
+
+    // MARK: - Source Toggle
+
+    private var sourceToggle: some View {
+        HStack(spacing: 0) {
+            ForEach(AudioPickerSource.allCases, id: \.self) { source in
+                Button {
+                    withAnimation(.easeInOut(duration: 0.2)) {
+                        selectedSource = source
+                    }
+                } label: {
+                    Text(source.rawValue)
+                        .font(.system(size: 14, weight: .semibold))
+                        .foregroundColor(Color(hex: "1D1D1D"))
+                        .frame(maxWidth: .infinity)
+                        .frame(height: 36)
+                        .background(
+                            Group {
+                                if selectedSource == source {
+                                    RoundedRectangle(cornerRadius: 10)
+                                        .fill(Color.white)
+                                        .shadow(color: Color(hex: "2F2E41").opacity(0.12), radius: 4, x: 0, y: 0)
+                                }
+                            }
+                        )
+                }
+                .buttonStyle(.plain)
+            }
+        }
+        .padding(4)
+        .background(
+            RoundedRectangle(cornerRadius: 12)
+                .fill(Color.white)
+        )
+    }
+
+    // MARK: - Content
 
     @ViewBuilder
     private var content: some View {
@@ -94,11 +167,12 @@ struct AudioPickerView: View {
                             .foregroundStyle(.tertiary)
                             .padding(.top, 8)
 
-                        LazyVGrid(columns: columns, spacing: 2) {
+                        LazyVGrid(columns: columns, spacing: 4) {
                             ForEach(videoVM.assets, id: \.localIdentifier) { asset in
                                 thumbnailCell(for: asset)
                             }
                         }
+                        .padding(.horizontal, 16)
                     }
                 }
             case .denied, .restricted:
@@ -140,7 +214,7 @@ struct AudioPickerView: View {
                             .clipped()
                     } else {
                         Rectangle()
-                            .fill(.quaternary)
+                            .fill(Color(hex: "E6E6EC"))
                             .frame(width: geo.size.width, height: geo.size.width)
                     }
 
@@ -158,6 +232,7 @@ struct AudioPickerView: View {
                 }
             }
             .aspectRatio(1, contentMode: .fit)
+            .clipShape(RoundedRectangle(cornerRadius: 8))
             .onAppear {
                 videoVM.loadThumbnail(for: asset)
             }
@@ -171,27 +246,7 @@ struct AudioPickerView: View {
         return String(format: "%d:%02d", minutes, seconds)
     }
 
-    private var sourceBar: some View {
-        HStack(spacing: 0) {
-            ForEach(AudioPickerSource.allCases, id: \.self) { source in
-                Button {
-                    selectedSource = source
-                } label: {
-                    VStack(spacing: 4) {
-                        Image(systemName: source == .gallery ? "photo.on.rectangle" : "folder")
-                            .font(.title3)
-                        Text(source.rawValue)
-                            .font(.caption2)
-                    }
-                    .foregroundStyle(selectedSource == source ? .primary : .secondary)
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 8)
-                }
-            }
-        }
-        .padding(.top, 4)
-        .background(.bar)
-    }
+    // MARK: - Files Placeholder
 
     private var filesPlaceholder: some View {
         VStack(spacing: 16) {
@@ -211,6 +266,7 @@ struct AudioPickerView: View {
                 showFilePicker = true
             }
             .buttonStyle(.borderedProminent)
+            .tint(Color(hex: "F4800D"))
             Spacer()
         }
     }

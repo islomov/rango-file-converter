@@ -12,6 +12,7 @@ struct AudioDetailView: View {
         "mp3", "wav", "m4a", "aac", "aiff", "flac", "caf", "au", "mp2"
     ]
 
+    @Environment(\.dismiss) private var dismiss
     @State private var targetFormat: FormatDefinition = FormatRegistry.audioFormats[0] // MP3
     @State private var fileSizeText: String = ""
     @State private var audioPlayer: AVPlayer?
@@ -22,107 +23,31 @@ struct AudioDetailView: View {
     @State private var timeObserver: Any?
     @State private var durationTask: Task<Void, Never>?
 
+    private let formatColumns = [
+        GridItem(.flexible(), spacing: 4),
+        GridItem(.flexible(), spacing: 4),
+        GridItem(.flexible(), spacing: 4),
+        GridItem(.flexible(), spacing: 4),
+    ]
+
     var body: some View {
-        ScrollView {
-            VStack(spacing: 24) {
-                // Audio icon
-                ZStack {
-                    RoundedRectangle(cornerRadius: 12)
-                        .fill(.quaternary)
-                        .frame(height: 200)
+        VStack(spacing: 0) {
+            previewSection
 
-                    VStack(spacing: 12) {
-                        Image(systemName: "waveform")
-                            .font(.system(size: 48))
-                            .foregroundStyle(.secondary)
-
-                        Text(sourceExtension.uppercased())
-                            .font(.caption.weight(.bold))
-                            .foregroundStyle(.white)
-                            .padding(.horizontal, 10)
-                            .padding(.vertical, 4)
-                            .background(.secondary, in: Capsule())
+            ScrollView {
+                VStack(spacing: 12) {
+                    if isAVPlayerCompatible {
+                        audioPlayerSection
                     }
+
+                    formatSelection
                 }
-
-                // Audio playback
-                if isAVPlayerCompatible {
-                    HStack(spacing: 16) {
-                        Button {
-                            toggleAudioPlayback()
-                        } label: {
-                            Image(systemName: isPlayingAudio ? "pause.circle.fill" : "play.circle.fill")
-                                .font(.system(size: 40))
-                                .foregroundStyle(.blue)
-                        }
-
-                        VStack(spacing: 4) {
-                            Slider(
-                                value: $currentTime,
-                                in: 0...max(duration, 1)
-                            ) { editing in
-                                isSeeking = editing
-                                if !editing {
-                                    seekTo(currentTime)
-                                }
-                            }
-                            .tint(.blue)
-
-                            HStack {
-                                Text(formatTime(currentTime))
-                                    .font(.caption2.monospacedDigit())
-                                    .foregroundStyle(.secondary)
-                                Spacer()
-                                Text(formatTime(duration))
-                                    .font(.caption2.monospacedDigit())
-                                    .foregroundStyle(.secondary)
-                            }
-                        }
-                    }
-                }
-
-                // File info
-                VStack(alignment: .leading, spacing: 8) {
-                    Text(fileName)
-                        .font(.headline)
-                    Text(fileSizeText)
-                        .font(.subheadline)
-                        .foregroundStyle(.secondary)
-                }
-                .frame(maxWidth: .infinity, alignment: .leading)
-
-                // Format selection
-                VStack(alignment: .leading, spacing: 8) {
-                    Text("Convert to")
-                        .font(.subheadline)
-                        .foregroundStyle(.secondary)
-
-                    LazyVGrid(columns: [GridItem(.adaptive(minimum: 70))], spacing: 8) {
-                        ForEach(Self.supportedAudioFormats) { format in
-                            Button(format.displayName) {
-                                targetFormat = format
-                            }
-                            .buttonStyle(.bordered)
-                            .tint(targetFormat.id == format.id ? .accentColor : .secondary)
-                        }
-                    }
-                }
-
-                // Convert button
-                Button {
-                    onConvert(targetFormat)
-                } label: {
-                    Text("Convert")
-                        .font(.headline)
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, 14)
-                }
-                .buttonStyle(.borderedProminent)
             }
-            .padding(20)
+
+            bottomButton
         }
-        .navigationTitle("Audio Conversion")
-        .navigationBarTitleDisplayMode(.inline)
+        .background(Color.white)
+        .navigationBarHidden(true)
         .task {
             let path = fileURL.path
             let size = await Task.detached(priority: .utility) {
@@ -141,6 +66,178 @@ struct AudioDetailView: View {
         .onDisappear {
             cleanupPlayer()
         }
+    }
+
+    // MARK: - Header
+
+    private var header: some View {
+        ZStack {
+            Text("Convert audio")
+                .font(.system(size: 20, weight: .semibold))
+                .foregroundColor(Color(hex: "1D1D1D"))
+                .tracking(-0.408)
+
+            HStack {
+                Spacer()
+                Button {
+                    dismiss()
+                } label: {
+                    Image(systemName: "xmark")
+                        .font(.system(size: 14, weight: .semibold))
+                        .foregroundColor(Color(hex: "1D1D1D"))
+                        .frame(width: 40, height: 40)
+                        .background(
+                            Circle()
+                                .fill(Color(hex: "888888").opacity(0.08))
+                        )
+                }
+            }
+        }
+        .frame(height: 56)
+        .padding(.horizontal, 8)
+    }
+
+    // MARK: - Preview Section
+
+    private var previewSection: some View {
+        VStack(spacing: 0) {
+            header
+
+            ZStack {
+                RoundedRectangle(cornerRadius: 16)
+                    .fill(Color(hex: "E6E6EC"))
+                    .frame(height: 180)
+
+                VStack(spacing: 12) {
+                    Image(systemName: "music.note")
+                        .font(.system(size: 32, weight: .medium))
+                        .foregroundColor(Color(hex: "1D1D1D"))
+
+                    Text(sourceExtension.uppercased())
+                        .font(.system(size: 14, weight: .semibold))
+                        .foregroundColor(Color(hex: "1D1D1D"))
+                        .tracking(-0.408)
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 4)
+                        .background(
+                            Capsule()
+                                .fill(Color(hex: "888888").opacity(0.12))
+                        )
+                }
+            }
+            .padding(.horizontal, 16)
+            .padding(.bottom, 16)
+        }
+        .background(Color.white)
+        .overlay(
+            Rectangle()
+                .fill(Color(hex: "565656").opacity(0.08))
+                .frame(height: 1),
+            alignment: .bottom
+        )
+    }
+
+    // MARK: - Audio Player
+
+    private var audioPlayerSection: some View {
+        HStack(spacing: 12) {
+            Button {
+                toggleAudioPlayback()
+            } label: {
+                Image(systemName: isPlayingAudio ? "pause.circle.fill" : "play.circle.fill")
+                    .font(.system(size: 56))
+                    .foregroundColor(Color(hex: "F4800D"))
+            }
+
+            Text(formatTime(currentTime))
+                .font(.system(size: 12, weight: .semibold))
+                .foregroundColor(Color(hex: "888888"))
+                .tracking(-0.408)
+
+            VStack(spacing: 0) {
+                Slider(
+                    value: $currentTime,
+                    in: 0...max(duration, 1)
+                ) { editing in
+                    isSeeking = editing
+                    if !editing {
+                        seekTo(currentTime)
+                    }
+                }
+                .tint(Color(hex: "F4800D"))
+            }
+
+            Text(formatTime(duration))
+                .font(.system(size: 12, weight: .semibold))
+                .foregroundColor(Color(hex: "888888"))
+                .tracking(-0.408)
+        }
+        .padding(.horizontal, 16)
+    }
+
+    // MARK: - Format Selection
+
+    private var formatSelection: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text("Convert to")
+                .font(.system(size: 14, weight: .semibold))
+                .foregroundColor(Color(hex: "888888"))
+                .tracking(-0.408)
+
+            LazyVGrid(columns: formatColumns, spacing: 4) {
+                ForEach(Self.supportedAudioFormats) { format in
+                    Button {
+                        targetFormat = format
+                    } label: {
+                        Text(format.displayName)
+                            .font(.system(size: 16, weight: .semibold))
+                            .tracking(-0.408)
+                            .foregroundColor(
+                                targetFormat.id == format.id
+                                    ? Color(hex: "F4800D")
+                                    : Color(hex: "1D1D1D")
+                            )
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 12)
+                            .background(
+                                RoundedRectangle(cornerRadius: 12)
+                                    .fill(
+                                        targetFormat.id == format.id
+                                            ? Color(hex: "F4800D").opacity(0.08)
+                                            : Color.clear
+                                    )
+                            )
+                    }
+                    .buttonStyle(.plain)
+                }
+            }
+        }
+        .padding(16)
+    }
+
+    // MARK: - Bottom Button
+
+    private var bottomButton: some View {
+        Button {
+            onConvert(targetFormat)
+        } label: {
+            Text("Convert")
+                .font(.system(size: 16, weight: .semibold))
+                .foregroundColor(.white)
+                .tracking(-0.408)
+                .frame(maxWidth: .infinity)
+                .frame(height: 60)
+                .background(
+                    LinearGradient(
+                        colors: [Color(hex: "FFAD5B"), Color(hex: "F4800D"), Color(hex: "FFAD5B")],
+                        startPoint: .topTrailing,
+                        endPoint: .bottomLeading
+                    )
+                )
+                .clipShape(RoundedRectangle(cornerRadius: 16))
+        }
+        .padding(.horizontal, 16)
+        .padding(.vertical, 24)
     }
 
     // MARK: - Audio Playback

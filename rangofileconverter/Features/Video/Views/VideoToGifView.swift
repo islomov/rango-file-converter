@@ -7,6 +7,7 @@ struct VideoToGifView: View {
     let fileURL: URL
     let onConvert: (Int, Int) -> Void
 
+    @Environment(\.dismiss) private var dismiss
     @State private var fps: Double = 10
     @State private var width: Double = 320
 
@@ -16,98 +17,23 @@ struct VideoToGifView: View {
     @State private var timer: Timer?
     @State private var isExtracting = false
     @State private var extractionTask: Task<Void, Never>?
-    @State private var fileSizeText: String = ""
 
     /// Max frames to extract for preview (keeps it snappy)
     private let maxPreviewFrames = 30
 
     var body: some View {
         VStack(spacing: 0) {
+            previewSection
+
             ScrollView {
-                VStack(spacing: 24) {
-                    // Animated GIF preview
-                    preview
-
-                    // File info
-                    VStack(spacing: 4) {
-                        Text(fileName)
-                            .font(.subheadline.weight(.medium))
-                            .lineLimit(1)
-                        Text(fileSizeText)
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
-                    }
-
-                    // FPS control
-                    VStack(spacing: 8) {
-                        HStack {
-                            Text("Frame Rate")
-                                .font(.subheadline.weight(.medium))
-                            Spacer()
-                            Text("\(Int(fps)) FPS")
-                                .font(.subheadline.monospacedDigit())
-                                .foregroundStyle(.secondary)
-                        }
-                        Slider(value: $fps, in: 5...30, step: 1)
-                    }
-
-                    // Width control
-                    VStack(spacing: 8) {
-                        HStack {
-                            Text("Width")
-                                .font(.subheadline.weight(.medium))
-                            Spacer()
-                            Text("\(Int(width))px")
-                                .font(.subheadline.monospacedDigit())
-                                .foregroundStyle(.secondary)
-                        }
-                        Slider(value: $width, in: 160...640, step: 20)
-                    }
-
-                    // Frame info
-                    if !frames.isEmpty {
-                        HStack {
-                            Text("\(frames.count) frames")
-                                .font(.subheadline)
-                                .foregroundStyle(.secondary)
-                            Spacer()
-                            Text(String(format: "~%.1fs", Double(frames.count) / fps))
-                                .font(.subheadline.monospacedDigit())
-                                .foregroundStyle(.secondary)
-                        }
-                    }
-                }
-                .padding(20)
+                controlsSection
             }
 
-            // Convert button
-            VStack {
-                Button {
-                    onConvert(Int(fps), Int(width))
-                } label: {
-                    Text("Create GIF")
-                        .font(.headline)
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, 14)
-                }
-                .buttonStyle(.borderedProminent)
-                .tint(.pink)
-            }
-            .padding(20)
-            .background(.bar)
+            bottomButton
         }
-        .navigationTitle("Convert GIF")
-        .navigationBarTitleDisplayMode(.inline)
+        .background(Color.white)
+        .navigationBarHidden(true)
         .onAppear { extractFrames() }
-        .task {
-            let path = fileURL.path
-            let size = await Task.detached(priority: .utility) {
-                guard let attrs = try? FileManager.default.attributesOfItem(atPath: path),
-                      let bytes = attrs[.size] as? Int64 else { return "" }
-                return ByteCountFormatter.string(fromByteCount: bytes, countStyle: .file)
-            }.value
-            fileSizeText = size
-        }
         .onDisappear {
             stopTimer()
             extractionTask?.cancel()
@@ -116,43 +42,162 @@ struct VideoToGifView: View {
         .onChange(of: width) { _ in extractFrames() }
     }
 
-    // MARK: - Preview
+    // MARK: - Header
 
-    private var preview: some View {
+    private var header: some View {
         ZStack {
-            if frames.isEmpty {
-                // Show static thumbnail while extracting
-                Image(uiImage: thumbnail)
-                    .resizable()
-                    .aspectRatio(contentMode: .fit)
-                    .frame(maxHeight: 280)
-                    .clipShape(RoundedRectangle(cornerRadius: 12))
-                    .overlay {
-                        if isExtracting {
-                            RoundedRectangle(cornerRadius: 12)
-                                .fill(.ultraThinMaterial)
-                            VStack(spacing: 8) {
-                                ProgressView()
-                                Text("Generating preview...")
-                                    .font(.caption)
-                                    .foregroundStyle(.secondary)
-                            }
-                        }
-                    }
-            } else {
-                VStack(spacing: 8) {
-                    Image(uiImage: frames[currentFrameIndex])
-                        .resizable()
-                        .aspectRatio(contentMode: .fit)
-                        .frame(maxHeight: 280)
-                        .clipShape(RoundedRectangle(cornerRadius: 12))
+            Text("GIF")
+                .font(.system(size: 20, weight: .semibold))
+                .foregroundColor(Color(hex: "1D1D1D"))
+                .tracking(-0.408)
 
-                    Text("Frame \(currentFrameIndex + 1) of \(frames.count)")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
+            HStack {
+                Spacer()
+                Button {
+                    dismiss()
+                } label: {
+                    Image(systemName: "xmark")
+                        .font(.system(size: 14, weight: .semibold))
+                        .foregroundColor(Color(hex: "1D1D1D"))
+                        .frame(width: 40, height: 40)
+                        .background(
+                            Circle()
+                                .fill(Color(hex: "888888").opacity(0.08))
+                        )
                 }
             }
         }
+        .frame(height: 56)
+        .padding(.horizontal, 8)
+    }
+
+    // MARK: - Preview Section
+
+    private var previewSection: some View {
+        VStack(spacing: 0) {
+            header
+
+            VStack(spacing: 8) {
+                ZStack {
+                    RoundedRectangle(cornerRadius: 16)
+                        .fill(Color(hex: "E6E6EC"))
+                        .aspectRatio(200.0 / 286.0, contentMode: .fit)
+                        .frame(width: 200)
+
+                    if frames.isEmpty {
+                        Image(uiImage: thumbnail)
+                            .resizable()
+                            .aspectRatio(contentMode: .fit)
+                            .clipShape(RoundedRectangle(cornerRadius: 16))
+                            .overlay {
+                                if isExtracting {
+                                    RoundedRectangle(cornerRadius: 16)
+                                        .fill(.ultraThinMaterial)
+                                    VStack(spacing: 8) {
+                                        ProgressView()
+                                        Text("Generating preview...")
+                                            .font(.system(size: 12, weight: .semibold))
+                                            .foregroundColor(Color(hex: "888888"))
+                                            .tracking(-0.408)
+                                    }
+                                }
+                            }
+                    } else {
+                        Image(uiImage: frames[currentFrameIndex])
+                            .resizable()
+                            .aspectRatio(contentMode: .fit)
+                            .clipShape(RoundedRectangle(cornerRadius: 16))
+                    }
+                }
+                .frame(width: 200)
+
+                if !frames.isEmpty {
+                    Text("Frame \(currentFrameIndex + 1) of \(frames.count)")
+                        .font(.system(size: 12, weight: .semibold))
+                        .foregroundColor(Color(hex: "1D1D1D"))
+                        .tracking(-0.408)
+                }
+            }
+            .padding(.horizontal, 16)
+            .padding(.vertical, 24)
+        }
+        .background(Color.white)
+        .overlay(
+            Rectangle()
+                .fill(Color(hex: "565656").opacity(0.08))
+                .frame(height: 1),
+            alignment: .bottom
+        )
+    }
+
+    // MARK: - Controls Section
+
+    private var controlsSection: some View {
+        VStack(spacing: 24) {
+            // Frame rate slider
+            VStack(spacing: 12) {
+                HStack {
+                    Text("Frame rate")
+                        .font(.system(size: 14, weight: .semibold))
+                        .foregroundColor(Color(hex: "888888"))
+                        .tracking(-0.408)
+                    Spacer()
+                    Text("\(Int(fps)) FPS")
+                        .font(.system(size: 14, weight: .semibold))
+                        .foregroundColor(Color(hex: "888888"))
+                        .tracking(-0.408)
+                }
+
+                Slider(value: $fps, in: 5...30, step: 1)
+                    .tint(Color(hex: "F4800D"))
+            }
+
+            // Width slider
+            VStack(spacing: 12) {
+                HStack {
+                    Text("Width")
+                        .font(.system(size: 14, weight: .semibold))
+                        .foregroundColor(Color(hex: "888888"))
+                        .tracking(-0.408)
+                    Spacer()
+                    Text("\(Int(width))px")
+                        .font(.system(size: 14, weight: .semibold))
+                        .foregroundColor(Color(hex: "888888"))
+                        .tracking(-0.408)
+                }
+
+                Slider(value: $width, in: 160...640, step: 20)
+                    .tint(Color(hex: "F4800D"))
+            }
+        }
+        .padding(16)
+    }
+
+    // MARK: - Bottom Button
+
+    private var bottomButton: some View {
+        VStack {
+            Button {
+                onConvert(Int(fps), Int(width))
+            } label: {
+                Text("Create GIF")
+                    .font(.system(size: 16, weight: .semibold))
+                    .foregroundColor(.white)
+                    .tracking(-0.408)
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 20)
+                    .background(
+                        LinearGradient(
+                            colors: [Color(hex: "FFAD5B"), Color(hex: "F4800D"), Color(hex: "FFAD5B")],
+                            startPoint: .topTrailing,
+                            endPoint: .bottomLeading
+                        )
+                    )
+                    .clipShape(RoundedRectangle(cornerRadius: 16))
+            }
+        }
+        .padding(.horizontal, 16)
+        .padding(.vertical, 24)
     }
 
     // MARK: - Frame Extraction

@@ -180,7 +180,7 @@ struct ExtractAudioDetailView: View {
 
     private var formatSelection: some View {
         VStack(alignment: .leading, spacing: 8) {
-            Text("Extract as")
+            Text("Convert to")
                 .font(.system(size: 14, weight: .semibold))
                 .foregroundColor(Color(hex: "888888"))
                 .tracking(-0.408)

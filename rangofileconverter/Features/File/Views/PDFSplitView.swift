@@ -303,6 +303,7 @@ struct PDFSplitView: View {
                         .font(.system(size: 16, weight: .semibold))
                         .foregroundColor(Color(hex: "1D1D1D"))
                         .frame(width: 40, height: 40)
+                        .background(Circle().fill(Color(hex: "888888").opacity(0.08)))
                 }
             }
         }

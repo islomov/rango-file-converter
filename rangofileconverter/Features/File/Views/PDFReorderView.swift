@@ -9,13 +9,24 @@ struct PDFReorderView: View {
     @State private var fileName: String = ""
     @State private var pageItems: [PageItem] = []
     @State private var showFilePicker = false
+    @State private var draggingItem: PageItem?
     @Environment(\.dismiss) private var dismiss
 
-    struct PageItem: Identifiable {
+    struct PageItem: Identifiable, Equatable {
         let id = UUID()
-        let originalIndex: Int // 0-indexed
+        let originalIndex: Int
         let thumbnail: UIImage?
+
+        static func == (lhs: PageItem, rhs: PageItem) -> Bool {
+            lhs.id == rhs.id
+        }
     }
+
+    private let columns = [
+        GridItem(.flexible(), spacing: 12),
+        GridItem(.flexible(), spacing: 12),
+        GridItem(.flexible(), spacing: 12),
+    ]
 
     var body: some View {
         ZStack {
@@ -90,34 +101,26 @@ struct PDFReorderView: View {
 
     private var detailState: some View {
         VStack(spacing: 0) {
-            navBar
+            detailNavBar
 
-            // File info header
-            HStack(spacing: 12) {
-                ZStack {
-                    RoundedRectangle(cornerRadius: 8.32)
-                        .fill(Color(hex: "E6E6EC"))
-                        .frame(width: 56, height: 56)
+            // File info
+            HStack(spacing: 10) {
+                Image("icon_doc_reorder")
+                    .resizable()
+                    .renderingMode(.template)
+                    .foregroundColor(Color(hex: "F4800D"))
+                    .frame(width: 20, height: 20)
 
-                    Image("icon_doc_reorder")
-                        .resizable()
-                        .renderingMode(.template)
-                        .foregroundColor(Color(hex: "888888"))
-                        .frame(width: 24, height: 24)
-                }
+                Text(fileName)
+                    .font(.system(size: 14, weight: .semibold))
+                    .foregroundColor(Color(hex: "1D1D1D"))
+                    .tracking(-0.408)
+                    .lineLimit(1)
 
-                VStack(alignment: .leading, spacing: 4) {
-                    Text(fileName)
-                        .font(.system(size: 14, weight: .semibold))
-                        .foregroundColor(Color(hex: "1D1D1D"))
-                        .tracking(-0.408)
-                        .lineLimit(1)
-
-                    Text("\(pageItems.count) pages")
-                        .font(.system(size: 12, weight: .semibold))
-                        .foregroundColor(Color(hex: "888888"))
-                        .tracking(-0.408)
-                }
+                Text("\(pageItems.count) pages")
+                    .font(.system(size: 12, weight: .semibold))
+                    .foregroundColor(Color(hex: "888888"))
+                    .tracking(-0.408)
 
                 Spacer()
 
@@ -130,60 +133,147 @@ struct PDFReorderView: View {
                         .tracking(-0.408)
                 }
             }
-            .padding(16)
-            .background(Color.white)
+            .padding(.horizontal, 16)
+            .padding(.vertical, 12)
+            .padding(.top, 8)
 
-            Text("Drag to reorder pages")
-                .font(.system(size: 12, weight: .semibold))
+            Rectangle()
+                .fill(Color(hex: "565656").opacity(0.08))
+                .frame(height: 1)
+
+            // Page grid
+            ScrollView {
+                LazyVGrid(columns: columns, spacing: 12) {
+                    ForEach(pageItems) { item in
+                        pageCell(item)
+                            .onDrag {
+                                draggingItem = item
+                                return NSItemProvider(object: item.id.uuidString as NSString)
+                            }
+                            .onDrop(of: [.text], delegate: PageDropDelegate(
+                                item: item,
+                                pageItems: $pageItems,
+                                draggingItem: $draggingItem
+                            ))
+                    }
+                }
+                .padding(16)
+            }
+
+            bottomSection
+        }
+        .background(Color.white)
+    }
+
+    // MARK: - Page Cell
+
+    private func pageCell(_ item: PageItem) -> some View {
+        let currentIndex = pageItems.firstIndex(of: item).map { $0 + 1 } ?? 0
+        let isDragging = draggingItem?.id == item.id
+
+        return VStack(spacing: 6) {
+            ZStack(alignment: .topLeading) {
+                // Thumbnail
+                if let thumb = item.thumbnail {
+                    Image(uiImage: thumb)
+                        .resizable()
+                        .aspectRatio(contentMode: .fill)
+                        .frame(maxWidth: .infinity)
+                        .aspectRatio(0.75, contentMode: .fit)
+                        .clipped()
+                } else {
+                    Rectangle()
+                        .fill(Color(hex: "E6E6EC"))
+                        .aspectRatio(0.75, contentMode: .fit)
+                }
+
+                // Page number badge
+                Text("\(currentIndex)")
+                    .font(.system(size: 11, weight: .bold))
+                    .foregroundColor(.white)
+                    .frame(width: 24, height: 24)
+                    .background(
+                        Circle().fill(Color(hex: "F4800D"))
+                    )
+                    .padding(6)
+            }
+            .clipShape(RoundedRectangle(cornerRadius: 8))
+            .overlay(
+                RoundedRectangle(cornerRadius: 8)
+                    .stroke(Color(hex: "888888").opacity(0.12), lineWidth: 1)
+            )
+
+            // Label
+            Text("Page \(item.originalIndex + 1)")
+                .font(.system(size: 11, weight: .semibold))
                 .foregroundColor(Color(hex: "888888"))
                 .tracking(-0.408)
-                .padding(.top, 12)
-                .padding(.bottom, 8)
+        }
+        .opacity(isDragging ? 0.4 : 1.0)
+    }
 
-            // Page list
-            List {
-                ForEach(pageItems) { item in
-                    HStack(spacing: 12) {
-                        if let thumb = item.thumbnail {
-                            Image(uiImage: thumb)
-                                .resizable()
-                                .aspectRatio(contentMode: .fit)
-                                .frame(width: 50, height: 70)
-                                .clipShape(RoundedRectangle(cornerRadius: 4))
-                        } else {
-                            RoundedRectangle(cornerRadius: 4)
-                                .fill(Color(hex: "E6E6EC"))
-                                .frame(width: 50, height: 70)
-                        }
+    // MARK: - Navigation Bars
 
-                        Text("Page \(item.originalIndex + 1)")
-                            .font(.system(size: 14, weight: .semibold))
-                            .foregroundColor(Color(hex: "1D1D1D"))
-                            .tracking(-0.408)
+    private var navBar: some View {
+        ZStack {
+            Text("Reorder pages")
+                .font(.system(size: 20, weight: .semibold))
+                .foregroundColor(Color(hex: "1D1D1D"))
+                .tracking(-0.408)
 
-                        Spacer()
-                    }
-                    .padding(.vertical, 4)
-                    .listRowInsets(EdgeInsets(top: 0, leading: 16, bottom: 0, trailing: 16))
-                    .listRowSeparator(.hidden)
-                    .overlay(alignment: .bottom) {
-                        Rectangle()
-                            .fill(Color(hex: "888888").opacity(0.12))
-                            .frame(height: 1)
-                            .padding(.leading, 78)
-                    }
+            HStack {
+                Button {
+                    dismiss()
+                } label: {
+                    Image("icon_arrow_left")
+                        .resizable()
+                        .renderingMode(.template)
+                        .frame(width: 24, height: 24)
+                        .foregroundColor(Color(hex: "1D1D1D"))
+                        .frame(width: 40, height: 40)
+                        .background(Circle().fill(Color(hex: "888888").opacity(0.08)))
                 }
-                .onMove { from, to in
-                    pageItems.move(fromOffsets: from, toOffset: to)
+                Spacer()
+            }
+        }
+        .frame(height: 56)
+        .padding(.horizontal, 8)
+    }
+
+    private var detailNavBar: some View {
+        ZStack {
+            Text("Reorder pages")
+                .font(.system(size: 20, weight: .semibold))
+                .foregroundColor(Color(hex: "1D1D1D"))
+                .tracking(-0.408)
+
+            HStack {
+                Spacer()
+                Button { dismiss() } label: {
+                    Image(systemName: "xmark")
+                        .font(.system(size: 14, weight: .semibold))
+                        .foregroundColor(Color(hex: "1D1D1D"))
+                        .frame(width: 40, height: 40)
+                        .background(Circle().fill(Color(hex: "888888").opacity(0.08)))
                 }
             }
-            .listStyle(.plain)
-            .environment(\.editMode, .constant(.active))
+        }
+        .frame(height: 56)
+        .padding(.horizontal, 8)
+    }
 
-            // Apply button
+    // MARK: - Bottom Section
+
+    private var bottomSection: some View {
+        VStack(spacing: 0) {
+            Rectangle()
+                .fill(Color(hex: "565656").opacity(0.08))
+                .frame(height: 1)
+
             Button {
+                guard let url = fileURL else { return }
                 let order = pageItems.map { $0.originalIndex }
-                onReorder(fileURL!, fileName, order)
+                onReorder(url, fileName, order)
             } label: {
                 Text("Apply New Order")
                     .font(.system(size: 16, weight: .semibold))
@@ -205,33 +295,6 @@ struct PDFReorderView: View {
             .padding(.horizontal, 16)
             .padding(.vertical, 24)
         }
-    }
-
-    // MARK: - Navigation Bar
-
-    private var navBar: some View {
-        ZStack {
-            Text("Reorder pages")
-                .font(.system(size: 20, weight: .semibold))
-                .foregroundColor(Color(hex: "1D1D1D"))
-                .tracking(-0.408)
-
-            HStack {
-                Button {
-                    dismiss()
-                } label: {
-                    Image("icon_arrow_left")
-                        .resizable()
-                        .renderingMode(.template)
-                        .frame(width: 24, height: 24)
-                        .foregroundColor(Color(hex: "1D1D1D"))
-                        .frame(width: 40, height: 40)
-                }
-                Spacer()
-            }
-        }
-        .frame(height: 56)
-        .padding(.horizontal, 8)
     }
 
     // MARK: - File Import
@@ -261,7 +324,7 @@ struct PDFReorderView: View {
 
     private func loadPages(from url: URL) {
         guard let doc = PDFDocument(url: url) else { return }
-        let thumbSize = CGSize(width: 100, height: 140)
+        let thumbSize = CGSize(width: 200, height: 280)
         var items: [PageItem] = []
 
         for i in 0..<doc.pageCount {
@@ -270,5 +333,34 @@ struct PDFReorderView: View {
         }
 
         pageItems = items
+    }
+}
+
+// MARK: - Drop Delegate
+
+private struct PageDropDelegate: DropDelegate {
+    let item: PDFReorderView.PageItem
+    @Binding var pageItems: [PDFReorderView.PageItem]
+    @Binding var draggingItem: PDFReorderView.PageItem?
+
+    func performDrop(info: DropInfo) -> Bool {
+        draggingItem = nil
+        return true
+    }
+
+    func dropEntered(info: DropInfo) {
+        guard let dragging = draggingItem,
+              dragging.id != item.id,
+              let fromIndex = pageItems.firstIndex(of: dragging),
+              let toIndex = pageItems.firstIndex(of: item)
+        else { return }
+
+        withAnimation(.easeInOut(duration: 0.2)) {
+            pageItems.move(fromOffsets: IndexSet(integer: fromIndex), toOffset: toIndex > fromIndex ? toIndex + 1 : toIndex)
+        }
+    }
+
+    func dropUpdated(info: DropInfo) -> DropProposal? {
+        DropProposal(operation: .move)
     }
 }

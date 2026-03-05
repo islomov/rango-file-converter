@@ -10,6 +10,7 @@ struct AudioCropView: View {
         "mp3", "wav", "m4a", "aac", "aiff", "flac", "caf", "au", "mp2"
     ]
 
+    @Environment(\.dismiss) private var dismiss
     @State private var duration: Double = 0
     @State private var startTime: Double = 0
     @State private var endTime: Double = 0
@@ -22,13 +23,16 @@ struct AudioCropView: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            Spacer()
-            audioPreview
-            Spacer()
-            controls
+            previewSection
+
+            controlsSection
+
+            Spacer(minLength: 0)
+
+            bottomButton
         }
-        .navigationTitle("Audio Cropping")
-        .navigationBarTitleDisplayMode(.inline)
+        .background(Color.white)
+        .navigationBarHidden(true)
         .task {
             await setupPlayer()
         }
@@ -37,58 +41,152 @@ struct AudioCropView: View {
         }
     }
 
-    // MARK: - Audio Preview
+    // MARK: - Header
 
-    private var audioPreview: some View {
-        VStack(spacing: 12) {
-            ZStack {
-                RoundedRectangle(cornerRadius: 12)
-                    .fill(.quaternary)
-                    .frame(height: 200)
+    private var header: some View {
+        ZStack {
+            Text("Crop audio")
+                .font(.system(size: 20, weight: .semibold))
+                .foregroundColor(Color(hex: "1D1D1D"))
+                .tracking(-0.408)
 
-                VStack(spacing: 12) {
-                    Image(systemName: "waveform")
-                        .font(.system(size: 48))
-                        .foregroundStyle(.secondary)
-
-                    Text(sourceExtension.uppercased())
-                        .font(.caption.weight(.bold))
-                        .foregroundStyle(.white)
-                        .padding(.horizontal, 10)
-                        .padding(.vertical, 4)
-                        .background(.secondary, in: Capsule())
+            HStack {
+                Spacer()
+                Button {
+                    cleanupPlayer()
+                    dismiss()
+                } label: {
+                    Image(systemName: "xmark")
+                        .font(.system(size: 14, weight: .semibold))
+                        .foregroundColor(Color(hex: "1D1D1D"))
+                        .frame(width: 40, height: 40)
+                        .background(
+                            Circle()
+                                .fill(Color(hex: "888888").opacity(0.08))
+                        )
                 }
             }
-
-            HStack(spacing: 4) {
-                Text(fileName)
-                    .lineLimit(1)
-                if duration > 0 {
-                    Text("·")
-                    Text(formatTime(currentTime))
-                        .monospacedDigit()
-                }
-            }
-            .font(.caption)
-            .foregroundStyle(.secondary)
         }
-        .padding(.horizontal, 20)
+        .frame(height: 56)
+        .padding(.horizontal, 8)
     }
 
-    // MARK: - Controls
+    // MARK: - Preview Section
 
-    private var controls: some View {
-        VStack(spacing: 20) {
-            HStack {
-                Text("Duration")
-                    .font(.subheadline.weight(.medium))
-                Spacer()
-                Text(formatTime(duration))
-                    .font(.subheadline)
-                    .foregroundStyle(.secondary)
+    private var previewSection: some View {
+        VStack(spacing: 0) {
+            header
+
+            ZStack {
+                RoundedRectangle(cornerRadius: 16)
+                    .fill(Color(hex: "E6E6EC"))
+
+                VStack(spacing: 12) {
+                    Image(systemName: "music.note")
+                        .font(.system(size: 28, weight: .medium))
+                        .foregroundColor(Color(hex: "1D1D1D"))
+                        .frame(width: 40, height: 40)
+
+                    Text(sourceExtension.uppercased())
+                        .font(.system(size: 14, weight: .semibold))
+                        .foregroundColor(Color(hex: "1D1D1D"))
+                        .tracking(-0.408)
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 4)
+                        .background(
+                            Capsule()
+                                .fill(Color(hex: "888888").opacity(0.12))
+                        )
+                }
+            }
+            .frame(height: 180)
+            .padding(.horizontal, 16)
+
+            if duration > 0 {
+                Text(formatTime(currentTime))
+                    .font(.system(size: 12, weight: .semibold))
+                    .foregroundColor(Color(hex: "1D1D1D"))
+                    .tracking(-0.408)
+                    .monospacedDigit()
+                    .padding(.top, 16)
+                    .padding(.bottom, 12)
+            }
+        }
+        .background(Color.white)
+        .overlay(
+            Rectangle()
+                .fill(Color(hex: "565656").opacity(0.08))
+                .frame(height: 1),
+            alignment: .bottom
+        )
+    }
+
+    // MARK: - Controls Section
+
+    private var controlsSection: some View {
+        VStack(spacing: 24) {
+            // Playback controls
+            if isConverting {
+                HStack(spacing: 8) {
+                    ProgressView()
+                    Text("Preparing audio...")
+                        .font(.system(size: 14, weight: .semibold))
+                        .foregroundColor(Color(hex: "888888"))
+                }
+            } else if player != nil {
+                HStack(spacing: 12) {
+                    Button {
+                        pauseAndSeek(to: startTime)
+                    } label: {
+                        Image(systemName: "backward.fill")
+                            .font(.system(size: 22))
+                            .foregroundColor(Color(hex: "1D1D1D"))
+                            .frame(width: 32, height: 32)
+                    }
+
+                    Button {
+                        togglePlayback()
+                    } label: {
+                        Image(systemName: isPlaying ? "pause.circle.fill" : "play.circle.fill")
+                            .font(.system(size: 56))
+                            .foregroundColor(Color(hex: "F4800D"))
+                    }
+
+                    Button {
+                        pauseAndSeek(to: max(startTime, endTime - 0.5))
+                    } label: {
+                        Image(systemName: "forward.fill")
+                            .font(.system(size: 22))
+                            .foregroundColor(Color(hex: "1D1D1D"))
+                            .frame(width: 32, height: 32)
+                    }
+                }
             }
 
+            // Time info + slider
             VStack(spacing: 12) {
+                HStack {
+                    Text("Start: \(formatTime(startTime))")
+                        .font(.system(size: 14, weight: .semibold))
+                        .foregroundColor(Color(hex: "888888"))
+                        .tracking(-0.408)
+
+                    Spacer()
+
+                    Text("Clip length \(formatTime(max(endTime - startTime, 0)))")
+                        .font(.system(size: 14, weight: .semibold))
+                        .foregroundColor(Color(hex: "888888"))
+                        .tracking(-0.408)
+
+                    Spacer()
+
+                    Text("End: \(formatTime(endTime))")
+                        .font(.system(size: 14, weight: .semibold))
+                        .foregroundColor(Color(hex: "888888"))
+                        .tracking(-0.408)
+                }
+                .monospacedDigit()
+
                 RangeSliderView(
                     lowerValue: $startTime,
                     upperValue: $endTime,
@@ -100,85 +198,40 @@ struct AudioCropView: View {
                         pauseAndSeek(to: max(startTime, endTime - 0.5))
                     }
                 )
-
-                HStack {
-                    VStack(alignment: .leading, spacing: 4) {
-                        Text("Start")
-                            .font(.caption2)
-                            .foregroundStyle(.secondary)
-                        Text(formatTime(startTime))
-                            .font(.subheadline.monospacedDigit())
-                    }
-                    Spacer()
-                    VStack(spacing: 4) {
-                        Text("Clip Length")
-                            .font(.caption2)
-                            .foregroundStyle(.secondary)
-                        Text(formatTime(max(endTime - startTime, 0)))
-                            .font(.subheadline.monospacedDigit().weight(.medium))
-                            .foregroundStyle(.mint)
-                    }
-                    Spacer()
-                    VStack(alignment: .trailing, spacing: 4) {
-                        Text("End")
-                            .font(.caption2)
-                            .foregroundStyle(.secondary)
-                        Text(formatTime(endTime))
-                            .font(.subheadline.monospacedDigit())
-                    }
-                }
             }
+        }
+        .padding(16)
+    }
 
-            // Playback controls
-            if isConverting {
-                HStack(spacing: 8) {
-                    ProgressView()
-                    Text("Preparing audio...")
-                        .font(.subheadline)
-                        .foregroundStyle(.secondary)
-                }
-            } else if player != nil {
-                HStack(spacing: 24) {
-                    Button {
-                        pauseAndSeek(to: startTime)
-                    } label: {
-                        Image(systemName: "backward.end.fill")
-                            .font(.title3)
-                    }
+    // MARK: - Bottom Button
 
-                    Button {
-                        togglePlayback()
-                    } label: {
-                        Image(systemName: isPlaying ? "pause.circle.fill" : "play.circle.fill")
-                            .font(.largeTitle)
-                    }
-
-                    Button {
-                        pauseAndSeek(to: max(startTime, endTime - 0.5))
-                    } label: {
-                        Image(systemName: "forward.end.fill")
-                            .font(.title3)
-                    }
-                }
-                .foregroundStyle(.primary)
-            }
-
+    private var bottomButton: some View {
+        VStack(spacing: 0) {
             Button {
                 player?.pause()
                 isPlaying = false
                 onApply(startTime, endTime)
             } label: {
-                Text("Crop Audio")
-                    .font(.headline)
+                Text("Clip audio")
+                    .font(.system(size: 16, weight: .semibold))
+                    .foregroundColor(.white)
+                    .tracking(-0.408)
                     .frame(maxWidth: .infinity)
-                    .padding(.vertical, 14)
+                    .frame(height: 60)
+                    .background(
+                        LinearGradient(
+                            colors: [Color(hex: "FFAD5B"), Color(hex: "F4800D"), Color(hex: "FFAD5B")],
+                            startPoint: .topTrailing,
+                            endPoint: .bottomLeading
+                        )
+                    )
+                    .clipShape(RoundedRectangle(cornerRadius: 16))
             }
-            .buttonStyle(.borderedProminent)
-            .tint(.mint)
             .disabled(endTime - startTime < 0.1)
+            .opacity(endTime - startTime < 0.1 ? 0.5 : 1)
+            .padding(.horizontal, 16)
         }
-        .padding(20)
-        .background(.bar)
+        .padding(.vertical, 24)
     }
 
     // MARK: - Player
@@ -188,7 +241,6 @@ struct AudioCropView: View {
     }
 
     private func setupPlayer() async {
-        // For non-compatible formats, convert to WAV for preview playback
         var audioURL = fileURL
         if !isAVPlayerCompatible {
             isConverting = true
@@ -206,7 +258,6 @@ struct AudioCropView: View {
                 audioURL = wavURL
                 playableURL = wavURL
             } catch {
-                // If conversion fails, just load duration without playback
                 isConverting = false
                 let asset = AVAsset(url: fileURL)
                 if let cmDuration = try? await asset.load(.duration) {

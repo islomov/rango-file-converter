@@ -110,43 +110,65 @@ struct HistoryRowView: View {
     }
 
     private var toolLabel: String {
-        switch record.toolType {
-        case "Convert": return "Convert:"
-        case "Compress": return "Compress:"
-        case "Rotate": return "Rotate:"
-        case "Resize": return "Resize:"
-        case "Crop": return "Crop:"
-        case "GIF": return "GIF"
-        case "Stitch": return "Stitch"
-        case "Merge": return "Merge:"
-        case "Split": return "Split:"
-        default: return "\(record.toolType):"
+        switch record.tool {
+        case .convert: return "Convert:"
+        case .compress: return "Compress:"
+        case .rotate: return "Rotate:"
+        case .resize: return "Resize:"
+        case .crop: return "Crop:"
+        case .gif: return "GIF"
+        case .stitch: return "Stitch"
+        case .merge: return "Merge:"
+        case .speed: return "Speed:"
+        case .timeClip: return "Time Clip:"
+        case .extractAudio: return "Extract Audio:"
+        case .ratio: return "Ratio:"
+        case .mergePDF: return "Merge PDF:"
+        case .splitPDF: return "Split PDF:"
+        case .reorderPDF: return "Reorder PDF:"
+        case .protectPDF: return "Protect PDF:"
         }
     }
 
     @ViewBuilder
     private var toolBadgeBackground: some View {
-        switch record.toolType {
-        case "Convert":
+        switch record.tool {
+        case .convert:
             LinearGradient(
                 colors: [Color(hex: "FFAD5B"), Color(hex: "F4800D"), Color(hex: "FFAD5B")],
                 startPoint: .topTrailing,
                 endPoint: .bottomLeading
             )
-        case "Compress":
+        case .compress:
             Color(hex: "43CF18")
-        case "Rotate":
+        case .rotate:
             Color(hex: "1D1D1D")
-        case "Resize":
+        case .resize:
             Color(hex: "196EDD")
-        case "Crop":
+        case .crop:
             Color(hex: "14C5A2")
-        case "Stitch":
+        case .stitch:
             Color(hex: "E5A800")
-        case "GIF":
+        case .gif:
             Color(hex: "FF4D4D")
-        default:
-            Color(hex: "F4800D")
+        case .speed:
+            Color(hex: "9B59B6")
+        case .timeClip:
+            Color(hex: "E67E22")
+        case .extractAudio:
+            Color(hex: "3498DB")
+        case .ratio:
+            Color(hex: "2ECC71")
+        case .merge:
+            Color(hex: "E74C3C")
+        case .mergePDF:
+            Color(hex: "8E44AD")
+        case .splitPDF:
+            Color(hex: "2980B9")
+        case .reorderPDF:
+            Color(hex: "27AE60")
+        case .protectPDF:
+            Color(hex: "C0392B")
         }
     }
 

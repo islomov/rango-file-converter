@@ -141,7 +141,7 @@ final class ImageConverterViewModel: ObservableObject {
     // MARK: Rotate
 
     func processRotation(fileURL: URL, fileName: String, rotation: Double, flipH: Bool, flipV: Bool) {
-        let record = makeRecord(fileName: fileName, fileURL: fileURL, toolType: "Rotate")
+        let record = makeRecord(fileName: fileName, fileURL: fileURL, toolType: ToolType.rotate.rawValue)
         store.add(record)
 
         let task = Task.detached { [weak self] in
@@ -227,7 +227,7 @@ final class ImageConverterViewModel: ObservableObject {
     // MARK: Crop
 
     func processCrop(fileURL: URL, fileName: String, cropRect: CGRect) {
-        let record = makeRecord(fileName: fileName, fileURL: fileURL, toolType: "Crop")
+        let record = makeRecord(fileName: fileName, fileURL: fileURL, toolType: ToolType.crop.rawValue)
         store.add(record)
 
         let task = Task.detached { [weak self] in
@@ -299,7 +299,7 @@ final class ImageConverterViewModel: ObservableObject {
     // MARK: Resize
 
     func processResize(fileURL: URL, fileName: String, width: Int, height: Int) {
-        let record = makeRecord(fileName: fileName, fileURL: fileURL, toolType: "Resize")
+        let record = makeRecord(fileName: fileName, fileURL: fileURL, toolType: ToolType.resize.rawValue)
         store.add(record)
 
         let task = Task.detached { [weak self] in
@@ -362,7 +362,7 @@ final class ImageConverterViewModel: ObservableObject {
 
     func processCompress(fileURL: URL, fileName: String, formatExtension: String, quality: Double) {
         let outputFileName = "compressed_\(UUID().uuidString.prefix(8)).\(formatExtension)"
-        let record = makeRecord(fileName: outputFileName, fileURL: fileURL, toolType: "Compress")
+        let record = makeRecord(fileName: outputFileName, fileURL: fileURL, toolType: ToolType.compress.rawValue)
         store.add(record)
 
         let coordinator = self.coordinator
@@ -482,7 +482,7 @@ final class ImageConverterViewModel: ObservableObject {
             targetFormatID: "gif",
             thumbnailData: thumbnailData,
             status: .converting,
-            toolType: "GIF"
+            toolType: ToolType.gif.rawValue
         )
         store.add(record)
 
@@ -566,7 +566,7 @@ final class ImageConverterViewModel: ObservableObject {
             targetFormatID: "png",
             thumbnailData: thumbnailData,
             status: .converting,
-            toolType: "Stitch"
+            toolType: ToolType.stitch.rawValue
         )
         store.add(record)
 

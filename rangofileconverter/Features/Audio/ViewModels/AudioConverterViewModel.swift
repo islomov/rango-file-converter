@@ -96,7 +96,7 @@ final class AudioConverterViewModel: ObservableObject {
             targetFormatID: format.id,
             thumbnailData: nil,
             status: .converting,
-            toolType: "Convert",
+            toolType: ToolType.convert.rawValue,
             mediaCategory: "audio"
         )
 
@@ -211,7 +211,7 @@ final class AudioConverterViewModel: ObservableObject {
             targetFormatID: format.id,
             thumbnailData: nil,
             status: .converting,
-            toolType: "Speed Change",
+            toolType: ToolType.speed.rawValue,
             mediaCategory: "audio"
         )
 
@@ -297,7 +297,7 @@ final class AudioConverterViewModel: ObservableObject {
             targetFormatID: format.id,
             thumbnailData: thumbnailData,
             status: .converting,
-            toolType: "Extract Audio",
+            toolType: ToolType.extractAudio.rawValue,
             mediaCategory: "audio"
         )
 
@@ -420,7 +420,7 @@ final class AudioConverterViewModel: ObservableObject {
             targetFormatID: outputFormat,
             thumbnailData: nil,
             status: .converting,
-            toolType: "Compress",
+            toolType: ToolType.compress.rawValue,
             mediaCategory: "audio"
         )
 
@@ -516,7 +516,7 @@ final class AudioConverterViewModel: ObservableObject {
             targetFormatID: ext,
             thumbnailData: nil,
             status: .converting,
-            toolType: "Crop",
+            toolType: ToolType.crop.rawValue,
             mediaCategory: "audio"
         )
 
@@ -577,7 +577,7 @@ final class AudioConverterViewModel: ObservableObject {
             targetFormatID: outputExtension.lowercased(),
             thumbnailData: nil,
             status: .converting,
-            toolType: "Merge",
+            toolType: ToolType.merge.rawValue,
             mediaCategory: "audio"
         )
 

@@ -14,7 +14,7 @@ struct PDFProtectView: View {
 
     var body: some View {
         ZStack {
-            Color(hex: "F2F2F6")
+            Color.white
                 .ignoresSafeArea()
 
             if fileURL == nil {
@@ -37,47 +37,52 @@ struct PDFProtectView: View {
     // MARK: - Empty State
 
     private var emptyState: some View {
-        VStack(spacing: 0) {
-            navBar
+        ZStack {
+            Color(hex: "F2F2F6")
+                .ignoresSafeArea()
 
-            Spacer()
+            VStack(spacing: 0) {
+                emptyNavBar
 
-            VStack(spacing: 24) {
-                VStack(spacing: 12) {
-                    Image("icon_doc_protect")
-                        .resizable()
-                        .renderingMode(.original)
-                        .frame(width: 56, height: 56)
+                Spacer()
 
-                    Text("Select a PDF to protect")
-                        .font(.system(size: 20, weight: .semibold))
-                        .foregroundColor(Color(hex: "1D1D1D"))
-                        .tracking(-0.408)
-                        .multilineTextAlignment(.center)
-                }
+                VStack(spacing: 24) {
+                    VStack(spacing: 12) {
+                        Image("icon_doc_protect")
+                            .resizable()
+                            .renderingMode(.original)
+                            .frame(width: 56, height: 56)
 
-                Button {
-                    showFilePicker = true
-                } label: {
-                    Text("Choose PDF")
-                        .font(.system(size: 14, weight: .semibold))
-                        .foregroundColor(.white)
-                        .tracking(-0.408)
-                        .padding(16)
-                        .frame(width: 180)
-                        .background(
-                            LinearGradient(
-                                colors: [Color(hex: "FFAD5B"), Color(hex: "F4800D"), Color(hex: "FFAD5B")],
-                                startPoint: .topTrailing,
-                                endPoint: .bottomLeading
+                        Text("Select a PDF to protect")
+                            .font(.system(size: 20, weight: .semibold))
+                            .foregroundColor(Color(hex: "1D1D1D"))
+                            .tracking(-0.408)
+                            .multilineTextAlignment(.center)
+                    }
+
+                    Button {
+                        showFilePicker = true
+                    } label: {
+                        Text("Choose PDF")
+                            .font(.system(size: 14, weight: .semibold))
+                            .foregroundColor(.white)
+                            .tracking(-0.408)
+                            .padding(16)
+                            .frame(width: 180)
+                            .background(
+                                LinearGradient(
+                                    colors: [Color(hex: "FFAD5B"), Color(hex: "F4800D"), Color(hex: "FFAD5B")],
+                                    startPoint: .topTrailing,
+                                    endPoint: .bottomLeading
+                                )
                             )
-                        )
-                        .clipShape(RoundedRectangle(cornerRadius: 16))
+                            .clipShape(RoundedRectangle(cornerRadius: 16))
+                    }
                 }
-            }
-            .padding(.horizontal, 16)
+                .padding(.horizontal, 16)
 
-            Spacer()
+                Spacer()
+            }
         }
     }
 
@@ -85,83 +90,82 @@ struct PDFProtectView: View {
 
     private var detailState: some View {
         VStack(spacing: 0) {
-            navBar
+            detailNavBar
 
-            ScrollView {
-                VStack(spacing: 24) {
-                    // File info
-                    HStack(spacing: 12) {
-                        ZStack {
-                            RoundedRectangle(cornerRadius: 8.32)
-                                .fill(Color(hex: "E6E6EC"))
-                                .frame(width: 56, height: 56)
+            VStack(spacing: 0) {
+                // File info row with bottom border
+                HStack(spacing: 12) {
+                    Image("icon_doc_protect")
+                        .resizable()
+                        .renderingMode(.template)
+                        .foregroundColor(Color(hex: "888888"))
+                        .frame(width: 28, height: 28)
 
-                            Image("icon_doc_protect")
-                                .resizable()
-                                .renderingMode(.template)
-                                .foregroundColor(Color(hex: "888888"))
-                                .frame(width: 24, height: 24)
-                        }
+                    Text(fileName)
+                        .font(.system(size: 12, weight: .semibold))
+                        .foregroundColor(Color(hex: "1D1D1D"))
+                        .tracking(-0.408)
+                        .lineLimit(1)
 
-                        Text(fileName)
-                            .font(.system(size: 14, weight: .semibold))
-                            .foregroundColor(Color(hex: "1D1D1D"))
-                            .tracking(-0.408)
-                            .lineLimit(1)
+                    Spacer()
 
-                        Spacer()
-
-                        Button {
-                            showFilePicker = true
-                        } label: {
-                            Text("Change")
-                                .font(.system(size: 14, weight: .semibold))
-                                .foregroundColor(Color(hex: "F4800D"))
-                                .tracking(-0.408)
-                        }
-                    }
-                    .padding(16)
-                    .background(
-                        RoundedRectangle(cornerRadius: 16)
-                            .fill(Color.white)
-                    )
-
-                    // Password fields
-                    VStack(alignment: .leading, spacing: 8) {
-                        Text("Set Password")
-                            .font(.system(size: 14, weight: .semibold))
-                            .foregroundColor(Color(hex: "888888"))
-                            .tracking(-0.408)
-
-                        SecureField("Password", text: $password)
-                            .font(.system(size: 14, weight: .semibold))
-                            .tracking(-0.408)
-                            .padding(16)
-                            .background(
-                                RoundedRectangle(cornerRadius: 12)
-                                    .fill(Color.white)
-                            )
-
-                        SecureField("Confirm Password", text: $confirmPassword)
-                            .font(.system(size: 14, weight: .semibold))
-                            .tracking(-0.408)
-                            .padding(16)
-                            .background(
-                                RoundedRectangle(cornerRadius: 12)
-                                    .fill(Color.white)
-                            )
-                    }
-
-                    if let errorMessage {
-                        Text(errorMessage)
+                    Button {
+                        showFilePicker = true
+                    } label: {
+                        Text("Change")
                             .font(.system(size: 12, weight: .semibold))
-                            .foregroundColor(Color(hex: "F21414"))
+                            .foregroundColor(Color(hex: "F4800D"))
                             .tracking(-0.408)
                     }
                 }
-                .padding(.horizontal, 16)
-                .padding(.top, 16)
+                .padding(.vertical, 16)
+                .overlay(
+                    Rectangle()
+                        .fill(Color(hex: "888888").opacity(0.12))
+                        .frame(height: 1),
+                    alignment: .bottom
+                )
+
+                // Password fields
+                VStack(alignment: .leading, spacing: 12) {
+                    Text("Set password")
+                        .font(.system(size: 12, weight: .semibold))
+                        .foregroundColor(Color(hex: "888888"))
+                        .tracking(-0.408)
+
+                    SecureField("Password", text: $password)
+                        .font(.system(size: 14, weight: .semibold))
+                        .tracking(-0.408)
+                        .padding(.horizontal, 16)
+                        .frame(height: 56)
+                        .background(
+                            RoundedRectangle(cornerRadius: 12)
+                                .fill(Color(hex: "888888").opacity(0.08))
+                        )
+
+                    SecureField("Confirm password", text: $confirmPassword)
+                        .font(.system(size: 14, weight: .semibold))
+                        .tracking(-0.408)
+                        .padding(.horizontal, 16)
+                        .frame(height: 56)
+                        .background(
+                            RoundedRectangle(cornerRadius: 12)
+                                .fill(Color(hex: "888888").opacity(0.08))
+                        )
+                }
+                .padding(.top, 24)
+
+                if let errorMessage {
+                    Text(errorMessage)
+                        .font(.system(size: 12, weight: .semibold))
+                        .foregroundColor(Color(hex: "F21414"))
+                        .tracking(-0.408)
+                        .padding(.top, 8)
+                }
+
+                Spacer()
             }
+            .padding(.horizontal, 16)
 
             // Protect button
             Button {
@@ -184,9 +188,9 @@ struct PDFProtectView: View {
         }
     }
 
-    // MARK: - Navigation Bar
+    // MARK: - Navigation Bars
 
-    private var navBar: some View {
+    private var emptyNavBar: some View {
         ZStack {
             Text("Protect PDF")
                 .font(.system(size: 20, weight: .semibold))
@@ -205,6 +209,30 @@ struct PDFProtectView: View {
                         .frame(width: 40, height: 40)
                 }
                 Spacer()
+            }
+        }
+        .frame(height: 56)
+        .padding(.horizontal, 8)
+    }
+
+    private var detailNavBar: some View {
+        ZStack {
+            Text("Protect PDF")
+                .font(.system(size: 20, weight: .semibold))
+                .foregroundColor(Color(hex: "1D1D1D"))
+                .tracking(-0.408)
+
+            HStack {
+                Spacer()
+                Button {
+                    dismiss()
+                } label: {
+                    Image(systemName: "xmark")
+                        .font(.system(size: 16, weight: .semibold))
+                        .foregroundColor(Color(hex: "1D1D1D"))
+                        .frame(width: 40, height: 40)
+                        .background(Circle().fill(Color(hex: "888888").opacity(0.08)))
+                }
             }
         }
         .frame(height: 56)

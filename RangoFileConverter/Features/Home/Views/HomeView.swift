@@ -15,7 +15,10 @@ struct HomeView: View {
 
                 Spacer()
 
-                Button(action: { showFAQ = true }) {
+                Button(action: {
+                    UIImpactFeedbackGenerator(style: .light).impactOccurred()
+                    showFAQ = true
+                }) {
                     ZStack {
                         Circle()
                             .fill(

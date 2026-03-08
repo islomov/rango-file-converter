@@ -75,7 +75,7 @@ struct HistoryView: View {
                     Image("icon_search")
                         .resizable()
                         .renderingMode(.template)
-                        .foregroundColor(AppColors.textSecondary)
+                        .foregroundColor(AppColors.textPrimary)
                         .frame(width: 24, height: 24)
 
                     TextField("Search", text: $searchText)

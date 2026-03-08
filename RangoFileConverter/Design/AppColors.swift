@@ -103,7 +103,7 @@ enum AppColors {
 
     // MARK: - Helper
 
-    private static func adaptive(light: String, dark: String) -> Color {
+    static func adaptive(light: String, dark: String) -> Color {
         Color(UIColor { traits in
             traits.userInterfaceStyle == .dark
                 ? UIColor(hex: dark)

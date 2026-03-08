@@ -46,7 +46,8 @@ struct HomeView: View {
                 .foregroundColor(AppColors.textSecondary)
                 .padding(.horizontal, 16)
                 .padding(.bottom, 12)
-                .opacity(cardsAppeared ? 1 : 0)
+                .opacity(cardsAppeared ? 1 : 0.5)
+                .offset(y: cardsAppeared ? 0 : 30)
                 .animation(.easeOut(duration: 0.3), value: cardsAppeared)
 
             // Stacked cards — responsive with capped max size
@@ -76,9 +77,6 @@ struct HomeView: View {
                             onCategorySelected?(.image)
                         }
                         .zIndex(1)
-                        .opacity(cardsAppeared ? 1 : 0)
-                        .offset(y: cardsAppeared ? 0 : 25)
-                        .animation(.spring(response: 0.5, dampingFraction: 0.8).delay(0.05), value: cardsAppeared)
 
                         ServiceCard(
                             title: "Video",
@@ -93,9 +91,6 @@ struct HomeView: View {
                         }
                         .offset(y: offset2)
                         .zIndex(2)
-                        .opacity(cardsAppeared ? 1 : 0)
-                        .offset(y: cardsAppeared ? 0 : 25)
-                        .animation(.spring(response: 0.5, dampingFraction: 0.8).delay(0.12), value: cardsAppeared)
 
                         ServiceCard(
                             title: "Audio",
@@ -111,9 +106,6 @@ struct HomeView: View {
                         }
                         .offset(y: offset3)
                         .zIndex(3)
-                        .opacity(cardsAppeared ? 1 : 0)
-                        .offset(y: cardsAppeared ? 0 : 25)
-                        .animation(.spring(response: 0.5, dampingFraction: 0.8).delay(0.19), value: cardsAppeared)
 
                         ServiceCard(
                             title: "Documents",
@@ -129,15 +121,15 @@ struct HomeView: View {
                         }
                         .offset(y: offset4)
                         .zIndex(4)
-                        .opacity(cardsAppeared ? 1 : 0)
-                        .offset(y: cardsAppeared ? 0 : 25)
-                        .animation(.spring(response: 0.5, dampingFraction: 0.8).delay(0.26), value: cardsAppeared)
                     }
                     .frame(height: totalHeight, alignment: .top)
                     .padding(.horizontal, 16)
                     .padding(.top, 16)
                 }
             }
+            .opacity(cardsAppeared ? 1 : 0.5)
+            .offset(y: cardsAppeared ? 0 : 30)
+            .animation(.easeOut(duration: 0.3), value: cardsAppeared)
         }
         .background(AppColors.background)
         .onAppear {

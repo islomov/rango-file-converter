@@ -45,7 +45,7 @@ struct AudioPickerView: View {
             }
         }
         .navigationBarHidden(true)
-        .onAppear {
+        .task {
             videoVM.requestAccessAndFetch()
         }
         .fileImporter(
@@ -149,7 +149,7 @@ struct AudioPickerView: View {
                     Spacer()
                     ProgressView()
                     Spacer()
-                } else if videoVM.assets.isEmpty {
+                } else if videoVM.assetCount == 0 {
                     Spacer()
                     VStack(spacing: 12) {
                         Image(systemName: "video.slash")
@@ -168,8 +168,10 @@ struct AudioPickerView: View {
                             .padding(.top, 8)
 
                         LazyVGrid(columns: columns, spacing: 4) {
-                            ForEach(videoVM.assets, id: \.localIdentifier) { asset in
-                                thumbnailCell(for: asset)
+                            ForEach(0..<videoVM.assetCount, id: \.self) { index in
+                                if let asset = videoVM.asset(at: index) {
+                                    thumbnailCell(for: asset)
+                                }
                             }
                         }
                         .padding(.horizontal, 16)
@@ -288,21 +290,29 @@ struct AudioPickerView: View {
     private func handleFileImport(_ result: Result<[URL], Error>) {
         guard case .success(let urls) = result, let sourceURL = urls.first else { return }
         guard sourceURL.startAccessingSecurityScopedResource() else { return }
-        defer { sourceURL.stopAccessingSecurityScopedResource() }
 
+        isLoading = true
         let fileName = sourceURL.lastPathComponent
-        let tempDir = FileManager.default.temporaryDirectory
-            .appendingPathComponent("rango_audio_import", isDirectory: true)
-        try? FileManager.default.createDirectory(at: tempDir, withIntermediateDirectories: true)
 
-        let destURL = tempDir.appendingPathComponent(fileName)
-        try? FileManager.default.removeItem(at: destURL)
+        Task.detached(priority: .userInitiated) {
+            defer { sourceURL.stopAccessingSecurityScopedResource() }
 
-        do {
-            try FileManager.default.copyItem(at: sourceURL, to: destURL)
-            onAudioSelected(fileName, destURL)
-        } catch {
-            // File copy failed
+            let tempDir = FileManager.default.temporaryDirectory
+                .appendingPathComponent("rango_audio_import", isDirectory: true)
+            try? FileManager.default.createDirectory(at: tempDir, withIntermediateDirectories: true)
+
+            let destURL = tempDir.appendingPathComponent(fileName)
+            try? FileManager.default.removeItem(at: destURL)
+
+            do {
+                try FileManager.default.copyItem(at: sourceURL, to: destURL)
+                await MainActor.run {
+                    isLoading = false
+                    onAudioSelected(fileName, destURL)
+                }
+            } catch {
+                await MainActor.run { isLoading = false }
+            }
         }
     }
 }

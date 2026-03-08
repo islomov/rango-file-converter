@@ -48,7 +48,7 @@ struct VideoMergePickerView: View {
             }
         }
         .navigationBarHidden(true)
-        .onAppear {
+        .task {
             videoVM.requestAccessAndFetch()
         }
         .fileImporter(
@@ -152,7 +152,7 @@ struct VideoMergePickerView: View {
                     Spacer()
                     ProgressView()
                     Spacer()
-                } else if videoVM.assets.isEmpty {
+                } else if videoVM.assetCount == 0 {
                     Spacer()
                     VStack(spacing: 12) {
                         Image(systemName: "video.slash")
@@ -166,8 +166,10 @@ struct VideoMergePickerView: View {
                 } else {
                     ScrollView {
                         LazyVGrid(columns: columns, spacing: 4) {
-                            ForEach(videoVM.assets, id: \.localIdentifier) { asset in
-                                thumbnailCell(for: asset)
+                            ForEach(0..<videoVM.assetCount, id: \.self) { index in
+                                if let asset = videoVM.asset(at: index) {
+                                    thumbnailCell(for: asset)
+                                }
                             }
                         }
                         .padding(.horizontal, 16)
@@ -337,8 +339,10 @@ struct VideoMergePickerView: View {
     }
 
     private func loadSelectedAndFinish() {
-        let orderedAssets = selectionOrderList.compactMap { id in
-            videoVM.assets.first { $0.localIdentifier == id }
+        let orderedAssets: [PHAsset] = selectionOrderList.compactMap { id in
+            let opts = PHFetchOptions()
+            opts.predicate = NSPredicate(format: "localIdentifier == %@", id)
+            return PHAsset.fetchAssets(with: opts).firstObject
         }
         guard orderedAssets.count >= minCount else { return }
 
@@ -374,22 +378,30 @@ struct VideoMergePickerView: View {
     private func handleFileImport(_ result: Result<[URL], Error>) {
         guard case .success(let urls) = result, urls.count >= minCount else { return }
 
-        var results: [(UIImage, String, URL)] = []
-        for url in urls {
-            guard url.startAccessingSecurityScopedResource() else { continue }
-            defer { url.stopAccessingSecurityScopedResource() }
+        isLoading = true
+        let min = minCount
 
-            let tempURL = FileManager.default.temporaryDirectory
-                .appendingPathComponent(url.lastPathComponent)
-            try? FileManager.default.removeItem(at: tempURL)
-            guard (try? FileManager.default.copyItem(at: url, to: tempURL)) != nil else { continue }
+        Task.detached(priority: .userInitiated) {
+            var results: [(UIImage, String, URL)] = []
+            for url in urls {
+                guard url.startAccessingSecurityScopedResource() else { continue }
+                defer { url.stopAccessingSecurityScopedResource() }
 
-            let thumbnail = VideoLibraryViewModel.generateThumbnail(from: tempURL)
-                ?? UIImage(systemName: "video")!
-            results.append((thumbnail, url.lastPathComponent, tempURL))
-        }
-        if results.count >= minCount {
-            onVideosSelected(results)
+                let tempURL = FileManager.default.temporaryDirectory
+                    .appendingPathComponent(url.lastPathComponent)
+                try? FileManager.default.removeItem(at: tempURL)
+                guard (try? FileManager.default.copyItem(at: url, to: tempURL)) != nil else { continue }
+
+                let thumbnail = VideoLibraryViewModel.generateThumbnail(from: tempURL)
+                    ?? UIImage(systemName: "video")!
+                results.append((thumbnail, url.lastPathComponent, tempURL))
+            }
+            await MainActor.run {
+                isLoading = false
+                if results.count >= min {
+                    onVideosSelected(results)
+                }
+            }
         }
     }
 }

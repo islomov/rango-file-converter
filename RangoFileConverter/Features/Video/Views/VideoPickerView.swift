@@ -40,7 +40,7 @@ struct VideoPickerView: View {
             }
         }
         .navigationBarHidden(true)
-        .onAppear {
+        .task {
             videoVM.requestAccessAndFetch()
         }
         .fileImporter(
@@ -144,7 +144,7 @@ struct VideoPickerView: View {
                     Spacer()
                     ProgressView()
                     Spacer()
-                } else if videoVM.assets.isEmpty {
+                } else if videoVM.assetCount == 0 {
                     Spacer()
                     VStack(spacing: 12) {
                         Image(systemName: "video.slash")
@@ -158,8 +158,10 @@ struct VideoPickerView: View {
                 } else {
                     ScrollView {
                         LazyVGrid(columns: columns, spacing: 4) {
-                            ForEach(videoVM.assets, id: \.localIdentifier) { asset in
-                                thumbnailCell(for: asset)
+                            ForEach(0..<videoVM.assetCount, id: \.self) { index in
+                                if let asset = videoVM.asset(at: index) {
+                                    thumbnailCell(for: asset)
+                                }
                             }
                         }
                         .padding(.horizontal, 16)

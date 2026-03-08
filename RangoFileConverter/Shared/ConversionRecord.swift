@@ -34,8 +34,17 @@ final class ConversionRecord: Identifiable, Codable, ObservableObject {
     var sourceFormat: String
     var targetFormatID: String
     var thumbnailData: Data?
-    var statusRaw: String { willSet { objectWillChange.send() } }
+    var statusRaw: String {
+        willSet {
+            objectWillChange.send()
+            let newStatus = ConversionStatus(rawValue: newValue)
+            if newStatus == .converted || newStatus == .failed {
+                completedDate = Date()
+            }
+        }
+    }
     var date: Date
+    var completedDate: Date?
     var outputPath: String? { willSet { objectWillChange.send() } }
     var errorMessage: String?
     var toolType: String
@@ -62,6 +71,7 @@ final class ConversionRecord: Identifiable, Codable, ObservableObject {
         self.thumbnailData = thumbnailData
         self.statusRaw = status.rawValue
         self.date = date
+        self.completedDate = (status == .converted || status == .failed) ? date : nil
         self.outputPath = outputPath
         self.errorMessage = errorMessage
         self.toolType = toolType
@@ -94,7 +104,7 @@ final class ConversionRecord: Identifiable, Codable, ObservableObject {
     // Exclude cache from Codable
     private enum CodingKeys: String, CodingKey {
         case id, sourceFileName, sourceFormat, targetFormatID, thumbnailData
-        case statusRaw, date, outputPath, errorMessage, toolType, mediaCategory, progress
+        case statusRaw, date, completedDate, outputPath, errorMessage, toolType, mediaCategory, progress
     }
 
     var outputURL: URL? {

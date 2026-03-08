@@ -35,7 +35,7 @@ struct AudioMergePickerView: View {
 
     var body: some View {
         ZStack {
-            Color(hex: "F2F2F6")
+            AppColors.background
                 .ignoresSafeArea()
 
             VStack(spacing: 0) {
@@ -81,7 +81,7 @@ struct AudioMergePickerView: View {
         ZStack {
             Text("Select Audios")
                 .font(.system(size: 20, weight: .semibold))
-                .foregroundColor(Color(hex: "1D1D1D"))
+                .foregroundColor(AppColors.textPrimary)
                 .tracking(-0.408)
 
             HStack {
@@ -90,7 +90,7 @@ struct AudioMergePickerView: View {
                 } label: {
                     Image(systemName: "chevron.left")
                         .font(.system(size: 18, weight: .medium))
-                        .foregroundColor(Color(hex: "1D1D1D"))
+                        .foregroundColor(AppColors.textPrimary)
                         .frame(width: 40, height: 40)
                 }
 
@@ -113,15 +113,15 @@ struct AudioMergePickerView: View {
                 } label: {
                     Text(source.rawValue)
                         .font(.system(size: 14, weight: .semibold))
-                        .foregroundColor(Color(hex: "1D1D1D"))
+                        .foregroundColor(AppColors.textPrimary)
                         .frame(maxWidth: .infinity)
                         .frame(height: 36)
                         .background(
                             Group {
                                 if selectedSource == source {
                                     RoundedRectangle(cornerRadius: 10)
-                                        .fill(Color.white)
-                                        .shadow(color: Color(hex: "2F2E41").opacity(0.12), radius: 4, x: 0, y: 0)
+                                        .fill(AppColors.surface)
+                                        .shadow(color: AppColors.textPrimary.opacity(0.12), radius: 4, x: 0, y: 0)
                                 }
                             }
                         )
@@ -132,7 +132,7 @@ struct AudioMergePickerView: View {
         .padding(4)
         .background(
             RoundedRectangle(cornerRadius: 12)
-                .fill(Color.white)
+                .fill(AppColors.surface)
         )
     }
 
@@ -216,7 +216,7 @@ struct AudioMergePickerView: View {
                             .clipped()
                     } else {
                         Rectangle()
-                            .fill(Color(hex: "E6E6EC"))
+                            .fill(AppColors.placeholder)
                             .frame(width: geo.size.width, height: geo.size.width)
                     }
 
@@ -247,7 +247,7 @@ struct AudioMergePickerView: View {
                             let idx = selectionOrder(for: asset)
                             ZStack {
                                 Circle()
-                                    .fill(isSelected ? Color(hex: "F4800D") : Color.black.opacity(0.3))
+                                    .fill(isSelected ? AppColors.accent : Color.black.opacity(0.3))
                                     .frame(width: 26, height: 26)
                                 Circle()
                                     .stroke(Color.white, lineWidth: 2)
@@ -302,12 +302,12 @@ struct AudioMergePickerView: View {
     private var multiSelectBar: some View {
         VStack(spacing: 0) {
             Rectangle()
-                .fill(Color(hex: "565656").opacity(0.08))
+                .fill(AppColors.shadow.opacity(0.08))
                 .frame(height: 1)
             HStack {
                 Text("\(selectedAssetIDs.count) selected")
                     .font(.system(size: 16, weight: .semibold))
-                    .foregroundColor(Color(hex: "888888"))
+                    .foregroundColor(AppColors.textSecondary)
                     .tracking(-0.408)
 
                 Spacer()
@@ -324,8 +324,8 @@ struct AudioMergePickerView: View {
                         .background(
                             LinearGradient(
                                 colors: selectedAssetIDs.count >= minCount
-                                    ? [Color(hex: "FFA05C"), Color(hex: "EF731A")]
-                                    : [Color(hex: "FFD9B8"), Color(hex: "F8C192"), Color(hex: "FFD9B8")],
+                                    ? [AppColors.buttonGradientStart, AppColors.buttonGradientEnd]
+                                    : [AppColors.buttonDisabledStart, AppColors.buttonDisabledMid, AppColors.buttonDisabledStart],
                                 startPoint: .leading,
                                 endPoint: .trailing
                             )
@@ -336,7 +336,7 @@ struct AudioMergePickerView: View {
             }
             .padding(.horizontal, 16)
             .padding(.vertical, 16)
-            .background(Color.white)
+            .background(AppColors.surface)
         }
     }
 

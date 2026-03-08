@@ -2,28 +2,14 @@ import SwiftUI
 
 struct SettingsView: View {
     @EnvironmentObject private var historyStore: HistoryStore
+    @EnvironmentObject private var themeManager: ThemeManager
     @State private var dailyReminders = true
-    @State private var selectedTheme: AppTheme = .system
     @State private var showClearHistoryAlert = false
     @State private var showLanguagePicker = false
 
-    enum AppTheme: String, CaseIterable {
-        case system = "System"
-        case light = "Light"
-        case dark = "Dark"
-
-        var iconName: String {
-            switch self {
-            case .system: return "circle.lefthalf.filled"
-            case .light: return "sun.max.fill"
-            case .dark: return "moon.fill"
-            }
-        }
-    }
-
     var body: some View {
         ZStack {
-            Color(hex: "F2F2F6")
+            AppColors.background
                 .ignoresSafeArea()
 
             ScrollView {
@@ -58,14 +44,14 @@ struct SettingsView: View {
         HStack(alignment: .center) {
             Text("Settings")
                 .font(.system(size: 28, weight: .bold))
-                .foregroundColor(Color(hex: "1D1D1D"))
+                .foregroundColor(AppColors.textPrimary)
 
             Spacer()
         }
         .padding(.horizontal, 16)
         .padding(.top, 18)
         .padding(.bottom, 16)
-        .background(Color(hex: "F2F2F6"))
+        .background(AppColors.background)
     }
 
     // MARK: - General Section
@@ -80,7 +66,7 @@ struct SettingsView: View {
             ) {
                 Toggle("", isOn: $dailyReminders)
                     .labelsHidden()
-                    .tint(Color(hex: "F4800D"))
+                    .tint(AppColors.accent)
             }
 
             // App language
@@ -92,11 +78,11 @@ struct SettingsView: View {
                 HStack(spacing: 0) {
                     Text("English")
                         .font(.system(size: 12, weight: .semibold))
-                        .foregroundColor(Color(hex: "888888"))
+                        .foregroundColor(AppColors.textSecondary)
 
                     Image(systemName: "chevron.right")
                         .font(.system(size: 14, weight: .medium))
-                        .foregroundColor(Color(hex: "888888"))
+                        .foregroundColor(AppColors.textSecondary)
                         .frame(width: 24, height: 24)
                 }
             }
@@ -109,10 +95,10 @@ struct SettingsView: View {
             ) {
                 Text("Photos")
                     .font(.system(size: 12, weight: .semibold))
-                    .foregroundColor(Color(hex: "888888"))
+                    .foregroundColor(AppColors.textSecondary)
             }
         }
-        .background(Color.white)
+        .background(AppColors.surface)
         .cornerRadius(16)
     }
 
@@ -124,13 +110,13 @@ struct SettingsView: View {
                 themeRow(theme: theme, isLast: index == AppTheme.allCases.count - 1)
             }
         }
-        .background(Color.white)
+        .background(AppColors.surface)
         .cornerRadius(16)
     }
 
     private func themeRow(theme: AppTheme, isLast: Bool) -> some View {
         Button {
-            selectedTheme = theme
+            themeManager.selectedTheme = theme
         } label: {
             HStack(spacing: 8) {
                 ZStack {
@@ -142,23 +128,23 @@ struct SettingsView: View {
                         .resizable()
                         .aspectRatio(contentMode: .fit)
                         .frame(width: 24, height: 24)
-                        .foregroundColor(Color(hex: "1D1D1D"))
+                        .foregroundColor(AppColors.textPrimary)
                 }
 
                 Text(theme.rawValue)
                     .font(.system(size: 14, weight: .semibold))
-                    .foregroundColor(Color(hex: "1D1D1D"))
+                    .foregroundColor(AppColors.textPrimary)
 
                 Spacer()
 
-                if selectedTheme == theme {
+                if themeManager.selectedTheme == theme {
                     Image(systemName: "checkmark.circle.fill")
                         .resizable()
                         .frame(width: 24, height: 24)
-                        .foregroundColor(Color(hex: "F4800D"))
+                        .foregroundColor(AppColors.accent)
                 } else {
                     Circle()
-                        .fill(Color(hex: "E6E6EC"))
+                        .fill(AppColors.placeholder)
                         .frame(width: 24, height: 24)
                 }
             }
@@ -167,7 +153,7 @@ struct SettingsView: View {
             .overlay(alignment: .bottom) {
                 if !isLast {
                     Divider()
-                        .background(Color(hex: "888888").opacity(0.12))
+                        .background(AppColors.textSecondary.opacity(0.12))
                         .padding(.horizontal, 16)
                 }
             }
@@ -184,11 +170,11 @@ struct SettingsView: View {
             HStack {
                 Text("Clear history")
                     .font(.system(size: 16, weight: .semibold))
-                    .foregroundColor(Color(hex: "F21818"))
+                    .foregroundColor(AppColors.destructive)
                 Spacer()
             }
             .padding(16)
-            .background(Color.white)
+            .background(AppColors.surface)
             .cornerRadius(16)
         }
         .buttonStyle(.plain)
@@ -206,7 +192,7 @@ struct SettingsView: View {
 
             versionRow
         }
-        .background(Color.white)
+        .background(AppColors.surface)
         .cornerRadius(16)
     }
 
@@ -217,20 +203,20 @@ struct SettingsView: View {
             HStack {
                 Text(title)
                     .font(.system(size: 14, weight: .semibold))
-                    .foregroundColor(Color(hex: "1D1D1D"))
+                    .foregroundColor(AppColors.textPrimary)
 
                 Spacer()
 
                 Image(systemName: "chevron.right")
                     .font(.system(size: 14, weight: .medium))
-                    .foregroundColor(Color(hex: "888888"))
+                    .foregroundColor(AppColors.textSecondary)
             }
             .frame(height: 56)
             .padding(.horizontal, 16)
             .overlay(alignment: .bottom) {
                 if !isLast {
                     Divider()
-                        .background(Color(hex: "888888").opacity(0.12))
+                        .background(AppColors.textSecondary.opacity(0.12))
                 }
             }
         }
@@ -241,18 +227,18 @@ struct SettingsView: View {
         HStack {
             Text("Version")
                 .font(.system(size: 14, weight: .semibold))
-                .foregroundColor(Color(hex: "1D1D1D"))
+                .foregroundColor(AppColors.textPrimary)
 
             Spacer()
 
             HStack(spacing: 4) {
                 Text(appVersion)
                     .font(.system(size: 12, weight: .semibold))
-                    .foregroundColor(Color(hex: "888888"))
+                    .foregroundColor(AppColors.textSecondary)
 
                 Image(systemName: "chevron.right")
                     .font(.system(size: 14, weight: .medium))
-                    .foregroundColor(Color(hex: "888888"))
+                    .foregroundColor(AppColors.textSecondary)
             }
         }
         .frame(height: 56)
@@ -273,11 +259,11 @@ struct SettingsView: View {
                     .resizable()
                     .aspectRatio(contentMode: .fit)
                     .frame(width: 22, height: 22)
-                    .foregroundColor(Color(hex: "1D1D1D"))
+                    .foregroundColor(AppColors.textPrimary)
 
                 Text(title)
                     .font(.system(size: 14, weight: .semibold))
-                    .foregroundColor(Color(hex: "1D1D1D"))
+                    .foregroundColor(AppColors.textPrimary)
             }
 
             Spacer()
@@ -289,7 +275,7 @@ struct SettingsView: View {
         .overlay(alignment: .bottom) {
             if showDivider {
                 Divider()
-                    .background(Color(hex: "888888").opacity(0.12))
+                    .background(AppColors.textSecondary.opacity(0.12))
                     .padding(.horizontal, 16)
             }
         }
@@ -303,4 +289,5 @@ struct SettingsView: View {
 #Preview {
     SettingsView()
         .environmentObject(HistoryStore.shared)
+        .environmentObject(ThemeManager.shared)
 }

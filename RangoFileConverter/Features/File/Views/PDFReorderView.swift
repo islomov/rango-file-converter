@@ -30,7 +30,7 @@ struct PDFReorderView: View {
 
     var body: some View {
         ZStack {
-            Color(hex: "F2F2F6")
+            AppColors.background
                 .ignoresSafeArea()
 
             if fileURL == nil {
@@ -67,7 +67,7 @@ struct PDFReorderView: View {
 
                     Text("Select a PDF to reorder pages")
                         .font(.system(size: 20, weight: .semibold))
-                        .foregroundColor(Color(hex: "1D1D1D"))
+                        .foregroundColor(AppColors.textPrimary)
                         .tracking(-0.408)
                         .multilineTextAlignment(.center)
                 }
@@ -83,7 +83,7 @@ struct PDFReorderView: View {
                         .frame(width: 180)
                         .background(
                             LinearGradient(
-                                colors: [Color(hex: "FFAD5B"), Color(hex: "F4800D"), Color(hex: "FFAD5B")],
+                                colors: [AppColors.accentLight, AppColors.accent, AppColors.accentLight],
                                 startPoint: .topTrailing,
                                 endPoint: .bottomLeading
                             )
@@ -108,18 +108,18 @@ struct PDFReorderView: View {
                 Image("icon_doc_reorder")
                     .resizable()
                     .renderingMode(.template)
-                    .foregroundColor(Color(hex: "F4800D"))
+                    .foregroundColor(AppColors.accent)
                     .frame(width: 20, height: 20)
 
                 Text(fileName)
                     .font(.system(size: 14, weight: .semibold))
-                    .foregroundColor(Color(hex: "1D1D1D"))
+                    .foregroundColor(AppColors.textPrimary)
                     .tracking(-0.408)
                     .lineLimit(1)
 
                 Text("\(pageItems.count) pages")
                     .font(.system(size: 12, weight: .semibold))
-                    .foregroundColor(Color(hex: "888888"))
+                    .foregroundColor(AppColors.textSecondary)
                     .tracking(-0.408)
 
                 Spacer()
@@ -129,7 +129,7 @@ struct PDFReorderView: View {
                 } label: {
                     Text("Change")
                         .font(.system(size: 14, weight: .semibold))
-                        .foregroundColor(Color(hex: "F4800D"))
+                        .foregroundColor(AppColors.accent)
                         .tracking(-0.408)
                 }
             }
@@ -138,7 +138,7 @@ struct PDFReorderView: View {
             .padding(.top, 8)
 
             Rectangle()
-                .fill(Color(hex: "565656").opacity(0.08))
+                .fill(AppColors.shadow.opacity(0.08))
                 .frame(height: 1)
 
             // Page grid
@@ -162,7 +162,7 @@ struct PDFReorderView: View {
 
             bottomSection
         }
-        .background(Color.white)
+        .background(AppColors.surface)
     }
 
     // MARK: - Page Cell
@@ -183,7 +183,7 @@ struct PDFReorderView: View {
                         .clipped()
                 } else {
                     Rectangle()
-                        .fill(Color(hex: "E6E6EC"))
+                        .fill(AppColors.placeholder)
                         .aspectRatio(0.75, contentMode: .fit)
                 }
 
@@ -193,20 +193,20 @@ struct PDFReorderView: View {
                     .foregroundColor(.white)
                     .frame(width: 24, height: 24)
                     .background(
-                        Circle().fill(Color(hex: "F4800D"))
+                        Circle().fill(AppColors.accent)
                     )
                     .padding(6)
             }
             .clipShape(RoundedRectangle(cornerRadius: 8))
             .overlay(
                 RoundedRectangle(cornerRadius: 8)
-                    .stroke(Color(hex: "888888").opacity(0.12), lineWidth: 1)
+                    .stroke(AppColors.textSecondary.opacity(0.12), lineWidth: 1)
             )
 
             // Label
             Text("Page \(item.originalIndex + 1)")
                 .font(.system(size: 11, weight: .semibold))
-                .foregroundColor(Color(hex: "888888"))
+                .foregroundColor(AppColors.textSecondary)
                 .tracking(-0.408)
         }
         .opacity(isDragging ? 0.4 : 1.0)
@@ -218,7 +218,7 @@ struct PDFReorderView: View {
         ZStack {
             Text("Reorder pages")
                 .font(.system(size: 20, weight: .semibold))
-                .foregroundColor(Color(hex: "1D1D1D"))
+                .foregroundColor(AppColors.textPrimary)
                 .tracking(-0.408)
 
             HStack {
@@ -229,9 +229,9 @@ struct PDFReorderView: View {
                         .resizable()
                         .renderingMode(.template)
                         .frame(width: 24, height: 24)
-                        .foregroundColor(Color(hex: "1D1D1D"))
+                        .foregroundColor(AppColors.textPrimary)
                         .frame(width: 40, height: 40)
-                        .background(Circle().fill(Color(hex: "888888").opacity(0.08)))
+                        .background(Circle().fill(AppColors.textSecondary.opacity(0.08)))
                 }
                 Spacer()
             }
@@ -244,7 +244,7 @@ struct PDFReorderView: View {
         ZStack {
             Text("Reorder pages")
                 .font(.system(size: 20, weight: .semibold))
-                .foregroundColor(Color(hex: "1D1D1D"))
+                .foregroundColor(AppColors.textPrimary)
                 .tracking(-0.408)
 
             HStack {
@@ -252,9 +252,9 @@ struct PDFReorderView: View {
                 Button { dismiss() } label: {
                     Image(systemName: "xmark")
                         .font(.system(size: 14, weight: .semibold))
-                        .foregroundColor(Color(hex: "1D1D1D"))
+                        .foregroundColor(AppColors.textPrimary)
                         .frame(width: 40, height: 40)
-                        .background(Circle().fill(Color(hex: "888888").opacity(0.08)))
+                        .background(Circle().fill(AppColors.textSecondary.opacity(0.08)))
                 }
             }
         }
@@ -267,7 +267,7 @@ struct PDFReorderView: View {
     private var bottomSection: some View {
         VStack(spacing: 0) {
             Rectangle()
-                .fill(Color(hex: "565656").opacity(0.08))
+                .fill(AppColors.shadow.opacity(0.08))
                 .frame(height: 1)
 
             Button {
@@ -285,7 +285,7 @@ struct PDFReorderView: View {
                         RoundedRectangle(cornerRadius: 16)
                             .fill(
                                 LinearGradient(
-                                    colors: [Color(hex: "FFAD5B"), Color(hex: "F4800D"), Color(hex: "FFAD5B")],
+                                    colors: [AppColors.accentLight, AppColors.accent, AppColors.accentLight],
                                     startPoint: .topTrailing,
                                     endPoint: .bottomLeading
                                 )

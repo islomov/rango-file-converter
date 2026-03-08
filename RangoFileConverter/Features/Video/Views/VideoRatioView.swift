@@ -87,7 +87,7 @@ struct VideoRatioView: View {
 
             bottomButtons
         }
-        .background(Color.white)
+        .background(AppColors.surface)
         .navigationBarHidden(true)
         .task {
             await setupPlayer()
@@ -115,7 +115,7 @@ struct VideoRatioView: View {
         ZStack {
             Text("Video ratio")
                 .font(.system(size: 20, weight: .semibold))
-                .foregroundColor(Color(hex: "1D1D1D"))
+                .foregroundColor(AppColors.textPrimary)
                 .tracking(-0.408)
 
             HStack {
@@ -125,11 +125,11 @@ struct VideoRatioView: View {
                 } label: {
                     Image(systemName: "xmark")
                         .font(.system(size: 14, weight: .semibold))
-                        .foregroundColor(Color(hex: "1D1D1D"))
+                        .foregroundColor(AppColors.textPrimary)
                         .frame(width: 40, height: 40)
                         .background(
                             Circle()
-                                .fill(Color(hex: "888888").opacity(0.08))
+                                .fill(AppColors.textSecondary.opacity(0.08))
                         )
                 }
             }
@@ -154,7 +154,7 @@ struct VideoRatioView: View {
                     RoundedRectangle(cornerRadius: 0)
                         .fill(
                             LinearGradient(
-                                colors: [Color(hex: "E6E6EC"), Color(hex: "E6E6EC")],
+                                colors: [AppColors.placeholder, AppColors.placeholder],
                                 startPoint: .leading,
                                 endPoint: .trailing
                             )
@@ -192,16 +192,16 @@ struct VideoRatioView: View {
                     } label: {
                         Image(systemName: isPlaying ? "pause.circle.fill" : "play.circle.fill")
                             .font(.system(size: 32))
-                            .foregroundStyle(Color(hex: "F4800D"))
+                            .foregroundStyle(AppColors.accent)
                     }
                     .padding(8)
                 }
             }
         }
-        .background(Color.white)
+        .background(AppColors.surface)
         .overlay(
             Rectangle()
-                .fill(Color(hex: "565656").opacity(0.08))
+                .fill(AppColors.shadow.opacity(0.08))
                 .frame(height: 1),
             alignment: .bottom
         )
@@ -471,7 +471,7 @@ struct VideoRatioView: View {
             VStack(alignment: .leading, spacing: 8) {
                 Text("Fit mode")
                     .font(.system(size: 14, weight: .semibold))
-                    .foregroundColor(Color(hex: "888888"))
+                    .foregroundColor(AppColors.textSecondary)
                     .tracking(-0.408)
 
                 HStack(spacing: 8) {
@@ -483,7 +483,7 @@ struct VideoRatioView: View {
                                 .font(.system(size: 14, weight: .semibold))
                                 .tracking(-0.408)
                                 .foregroundColor(
-                                    fitMode == mode ? .white : Color(hex: "1D1D1D")
+                                    fitMode == mode ? .white : AppColors.textPrimary
                                 )
                                 .frame(maxWidth: .infinity)
                                 .padding(.vertical, 8)
@@ -491,8 +491,8 @@ struct VideoRatioView: View {
                                     Capsule()
                                         .fill(
                                             fitMode == mode
-                                                ? Color(hex: "F4800D")
-                                                : Color(hex: "888888").opacity(0.08)
+                                                ? AppColors.accent
+                                                : AppColors.textSecondary.opacity(0.08)
                                         )
                                 )
                         }
@@ -532,13 +532,13 @@ struct VideoRatioView: View {
             ZStack {
                 // Rectangle shape representing the ratio
                 RoundedRectangle(cornerRadius: 3)
-                    .stroke(Color(hex: "1D1D1D"), lineWidth: 1.5)
+                    .stroke(AppColors.textPrimary, lineWidth: 1.5)
                     .frame(width: props.width, height: props.height)
 
                 // Ratio text
                 Text(ratio.rawValue)
                     .font(.system(size: 9, weight: .semibold))
-                    .foregroundColor(Color(hex: "1D1D1D"))
+                    .foregroundColor(AppColors.textPrimary)
                     .tracking(-0.3)
             }
         }
@@ -548,14 +548,14 @@ struct VideoRatioView: View {
             RoundedRectangle(cornerRadius: 16)
                 .fill(
                     isSelected
-                        ? Color(hex: "F4800D").opacity(0.08)
-                        : Color(hex: "888888").opacity(0.12)
+                        ? AppColors.accent.opacity(0.08)
+                        : AppColors.textSecondary.opacity(0.12)
                 )
         )
         .overlay(
             RoundedRectangle(cornerRadius: 16)
                 .stroke(
-                    isSelected ? Color(hex: "FFAD5B") : .clear,
+                    isSelected ? AppColors.accentLight : .clear,
                     lineWidth: 2
                 )
         )
@@ -580,10 +580,10 @@ struct VideoRatioView: View {
                 } label: {
                     Text("Reset")
                         .font(.system(size: 16, weight: .semibold))
-                        .foregroundColor(Color(hex: "1D1D1D"))
+                        .foregroundColor(AppColors.textPrimary)
                         .tracking(-0.408)
                         .frame(width: resetWidth, height: 60)
-                        .background(Color(hex: "888888").opacity(0.08))
+                        .background(AppColors.textSecondary.opacity(0.08))
                         .clipShape(RoundedRectangle(cornerRadius: 16))
                 }
 
@@ -601,7 +601,7 @@ struct VideoRatioView: View {
                         .frame(width: convertWidth, height: 60)
                         .background(
                             LinearGradient(
-                                colors: [Color(hex: "FFAD5B"), Color(hex: "F4800D"), Color(hex: "FFAD5B")],
+                                colors: [AppColors.accentLight, AppColors.accent, AppColors.accentLight],
                                 startPoint: .leading,
                                 endPoint: .trailing
                             )

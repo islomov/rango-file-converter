@@ -58,7 +58,7 @@ struct VideoCompressView: View {
 
             bottomButton
         }
-        .background(Color.white)
+        .background(AppColors.surface)
         .navigationBarHidden(true)
         .hidesFloatingTabBar()
         .onAppear { loadOriginalSize() }
@@ -70,7 +70,7 @@ struct VideoCompressView: View {
         ZStack {
             Text("Compress video")
                 .font(.system(size: 20, weight: .semibold))
-                .foregroundColor(Color(hex: "1D1D1D"))
+                .foregroundColor(AppColors.textPrimary)
                 .tracking(-0.408)
 
             HStack {
@@ -80,11 +80,11 @@ struct VideoCompressView: View {
                 } label: {
                     Image(systemName: "xmark")
                         .font(.system(size: 14, weight: .semibold))
-                        .foregroundColor(Color(hex: "1D1D1D"))
+                        .foregroundColor(AppColors.textPrimary)
                         .frame(width: 40, height: 40)
                         .background(
                             Circle()
-                                .fill(Color(hex: "888888").opacity(0.08))
+                                .fill(AppColors.textSecondary.opacity(0.08))
                         )
                 }
             }
@@ -110,10 +110,10 @@ struct VideoCompressView: View {
             fileSizeInfo
                 .padding(.bottom, 12)
         }
-        .background(Color.white)
+        .background(AppColors.surface)
         .overlay(
             Rectangle()
-                .fill(Color(hex: "565656").opacity(0.08))
+                .fill(AppColors.shadow.opacity(0.08))
                 .frame(height: 1),
             alignment: .bottom
         )
@@ -122,7 +122,7 @@ struct VideoCompressView: View {
     private var fileSizeInfo: some View {
         Text(formatBytes(originalSize))
             .font(.system(size: 12, weight: .semibold))
-            .foregroundColor(Color(hex: "888888"))
+            .foregroundColor(AppColors.textSecondary)
             .tracking(-0.408)
     }
 
@@ -135,24 +135,24 @@ struct VideoCompressView: View {
                 HStack {
                     Text("Quality")
                         .font(.system(size: 14, weight: .semibold))
-                        .foregroundColor(Color(hex: "888888"))
+                        .foregroundColor(AppColors.textSecondary)
                         .tracking(-0.408)
                     Spacer()
                     Text("\(Int(quality))")
                         .font(.system(size: 14, weight: .semibold))
-                        .foregroundColor(Color(hex: "888888"))
+                        .foregroundColor(AppColors.textSecondary)
                         .tracking(-0.408)
                 }
 
                 Slider(value: $quality, in: 1...31, step: 1)
-                    .tint(Color(hex: "F4800D"))
+                    .tint(AppColors.accent)
             }
 
             // Resolution
             VStack(alignment: .leading, spacing: 8) {
                 Text("Resolution")
                     .font(.system(size: 14, weight: .semibold))
-                    .foregroundColor(Color(hex: "888888"))
+                    .foregroundColor(AppColors.textSecondary)
                     .tracking(-0.408)
 
                 chipPicker(
@@ -166,7 +166,7 @@ struct VideoCompressView: View {
             VStack(alignment: .leading, spacing: 8) {
                 Text("Speed")
                     .font(.system(size: 14, weight: .semibold))
-                    .foregroundColor(Color(hex: "888888"))
+                    .foregroundColor(AppColors.textSecondary)
                     .tracking(-0.408)
 
                 chipPicker(
@@ -180,7 +180,7 @@ struct VideoCompressView: View {
             VStack(alignment: .leading, spacing: 8) {
                 Text("Format")
                     .font(.system(size: 14, weight: .semibold))
-                    .foregroundColor(Color(hex: "888888"))
+                    .foregroundColor(AppColors.textSecondary)
                     .tracking(-0.408)
 
                 chipPicker(
@@ -212,11 +212,11 @@ struct VideoCompressView: View {
                             .padding(.vertical, 8)
                             .background(
                                 selected == item
-                                    ? Color(hex: "F4800D")
-                                    : Color(hex: "888888").opacity(0.08),
+                                    ? AppColors.accent
+                                    : AppColors.textSecondary.opacity(0.08),
                                 in: Capsule()
                             )
-                            .foregroundColor(selected == item ? .white : Color(hex: "1D1D1D"))
+                            .foregroundColor(selected == item ? .white : AppColors.textPrimary)
                     }
                     .buttonStyle(.plain)
                 }
@@ -244,7 +244,7 @@ struct VideoCompressView: View {
                     .frame(height: 60)
                     .background(
                         LinearGradient(
-                            colors: [Color(hex: "FFAD5B"), Color(hex: "F4800D"), Color(hex: "FFAD5B")],
+                            colors: [AppColors.accentLight, AppColors.accent, AppColors.accentLight],
                             startPoint: .topTrailing,
                             endPoint: .bottomLeading
                         )

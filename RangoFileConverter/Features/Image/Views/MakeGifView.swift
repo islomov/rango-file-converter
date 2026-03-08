@@ -28,7 +28,7 @@ struct MakeGifView: View {
 
             bottomSection
         }
-        .background(Color.white)
+        .background(AppColors.surface)
         .navigationBarHidden(true)
         .hidesFloatingTabBar()
         .onAppear {
@@ -47,7 +47,7 @@ struct MakeGifView: View {
         ZStack {
             Text("GIF")
                 .font(.system(size: 20, weight: .semibold))
-                .foregroundColor(Color(hex: "1D1D1D"))
+                .foregroundColor(AppColors.textPrimary)
                 .tracking(-0.408)
 
             HStack {
@@ -58,11 +58,11 @@ struct MakeGifView: View {
                 } label: {
                     Image(systemName: "xmark")
                         .font(.system(size: 14, weight: .semibold))
-                        .foregroundColor(Color(hex: "1D1D1D"))
+                        .foregroundColor(AppColors.textPrimary)
                         .frame(width: 40, height: 40)
                         .background(
                             Circle()
-                                .fill(Color(hex: "888888").opacity(0.08))
+                                .fill(AppColors.textSecondary.opacity(0.08))
                         )
                 }
             }
@@ -93,14 +93,14 @@ struct MakeGifView: View {
 
             Text("\(currentFrameIndex + 1) of \(fileURLs.count)")
                 .font(.system(size: 12, weight: .semibold))
-                .foregroundColor(Color(hex: "1D1D1D"))
+                .foregroundColor(AppColors.textPrimary)
                 .tracking(-0.408)
                 .padding(.bottom, 12)
         }
-        .background(Color.white)
+        .background(AppColors.surface)
         .overlay(
             Rectangle()
-                .fill(Color(hex: "565656").opacity(0.08))
+                .fill(AppColors.shadow.opacity(0.08))
                 .frame(height: 1),
             alignment: .bottom
         )
@@ -115,32 +115,32 @@ struct MakeGifView: View {
                 HStack {
                     Text("Frame Delay")
                         .font(.system(size: 14, weight: .semibold))
-                        .foregroundColor(Color(hex: "888888"))
+                        .foregroundColor(AppColors.textSecondary)
                         .tracking(-0.408)
                     Spacer()
                     Text(String(format: "%.2fs", frameDelay))
                         .font(.system(size: 14, weight: .semibold))
-                        .foregroundColor(Color(hex: "888888"))
+                        .foregroundColor(AppColors.textSecondary)
                         .tracking(-0.408)
                 }
 
                 Slider(value: $frameDelay, in: 0.05...1.0, step: 0.05)
-                    .tint(Color(hex: "F4800D"))
+                    .tint(AppColors.accent)
             }
 
             // Loop Forever toggle
             HStack {
                 Text("Loop Forever")
                     .font(.system(size: 16, weight: .semibold))
-                    .foregroundColor(Color(hex: "1D1D1D"))
+                    .foregroundColor(AppColors.textPrimary)
                     .tracking(-0.408)
                 Spacer()
                 Toggle("", isOn: $loopForever)
                     .labelsHidden()
-                    .tint(Color(hex: "F4800D"))
+                    .tint(AppColors.accent)
             }
             .padding(16)
-            .background(Color(hex: "888888").opacity(0.08))
+            .background(AppColors.textSecondary.opacity(0.08))
             .clipShape(RoundedRectangle(cornerRadius: 16))
         }
         .padding(16)
@@ -154,12 +154,12 @@ struct MakeGifView: View {
             HStack {
                 Text("\(fileURLs.count) frames")
                     .font(.system(size: 14, weight: .semibold))
-                    .foregroundColor(Color(hex: "888888"))
+                    .foregroundColor(AppColors.textSecondary)
                     .tracking(-0.408)
                 Spacer()
                 Text(String(format: "%.1fs total", totalDuration))
                     .font(.system(size: 14, weight: .semibold))
-                    .foregroundColor(Color(hex: "888888"))
+                    .foregroundColor(AppColors.textSecondary)
                     .tracking(-0.408)
             }
 
@@ -176,7 +176,7 @@ struct MakeGifView: View {
                     .frame(height: 60)
                     .background(
                         LinearGradient(
-                            colors: [Color(hex: "FFAD5B"), Color(hex: "F4800D")],
+                            colors: [AppColors.accentLight, AppColors.accent],
                             startPoint: .topTrailing,
                             endPoint: .bottomLeading
                         )

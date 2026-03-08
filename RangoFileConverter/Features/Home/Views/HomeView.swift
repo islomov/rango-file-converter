@@ -10,7 +10,7 @@ struct HomeView: View {
             HStack {
                 Text("Home")
                     .font(.system(size: 28, weight: .bold))
-                    .foregroundColor(Color(hex: "1D1D1D"))
+                    .foregroundColor(AppColors.textPrimary)
 
                 Spacer()
 
@@ -19,7 +19,7 @@ struct HomeView: View {
                         Circle()
                             .fill(
                                 LinearGradient(
-                                    colors: [Color(hex: "FFAD5B"), Color(hex: "F4800D"), Color(hex: "FFAD5B")],
+                                    colors: [AppColors.accentLight, AppColors.accent, AppColors.accentLight],
                                     startPoint: .topTrailing,
                                     endPoint: .bottomLeading
                                 )
@@ -39,7 +39,7 @@ struct HomeView: View {
             // "Select service" label
             Text("Select service")
                 .font(.system(size: 16, weight: .semibold))
-                .foregroundColor(Color(hex: "888888"))
+                .foregroundColor(AppColors.textSecondary)
                 .padding(.horizontal, 16)
                 .padding(.bottom, 12)
 
@@ -63,8 +63,8 @@ struct HomeView: View {
                             title: "Image",
                             iconName: "icon_gallery",
                             arrowName: "icon_arrow_white",
-                            backgroundColor: Color(hex: "1D1D1D"),
-                            foregroundColor: .white,
+                            backgroundColor: AppColors.cardImage,
+                            foregroundColor: AppColors.cardImageForeground,
                             height: cardHeight,
                             topCornerRadius: 32
                         ) {
@@ -76,8 +76,8 @@ struct HomeView: View {
                             title: "Video",
                             iconName: "icon_video",
                             arrowName: "icon_arrow_dark",
-                            backgroundColor: .white,
-                            foregroundColor: Color(hex: "1D1D1D"),
+                            backgroundColor: AppColors.cardVideo,
+                            foregroundColor: AppColors.cardVideoForeground,
                             height: cardHeight,
                             topCornerRadius: 32
                         ) {
@@ -90,8 +90,8 @@ struct HomeView: View {
                             title: "Audio",
                             iconName: "icon_musicnote",
                             arrowName: "icon_arrow_dark",
-                            backgroundColor: Color(hex: "A3E96C"),
-                            foregroundColor: Color(hex: "1D1D1D"),
+                            backgroundColor: AppColors.cardAudio,
+                            foregroundColor: AppColors.cardDarkText,
                             height: cardHeight,
                             topCornerRadius: 32
                         ) {
@@ -104,8 +104,8 @@ struct HomeView: View {
                             title: "Documents",
                             iconName: "icon_document",
                             arrowName: "icon_arrow_dark",
-                            backgroundColor: Color(hex: "BDA9F1"),
-                            foregroundColor: Color(hex: "1D1D1D"),
+                            backgroundColor: AppColors.cardDocument,
+                            foregroundColor: AppColors.cardDarkText,
                             height: lastCardHeight,
                             topCornerRadius: 32,
                             hasBottomRadius: true
@@ -122,7 +122,7 @@ struct HomeView: View {
                 }
             }
         }
-        .background(Color(hex: "F2F2F6"))
+        .background(AppColors.background)
         .sheet(isPresented: $showFAQ) {
             FAQBottomSheetView()
                 .presentationDetents([.large])

@@ -128,7 +128,7 @@ struct FloatingTabBar: View {
                             .frame(width: 52, height: 52)
                             .background(
                                 selectedTab == tab
-                                ? Color(hex: "F4800D").opacity(0.08)
+                                ? AppColors.accent.opacity(0.08)
                                 : Color.clear
                             )
                             .clipShape(Circle())
@@ -140,8 +140,8 @@ struct FloatingTabBar: View {
             .padding(.vertical, 8)
             .background(
                 Capsule()
-                    .fill(Color.white)
-                    .shadow(color: Color(hex: "505050").opacity(0.2), radius: 10, y: 0)
+                    .fill(AppColors.tabBarBackground)
+                    .shadow(color: AppColors.shadow.opacity(0.2), radius: 10, y: 0)
             )
         }
         .padding(.bottom, 44)
@@ -161,7 +161,7 @@ struct FloatingTabBar: View {
                 .resizable()
                 .renderingMode(.template)
                 .frame(width: 28, height: 28)
-                .foregroundColor(Color(hex: "1D1D1D"))
+                .foregroundColor(AppColors.tabIconDefault)
         }
     }
 }
@@ -169,4 +169,5 @@ struct FloatingTabBar: View {
 #Preview {
     ContentView()
         .environmentObject(HistoryStore.shared)
+        .environmentObject(ThemeManager.shared)
 }

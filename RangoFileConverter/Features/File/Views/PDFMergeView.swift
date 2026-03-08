@@ -17,7 +17,7 @@ struct PDFMergeView: View {
     var body: some View {
         ZStack {
             if items.isEmpty {
-                Color(hex: "F2F2F6")
+                AppColors.background
                     .ignoresSafeArea()
                 emptyState
             } else {
@@ -55,13 +55,13 @@ struct PDFMergeView: View {
                     VStack(spacing: 8) {
                         Text("Add PDF files to merge")
                             .font(.system(size: 20, weight: .semibold))
-                            .foregroundColor(Color(hex: "1D1D1D"))
+                            .foregroundColor(AppColors.textPrimary)
                             .tracking(-0.408)
                             .multilineTextAlignment(.center)
 
                         Text("Files will be merged in the order shown")
                             .font(.system(size: 14, weight: .semibold))
-                            .foregroundColor(Color(hex: "888888"))
+                            .foregroundColor(AppColors.textSecondary)
                             .tracking(-0.408)
                             .multilineTextAlignment(.center)
                     }
@@ -78,7 +78,7 @@ struct PDFMergeView: View {
                         .frame(width: 180)
                         .background(
                             LinearGradient(
-                                colors: [Color(hex: "FFAD5B"), Color(hex: "F4800D"), Color(hex: "FFAD5B")],
+                                colors: [AppColors.accentLight, AppColors.accent, AppColors.accentLight],
                                 startPoint: .topTrailing,
                                 endPoint: .bottomLeading
                             )
@@ -114,7 +114,7 @@ struct PDFMergeView: View {
         ZStack {
             Text("Merge PDF")
                 .font(.system(size: 20, weight: .semibold))
-                .foregroundColor(Color(hex: "1D1D1D"))
+                .foregroundColor(AppColors.textPrimary)
                 .tracking(-0.408)
 
             HStack {
@@ -125,7 +125,7 @@ struct PDFMergeView: View {
                         .resizable()
                         .renderingMode(.template)
                         .frame(width: 24, height: 24)
-                        .foregroundColor(Color(hex: "1D1D1D"))
+                        .foregroundColor(AppColors.textPrimary)
                         .frame(width: 40, height: 40)
                 }
                 Spacer()
@@ -141,7 +141,7 @@ struct PDFMergeView: View {
         ZStack {
             Text("Merge PDF")
                 .font(.system(size: 20, weight: .semibold))
-                .foregroundColor(Color(hex: "1D1D1D"))
+                .foregroundColor(AppColors.textPrimary)
                 .tracking(-0.408)
 
             HStack {
@@ -149,9 +149,9 @@ struct PDFMergeView: View {
                 Button { dismiss() } label: {
                     Image(systemName: "xmark")
                         .font(.system(size: 14, weight: .semibold))
-                        .foregroundColor(Color(hex: "1D1D1D"))
+                        .foregroundColor(AppColors.textPrimary)
                         .frame(width: 40, height: 40)
-                        .background(Circle().fill(Color(hex: "888888").opacity(0.08)))
+                        .background(Circle().fill(AppColors.textSecondary.opacity(0.08)))
                 }
             }
         }
@@ -166,12 +166,12 @@ struct PDFMergeView: View {
             Image("icon_doc_merge")
                 .resizable()
                 .renderingMode(.template)
-                .foregroundColor(Color(hex: "1D1D1D"))
+                .foregroundColor(AppColors.textPrimary)
                 .frame(width: 28, height: 28)
 
             Text(mergedFileName)
                 .font(.system(size: 12, weight: .semibold))
-                .foregroundColor(Color(hex: "1D1D1D"))
+                .foregroundColor(AppColors.textPrimary)
                 .tracking(-0.408)
                 .lineLimit(1)
 
@@ -182,7 +182,7 @@ struct PDFMergeView: View {
             } label: {
                 Text("Change")
                     .font(.system(size: 12, weight: .semibold))
-                    .foregroundColor(Color(hex: "F4800D"))
+                    .foregroundColor(AppColors.accent)
                     .tracking(-0.408)
             }
         }
@@ -190,7 +190,7 @@ struct PDFMergeView: View {
         .padding(.horizontal, 16)
         .overlay(alignment: .bottom) {
             Rectangle()
-                .fill(Color(hex: "888888").opacity(0.12))
+                .fill(AppColors.textSecondary.opacity(0.12))
                 .frame(height: 1)
         }
     }
@@ -212,18 +212,18 @@ struct PDFMergeView: View {
             ForEach(Array(items.enumerated()), id: \.element.id) { index, item in
                 HStack(spacing: 12) {
                     RoundedRectangle(cornerRadius: 8.32)
-                        .fill(Color(hex: "E6E6EC"))
+                        .fill(AppColors.placeholder)
                         .frame(width: 52, height: 56)
 
                     VStack(alignment: .leading, spacing: 4) {
                         Text("Page \(index + 1)")
                             .font(.system(size: 12, weight: .semibold))
-                            .foregroundColor(Color(hex: "1D1D1D"))
+                            .foregroundColor(AppColors.textPrimary)
                             .tracking(-0.408)
 
                         Text(item.fileName)
                             .font(.system(size: 12, weight: .semibold))
-                            .foregroundColor(Color(hex: "888888"))
+                            .foregroundColor(AppColors.textSecondary)
                             .tracking(-0.408)
                             .lineLimit(1)
                     }
@@ -235,7 +235,7 @@ struct PDFMergeView: View {
                 .listRowSeparator(.hidden)
                 .overlay(alignment: .bottom) {
                     Rectangle()
-                        .fill(Color(hex: "888888").opacity(0.12))
+                        .fill(AppColors.textSecondary.opacity(0.12))
                         .frame(height: 1)
                 }
             }
@@ -250,7 +250,7 @@ struct PDFMergeView: View {
         .environment(\.editMode, .constant(.active))
         .overlay(alignment: .top) {
             Rectangle()
-                .fill(Color(hex: "565656").opacity(0.08))
+                .fill(AppColors.shadow.opacity(0.08))
                 .frame(height: 1)
         }
     }
@@ -260,7 +260,7 @@ struct PDFMergeView: View {
     private var bottomSection: some View {
         VStack(spacing: 0) {
             Rectangle()
-                .fill(Color(hex: "565656").opacity(0.08))
+                .fill(AppColors.shadow.opacity(0.08))
                 .frame(height: 1)
 
             VStack(spacing: 0) {
@@ -288,13 +288,13 @@ struct PDFMergeView: View {
     private var mergeButtonGradient: LinearGradient {
         if items.count < 2 {
             return LinearGradient(
-                colors: [Color(hex: "FFD9B8"), Color(hex: "F8C192"), Color(hex: "FFD9B8")],
+                colors: [AppColors.buttonDisabledStart, AppColors.buttonDisabledMid, AppColors.buttonDisabledStart],
                 startPoint: .topTrailing,
                 endPoint: .bottomLeading
             )
         } else {
             return LinearGradient(
-                colors: [Color(hex: "FFAD5B"), Color(hex: "F4800D"), Color(hex: "FFAD5B")],
+                colors: [AppColors.accentLight, AppColors.accent, AppColors.accentLight],
                 startPoint: .topTrailing,
                 endPoint: .bottomLeading
             )

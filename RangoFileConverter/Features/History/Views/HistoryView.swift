@@ -61,7 +61,7 @@ struct HistoryView: View {
             HStack {
                 Text("My converts")
                     .font(.custom("Montserrat-Bold", size: 28))
-                    .foregroundColor(Color(hex: "1D1D1D"))
+                    .foregroundColor(AppColors.textPrimary)
 
                 Spacer()
             }
@@ -78,12 +78,12 @@ struct HistoryView: View {
 
                     TextField("Search", text: $searchText)
                         .font(.custom("Sora-Regular", size: 14))
-                        .foregroundColor(Color(hex: "1D1D1D"))
+                        .foregroundColor(AppColors.textPrimary)
                 }
                 .padding(4)
                 .padding(.horizontal, 12)
                 .frame(height: 48)
-                .background(Color.white)
+                .background(AppColors.surface)
                 .clipShape(RoundedRectangle(cornerRadius: 16))
 
                 Button {
@@ -93,11 +93,11 @@ struct HistoryView: View {
                         .resizable()
                         .frame(width: 24, height: 24)
                         .frame(width: 48, height: 48)
-                        .background(filterState.isActive ? Color(hex: "F4800D").opacity(0.12) : Color.white)
+                        .background(filterState.isActive ? AppColors.accent.opacity(0.12) : Color.white)
                         .clipShape(RoundedRectangle(cornerRadius: 16))
                         .overlay(
                             RoundedRectangle(cornerRadius: 16)
-                                .stroke(filterState.isActive ? Color(hex: "F4800D") : Color.clear, lineWidth: 1.5)
+                                .stroke(filterState.isActive ? AppColors.accent : Color.clear, lineWidth: 1.5)
                         )
                 }
                 .buttonStyle(.plain)
@@ -137,10 +137,10 @@ struct HistoryView: View {
                             } header: {
                                 Text(group.category.capitalized)
                                     .font(.custom("Montserrat-SemiBold", size: 20))
-                                    .foregroundColor(Color(hex: "1D1D1D"))
+                                    .foregroundColor(AppColors.textPrimary)
                                     .frame(maxWidth: .infinity, alignment: .leading)
                                     .padding(.vertical, 8)
-                                    .background(Color(hex: "F2F2F6"))
+                                    .background(AppColors.background)
                             }
                         }
 
@@ -152,7 +152,7 @@ struct HistoryView: View {
                 }
             }
         }
-        .background(Color(hex: "F2F2F6"))
+        .background(AppColors.background)
         .sheet(item: $selectedRecord) { record in
             HistoryResultSheet(record: record)
         }

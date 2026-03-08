@@ -47,7 +47,7 @@ struct VideoSpeedView: View {
 
             bottomButtons
         }
-        .background(Color.white)
+        .background(AppColors.surface)
         .navigationBarHidden(true)
         .task {
             await setupPlayer()
@@ -66,7 +66,7 @@ struct VideoSpeedView: View {
         ZStack {
             Text("Speed change")
                 .font(.system(size: 20, weight: .semibold))
-                .foregroundColor(Color(hex: "1D1D1D"))
+                .foregroundColor(AppColors.textPrimary)
                 .tracking(-0.408)
 
             HStack {
@@ -76,11 +76,11 @@ struct VideoSpeedView: View {
                 } label: {
                     Image(systemName: "xmark")
                         .font(.system(size: 14, weight: .semibold))
-                        .foregroundColor(Color(hex: "1D1D1D"))
+                        .foregroundColor(AppColors.textPrimary)
                         .frame(width: 40, height: 40)
                         .background(
                             Circle()
-                                .fill(Color(hex: "888888").opacity(0.08))
+                                .fill(AppColors.textSecondary.opacity(0.08))
                         )
                 }
             }
@@ -98,7 +98,7 @@ struct VideoSpeedView: View {
             VStack(spacing: 8) {
                 ZStack {
                     RoundedRectangle(cornerRadius: 16)
-                        .fill(Color(hex: "E6E6EC"))
+                        .fill(AppColors.placeholder)
                         .aspectRatio(175.0 / 250.0, contentMode: .fit)
                         .frame(width: 200)
 
@@ -133,10 +133,10 @@ struct VideoSpeedView: View {
             .padding(.horizontal, 16)
             .padding(.vertical, 24)
         }
-        .background(Color.white)
+        .background(AppColors.surface)
         .overlay(
             Rectangle()
-                .fill(Color(hex: "565656").opacity(0.08))
+                .fill(AppColors.shadow.opacity(0.08))
                 .frame(height: 1),
             alignment: .bottom
         )
@@ -146,16 +146,16 @@ struct VideoSpeedView: View {
         HStack(spacing: 4) {
             Text(formatDuration(originalDuration))
                 .font(.system(size: 12, weight: .semibold))
-                .foregroundColor(Color(hex: "1D1D1D"))
+                .foregroundColor(AppColors.textPrimary)
                 .tracking(-0.408)
 
             Image(systemName: "arrow.right")
                 .font(.system(size: 10, weight: .semibold))
-                .foregroundColor(Color(hex: "1D1D1D"))
+                .foregroundColor(AppColors.textPrimary)
 
             Text(formatDuration(originalDuration / selectedSpeed.rawValue))
                 .font(.system(size: 12, weight: .semibold))
-                .foregroundColor(Color(hex: "F4800D"))
+                .foregroundColor(AppColors.accent)
                 .tracking(-0.408)
         }
     }
@@ -167,7 +167,7 @@ struct VideoSpeedView: View {
             VStack(alignment: .leading, spacing: 8) {
                 Text("Speed")
                     .font(.system(size: 14, weight: .semibold))
-                    .foregroundColor(Color(hex: "888888"))
+                    .foregroundColor(AppColors.textSecondary)
                     .tracking(-0.408)
 
                 speedPicker
@@ -191,7 +191,7 @@ struct VideoSpeedView: View {
                             .foregroundColor(
                                 selectedSpeed == preset
                                     ? .white
-                                    : Color(hex: "1D1D1D")
+                                    : AppColors.textPrimary
                             )
                             .padding(.horizontal, 12)
                             .padding(.vertical, 8)
@@ -199,8 +199,8 @@ struct VideoSpeedView: View {
                                 Capsule()
                                     .fill(
                                         selectedSpeed == preset
-                                            ? Color(hex: "F4800D")
-                                            : Color(hex: "888888").opacity(0.08)
+                                            ? AppColors.accent
+                                            : AppColors.textSecondary.opacity(0.08)
                                     )
                             )
                     }
@@ -221,7 +221,7 @@ struct VideoSpeedView: View {
                     .resizable()
                     .renderingMode(.template)
                     .frame(width: 32, height: 32)
-                    .foregroundColor(Color(hex: "1D1D1D"))
+                    .foregroundColor(AppColors.textPrimary)
             }
 
             Button {
@@ -232,8 +232,8 @@ struct VideoSpeedView: View {
                         .resizable()
                         .frame(width: 56, height: 56)
                         .foregroundStyle(
-                            Color(hex: "F4800D"),
-                            Color(hex: "F4800D").opacity(0.15)
+                            AppColors.accent,
+                            AppColors.accent.opacity(0.15)
                         )
                 } else {
                     Image("icon_video_play")
@@ -256,7 +256,7 @@ struct VideoSpeedView: View {
                     .resizable()
                     .renderingMode(.template)
                     .frame(width: 32, height: 32)
-                    .foregroundColor(Color(hex: "1D1D1D"))
+                    .foregroundColor(AppColors.textPrimary)
             }
         }
     }
@@ -276,10 +276,10 @@ struct VideoSpeedView: View {
                 } label: {
                     Text("Reset")
                         .font(.system(size: 16, weight: .semibold))
-                        .foregroundColor(Color(hex: "1D1D1D"))
+                        .foregroundColor(AppColors.textPrimary)
                         .tracking(-0.408)
                         .frame(width: resetWidth, height: 60)
-                        .background(Color(hex: "888888").opacity(0.08))
+                        .background(AppColors.textSecondary.opacity(0.08))
                         .clipShape(RoundedRectangle(cornerRadius: 16))
                 }
 
@@ -295,7 +295,7 @@ struct VideoSpeedView: View {
                         .frame(width: convertWidth, height: 60)
                         .background(
                             LinearGradient(
-                                colors: [Color(hex: "FFAD5B"), Color(hex: "F4800D"), Color(hex: "FFAD5B")],
+                                colors: [AppColors.accentLight, AppColors.accent, AppColors.accentLight],
                                 startPoint: .leading,
                                 endPoint: .trailing
                             )

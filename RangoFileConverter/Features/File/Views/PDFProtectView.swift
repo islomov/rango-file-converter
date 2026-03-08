@@ -38,7 +38,7 @@ struct PDFProtectView: View {
 
     private var emptyState: some View {
         ZStack {
-            Color(hex: "F2F2F6")
+            AppColors.background
                 .ignoresSafeArea()
 
             VStack(spacing: 0) {
@@ -55,7 +55,7 @@ struct PDFProtectView: View {
 
                         Text("Select a PDF to protect")
                             .font(.system(size: 20, weight: .semibold))
-                            .foregroundColor(Color(hex: "1D1D1D"))
+                            .foregroundColor(AppColors.textPrimary)
                             .tracking(-0.408)
                             .multilineTextAlignment(.center)
                     }
@@ -71,7 +71,7 @@ struct PDFProtectView: View {
                             .frame(width: 180)
                             .background(
                                 LinearGradient(
-                                    colors: [Color(hex: "FFAD5B"), Color(hex: "F4800D"), Color(hex: "FFAD5B")],
+                                    colors: [AppColors.accentLight, AppColors.accent, AppColors.accentLight],
                                     startPoint: .topTrailing,
                                     endPoint: .bottomLeading
                                 )
@@ -98,12 +98,12 @@ struct PDFProtectView: View {
                     Image("icon_doc_protect")
                         .resizable()
                         .renderingMode(.template)
-                        .foregroundColor(Color(hex: "888888"))
+                        .foregroundColor(AppColors.textSecondary)
                         .frame(width: 28, height: 28)
 
                     Text(fileName)
                         .font(.system(size: 12, weight: .semibold))
-                        .foregroundColor(Color(hex: "1D1D1D"))
+                        .foregroundColor(AppColors.textPrimary)
                         .tracking(-0.408)
                         .lineLimit(1)
 
@@ -114,14 +114,14 @@ struct PDFProtectView: View {
                     } label: {
                         Text("Change")
                             .font(.system(size: 12, weight: .semibold))
-                            .foregroundColor(Color(hex: "F4800D"))
+                            .foregroundColor(AppColors.accent)
                             .tracking(-0.408)
                     }
                 }
                 .padding(.vertical, 16)
                 .overlay(
                     Rectangle()
-                        .fill(Color(hex: "888888").opacity(0.12))
+                        .fill(AppColors.textSecondary.opacity(0.12))
                         .frame(height: 1),
                     alignment: .bottom
                 )
@@ -130,7 +130,7 @@ struct PDFProtectView: View {
                 VStack(alignment: .leading, spacing: 12) {
                     Text("Set password")
                         .font(.system(size: 12, weight: .semibold))
-                        .foregroundColor(Color(hex: "888888"))
+                        .foregroundColor(AppColors.textSecondary)
                         .tracking(-0.408)
 
                     SecureField("Password", text: $password)
@@ -140,7 +140,7 @@ struct PDFProtectView: View {
                         .frame(height: 56)
                         .background(
                             RoundedRectangle(cornerRadius: 12)
-                                .fill(Color(hex: "888888").opacity(0.08))
+                                .fill(AppColors.textSecondary.opacity(0.08))
                         )
 
                     SecureField("Confirm password", text: $confirmPassword)
@@ -150,7 +150,7 @@ struct PDFProtectView: View {
                         .frame(height: 56)
                         .background(
                             RoundedRectangle(cornerRadius: 12)
-                                .fill(Color(hex: "888888").opacity(0.08))
+                                .fill(AppColors.textSecondary.opacity(0.08))
                         )
                 }
                 .padding(.top, 24)
@@ -158,7 +158,7 @@ struct PDFProtectView: View {
                 if let errorMessage {
                     Text(errorMessage)
                         .font(.system(size: 12, weight: .semibold))
-                        .foregroundColor(Color(hex: "F21414"))
+                        .foregroundColor(AppColors.destructive)
                         .tracking(-0.408)
                         .padding(.top, 8)
                 }
@@ -194,7 +194,7 @@ struct PDFProtectView: View {
         ZStack {
             Text("Protect PDF")
                 .font(.system(size: 20, weight: .semibold))
-                .foregroundColor(Color(hex: "1D1D1D"))
+                .foregroundColor(AppColors.textPrimary)
                 .tracking(-0.408)
 
             HStack {
@@ -205,7 +205,7 @@ struct PDFProtectView: View {
                         .resizable()
                         .renderingMode(.template)
                         .frame(width: 24, height: 24)
-                        .foregroundColor(Color(hex: "1D1D1D"))
+                        .foregroundColor(AppColors.textPrimary)
                         .frame(width: 40, height: 40)
                 }
                 Spacer()
@@ -219,7 +219,7 @@ struct PDFProtectView: View {
         ZStack {
             Text("Protect PDF")
                 .font(.system(size: 20, weight: .semibold))
-                .foregroundColor(Color(hex: "1D1D1D"))
+                .foregroundColor(AppColors.textPrimary)
                 .tracking(-0.408)
 
             HStack {
@@ -229,9 +229,9 @@ struct PDFProtectView: View {
                 } label: {
                     Image(systemName: "xmark")
                         .font(.system(size: 16, weight: .semibold))
-                        .foregroundColor(Color(hex: "1D1D1D"))
+                        .foregroundColor(AppColors.textPrimary)
                         .frame(width: 40, height: 40)
-                        .background(Circle().fill(Color(hex: "888888").opacity(0.08)))
+                        .background(Circle().fill(AppColors.textSecondary.opacity(0.08)))
                 }
             }
         }
@@ -243,13 +243,13 @@ struct PDFProtectView: View {
         let isDisabled = password.isEmpty || confirmPassword.isEmpty
         if isDisabled {
             return LinearGradient(
-                colors: [Color(hex: "FFD9B8"), Color(hex: "F8C192"), Color(hex: "FFD9B8")],
+                colors: [AppColors.buttonDisabledStart, AppColors.buttonDisabledMid, AppColors.buttonDisabledStart],
                 startPoint: .topTrailing,
                 endPoint: .bottomLeading
             )
         } else {
             return LinearGradient(
-                colors: [Color(hex: "FFAD5B"), Color(hex: "F4800D"), Color(hex: "FFAD5B")],
+                colors: [AppColors.accentLight, AppColors.accent, AppColors.accentLight],
                 startPoint: .topTrailing,
                 endPoint: .bottomLeading
             )

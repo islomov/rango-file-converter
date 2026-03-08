@@ -21,17 +21,7 @@ final class HistoryStore: ObservableObject {
         let appSupport = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
         try? FileManager.default.createDirectory(at: appSupport, withIntermediateDirectories: true)
         fileURL = appSupport.appendingPathComponent("conversion_history.json")
-        migrateFromDocumentsIfNeeded()
         load()
-    }
-
-    /// Migrate history JSON from Documents (old location) to Application Support (private).
-    private func migrateFromDocumentsIfNeeded() {
-        let docs = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
-        let oldURL = docs.appendingPathComponent("conversion_history.json")
-        guard FileManager.default.fileExists(atPath: oldURL.path),
-              !FileManager.default.fileExists(atPath: fileURL.path) else { return }
-        try? FileManager.default.moveItem(at: oldURL, to: fileURL)
     }
 
     // MARK: - Filtered Access

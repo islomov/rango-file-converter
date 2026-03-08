@@ -6,9 +6,50 @@
 //
 
 import SwiftUI
+import UserNotifications
+
+// MARK: - App Delegate
+
+final class AppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCenterDelegate {
+
+    func application(
+        _ application: UIApplication,
+        didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]? = nil
+    ) -> Bool {
+        UNUserNotificationCenter.current().delegate = self
+        DailyReminderManager.shared.rescheduleIfNeeded()
+        return true
+    }
+
+    // Show notification even when app is in foreground
+    func userNotificationCenter(
+        _ center: UNUserNotificationCenter,
+        willPresent notification: UNNotification,
+        withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void
+    ) {
+        completionHandler([.banner, .sound])
+    }
+
+    // Handle tap on notification → navigate to home tab
+    func userNotificationCenter(
+        _ center: UNUserNotificationCenter,
+        didReceive response: UNNotificationResponse,
+        withCompletionHandler completionHandler: @escaping () -> Void
+    ) {
+        NotificationCenter.default.post(name: .didTapDailyReminder, object: nil)
+        completionHandler()
+    }
+}
+
+extension Notification.Name {
+    static let didTapDailyReminder = Notification.Name("didTapDailyReminder")
+}
+
+// MARK: - App Entry Point
 
 @main
 struct RangoFileConverterApp: App {
+    @UIApplicationDelegateAdaptor(AppDelegate.self) private var appDelegate
     @StateObject private var historyStore = HistoryStore.shared
     @StateObject private var themeManager = ThemeManager.shared
 

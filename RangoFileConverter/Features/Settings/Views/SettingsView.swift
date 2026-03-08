@@ -3,11 +3,12 @@ import SwiftUI
 struct SettingsView: View {
     @EnvironmentObject private var historyStore: HistoryStore
     @EnvironmentObject private var themeManager: ThemeManager
-    @State private var dailyReminders = true
+    @StateObject private var reminderManager = DailyReminderManager.shared
     @State private var showClearHistoryAlert = false
     @State private var showLanguagePicker = false
     @State private var showPrivacyPolicy = false
     @State private var showTermsOfUse = false
+    @State private var sectionsAppeared = false
 
     var body: some View {
         ZStack {
@@ -17,9 +18,24 @@ struct SettingsView: View {
             ScrollView {
                 VStack(spacing: 12) {
                     generalSection
+                        .opacity(sectionsAppeared ? 1 : 0)
+                        .offset(y: sectionsAppeared ? 0 : 20)
+                        .animation(.spring(response: 0.45, dampingFraction: 0.85).delay(0.05), value: sectionsAppeared)
+
                     themeSection
+                        .opacity(sectionsAppeared ? 1 : 0)
+                        .offset(y: sectionsAppeared ? 0 : 20)
+                        .animation(.spring(response: 0.45, dampingFraction: 0.85).delay(0.12), value: sectionsAppeared)
+
                     clearHistoryButton
+                        .opacity(sectionsAppeared ? 1 : 0)
+                        .offset(y: sectionsAppeared ? 0 : 20)
+                        .animation(.spring(response: 0.45, dampingFraction: 0.85).delay(0.19), value: sectionsAppeared)
+
                     linksSection
+                        .opacity(sectionsAppeared ? 1 : 0)
+                        .offset(y: sectionsAppeared ? 0 : 20)
+                        .animation(.spring(response: 0.45, dampingFraction: 0.85).delay(0.26), value: sectionsAppeared)
                 }
                 .padding(.horizontal, 16)
                 .padding(.top, 16)
@@ -47,6 +63,11 @@ struct SettingsView: View {
             .presentationDetents([.large])
             .presentationDragIndicator(.hidden)
             .preferredColorScheme(themeManager.colorScheme)
+        }
+        .onAppear {
+            if !sectionsAppeared {
+                sectionsAppeared = true
+            }
         }
         .alert("Clear History", isPresented: $showClearHistoryAlert) {
             Button("Clear", role: .destructive) {
@@ -84,7 +105,7 @@ struct SettingsView: View {
                 title: "Daily reminders",
                 showDivider: true
             ) {
-                Toggle("", isOn: $dailyReminders)
+                Toggle("", isOn: $reminderManager.isEnabled)
                     .labelsHidden()
                     .tint(AppColors.accent)
             }

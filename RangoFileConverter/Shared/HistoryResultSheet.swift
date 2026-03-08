@@ -21,6 +21,7 @@ struct HistoryResultSheet: View {
     @State private var fileInfoTask: Task<Void, Never>?
     @State private var imageLoadTask: Task<Void, Never>?
     @State private var quickLookURL: URL?
+    @State private var videoReady = false
 
     var body: some View {
         VStack(spacing: 0) {
@@ -475,14 +476,18 @@ struct HistoryResultSheet: View {
     private func loadFileInfo() {
         guard let outputURL = record.outputURL else { return }
 
-        let asset = AVAsset(url: outputURL)
         fileInfoTask = Task.detached(priority: .userInitiated) {
+            // File size — lightweight FileManager call
             if let attrs = try? FileManager.default.attributesOfItem(atPath: outputURL.path),
                let bytes = attrs[.size] as? Int64 {
                 let formatted = ByteCountFormatter.string(fromByteCount: bytes, countStyle: .file)
                 await MainActor.run { fileSize = formatted }
             }
             guard !Task.isCancelled else { return }
+
+            // AVAsset created on background thread to avoid blocking UI
+            let asset = AVAsset(url: outputURL)
+
             if let track = try? await asset.loadTracks(withMediaType: .video).first {
                 guard !Task.isCancelled else { return }
                 if let size = try? await track.load(.naturalSize) {
@@ -510,9 +515,25 @@ struct HistoryResultSheet: View {
     @ViewBuilder
     private func videoPreview(url: URL) -> some View {
         if isAVPlayerCompatible(url) {
-            VideoPlayerView(url: url)
-                .aspectRatio(16 / 9, contentMode: .fit)
-                .clipShape(RoundedRectangle(cornerRadius: 16))
+            if videoReady {
+                VideoPlayerView(url: url)
+                    .aspectRatio(16 / 9, contentMode: .fit)
+                    .clipShape(RoundedRectangle(cornerRadius: 16))
+            } else {
+                mediaThumbnailPlaceholder(icon: "play.fill")
+                    .aspectRatio(16 / 9, contentMode: .fit)
+                    .clipShape(RoundedRectangle(cornerRadius: 16))
+                    .onAppear {
+                        Task.detached(priority: .userInitiated) {
+                            // Verify the asset has playable tracks before showing player
+                            let asset = AVAsset(url: url)
+                            let playable = (try? await asset.load(.isPlayable)) ?? false
+                            await MainActor.run {
+                                if playable { videoReady = true }
+                            }
+                        }
+                    }
+            }
         } else {
             unsupportedPreview(icon: "video.fill", format: url.pathExtension.uppercased())
         }
@@ -535,10 +556,10 @@ struct HistoryResultSheet: View {
                         .frame(maxHeight: 180)
                         .clipShape(RoundedRectangle(cornerRadius: 16))
                 } else {
-                    RoundedRectangle(cornerRadius: 16)
-                        .fill(AppColors.placeholder)
-                        .frame(width: 52, height: 74)
-                        .overlay { ProgressView() }
+                    mediaThumbnailPlaceholder(icon: "photo.fill")
+                        .frame(maxWidth: .infinity)
+                        .frame(height: 180)
+                        .clipShape(RoundedRectangle(cornerRadius: 16))
                 }
             }
             .onAppear { loadImage(url: url) }
@@ -720,6 +741,16 @@ struct HistoryResultSheet: View {
                 .foregroundColor(AppColors.textSecondary)
         }
         .padding(.vertical, 8)
+    }
+
+    private func mediaThumbnailPlaceholder(icon: String) -> some View {
+        ZStack {
+            RoundedRectangle(cornerRadius: 16)
+                .fill(AppColors.placeholder)
+            Image(systemName: icon)
+                .font(.system(size: 32))
+                .foregroundColor(AppColors.textTertiary)
+        }
     }
 
     private enum OutputMediaType {

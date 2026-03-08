@@ -7,11 +7,15 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		153FAF5C2F5DA8FB0079F7FA /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 153FAF5B2F5DA8FB0079F7FA /* GoogleService-Info.plist */; };
 		157079BC2F4ADBFB00B64C40 /* FFmpeg-iOS in Frameworks */ = {isa = PBXBuildFile; productRef = 157079BB2F4ADBFB00B64C40 /* FFmpeg-iOS */; };
 		157079C32F4AEC5C00B64C40 /* webp in Frameworks */ = {isa = PBXBuildFile; productRef = 157079C22F4AEC5C00B64C40 /* webp */; };
+		15707A032F5B000100B64C40 /* FirebaseRemoteConfig in Frameworks */ = {isa = PBXBuildFile; productRef = 15707A012F5B000100B64C40 /* FirebaseRemoteConfig */; };
+		15707A042F5B000100B64C40 /* FirebaseAnalytics in Frameworks */ = {isa = PBXBuildFile; productRef = 15707A022F5B000100B64C40 /* FirebaseAnalytics */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		153FAF5B2F5DA8FB0079F7FA /* GoogleService-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
 		157079572F4881F500B64C40 /* RangoFileConverter.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = RangoFileConverter.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
@@ -30,6 +34,8 @@
 			files = (
 				157079C32F4AEC5C00B64C40 /* webp in Frameworks */,
 				157079BC2F4ADBFB00B64C40 /* FFmpeg-iOS in Frameworks */,
+				15707A032F5B000100B64C40 /* FirebaseRemoteConfig in Frameworks */,
+				15707A042F5B000100B64C40 /* FirebaseAnalytics in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -41,6 +47,7 @@
 			children = (
 				157079592F4881F500B64C40 /* RangoFileConverter */,
 				157079582F4881F500B64C40 /* Products */,
+				153FAF5B2F5DA8FB0079F7FA /* GoogleService-Info.plist */,
 			);
 			sourceTree = "<group>";
 		};
@@ -74,6 +81,8 @@
 			packageProductDependencies = (
 				157079BB2F4ADBFB00B64C40 /* FFmpeg-iOS */,
 				157079C22F4AEC5C00B64C40 /* webp */,
+				15707A012F5B000100B64C40 /* FirebaseRemoteConfig */,
+				15707A022F5B000100B64C40 /* FirebaseAnalytics */,
 			);
 			productName = RangoFileConverter;
 			productReference = 157079572F4881F500B64C40 /* RangoFileConverter.app */;
@@ -106,6 +115,7 @@
 			packageReferences = (
 				157079BA2F4ADBFB00B64C40 /* XCRemoteSwiftPackageReference "FFmpeg-iOS" */,
 				157079C12F4AEC5C00B64C40 /* XCRemoteSwiftPackageReference "webp.swift" */,
+				15707A002F5B000100B64C40 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 157079582F4881F500B64C40 /* Products */;
@@ -122,6 +132,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				153FAF5C2F5DA8FB0079F7FA /* GoogleService-Info.plist in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -387,6 +398,14 @@
 				minimumVersion = 1.1.2;
 			};
 		};
+		15707A002F5B000100B64C40 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/firebase/firebase-ios-sdk.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 11.0.0;
+			};
+		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
@@ -399,6 +418,16 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 157079C12F4AEC5C00B64C40 /* XCRemoteSwiftPackageReference "webp.swift" */;
 			productName = webp;
+		};
+		15707A012F5B000100B64C40 /* FirebaseRemoteConfig */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 15707A002F5B000100B64C40 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseRemoteConfig;
+		};
+		15707A022F5B000100B64C40 /* FirebaseAnalytics */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 15707A002F5B000100B64C40 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseAnalytics;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

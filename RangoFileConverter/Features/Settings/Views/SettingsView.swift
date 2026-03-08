@@ -49,19 +49,23 @@ struct SettingsView: View {
         .sheet(isPresented: $showPrivacyPolicy) {
             WebViewSheet(
                 title: "Privacy policy",
-                url: URL(string: "https://viralapps.studio/rangosimpleconverter/privacy-policy")!
+                url: URL(string: "https://viralapps.studio/rangosimpleconverter/privacy-policy")!,
+                colorScheme: themeManager.colorScheme
             )
             .presentationDetents([.large])
             .presentationDragIndicator(.hidden)
+            .interactiveDismissDisabled()
             .preferredColorScheme(themeManager.colorScheme)
         }
         .sheet(isPresented: $showTermsOfUse) {
             WebViewSheet(
                 title: "Terms of use",
-                url: URL(string: "https://viralapps.studio/rangosimpleconverter/terms-of-use")!
+                url: URL(string: "https://viralapps.studio/rangosimpleconverter/terms-of-use")!,
+                colorScheme: themeManager.colorScheme
             )
             .presentationDetents([.large])
             .presentationDragIndicator(.hidden)
+            .interactiveDismissDisabled()
             .preferredColorScheme(themeManager.colorScheme)
         }
         .onAppear {

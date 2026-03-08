@@ -8,9 +8,14 @@ final class HistoryStore: ObservableObject {
 
     @Published private(set) var records: [ConversionRecord] = []
 
+    /// Cached storage sizes updated asynchronously to avoid main-thread file I/O.
+    @Published private(set) var cachedTotalStorageBytes: Int64 = 0
+    @Published private(set) var cachedCategoryStorageBytes: [String: Int64] = [:]
+
     private let fileURL: URL
     private let encoder = JSONEncoder()
     private let decoder = JSONDecoder()
+    private let ioQueue = DispatchQueue(label: "com.rango.historystore.io", qos: .utility)
 
     private init() {
         let docs = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
@@ -37,31 +42,36 @@ final class HistoryStore: ObservableObject {
 
     private func pruneIfNeeded() {
         guard records.count > Self.maxRecords else { return }
-        let overflow = records[Self.maxRecords...]
-        for record in overflow {
-            if let outputURL = record.outputURL {
-                try? FileManager.default.removeItem(at: outputURL)
+        let overflow = Array(records[Self.maxRecords...])
+        records.removeSubrange(Self.maxRecords...)
+        // Delete files off the main thread
+        ioQueue.async {
+            for record in overflow {
+                if let outputURL = record.outputURL {
+                    try? FileManager.default.removeItem(at: outputURL)
+                }
             }
         }
-        records.removeSubrange(Self.maxRecords...)
     }
 
     func remove(_ record: ConversionRecord) {
         ConversionTaskManager.shared.cancel(id: record.id)
-        if let outputURL = record.outputURL {
-            try? FileManager.default.removeItem(at: outputURL)
-        }
+        let outputURL = record.outputURL
         records.removeAll { $0.id == record.id }
         save()
+        // Delete file off the main thread
+        if let outputURL {
+            ioQueue.async {
+                try? FileManager.default.removeItem(at: outputURL)
+            }
+        }
     }
 
     func removeAll(for mediaCategory: String? = nil) {
         let toRemove = mediaCategory.map { records(for: $0) } ?? records
-        for record in toRemove {
+        let urlsToDelete = toRemove.compactMap { record -> URL? in
             ConversionTaskManager.shared.cancel(id: record.id)
-            if let outputURL = record.outputURL {
-                try? FileManager.default.removeItem(at: outputURL)
-            }
+            return record.outputURL
         }
         if let mediaCategory {
             records.removeAll { $0.mediaCategory == mediaCategory }
@@ -69,6 +79,13 @@ final class HistoryStore: ObservableObject {
             records.removeAll()
         }
         save()
+        // Delete files off the main thread
+        ioQueue.async {
+            for url in urlsToDelete {
+                try? FileManager.default.removeItem(at: url)
+            }
+        }
+        refreshStorageSizes()
     }
 
     // MARK: - Storage Info
@@ -78,22 +95,34 @@ final class HistoryStore: ObservableObject {
         return docs.appendingPathComponent("rango_conversions", isDirectory: true)
     }
 
-    func totalStorageBytes() -> Int64 {
-        directorySize(at: conversionsDirectory)
-    }
-
-    func storageBytes(for mediaCategory: String) -> Int64 {
-        let fm = FileManager.default
-        let categoryRecords = records(for: mediaCategory)
-        var total: Int64 = 0
-        for record in categoryRecords {
-            guard let url = record.outputURL else { continue }
-            if let attrs = try? fm.attributesOfItem(atPath: url.path),
-               let size = attrs[.size] as? Int64 {
-                total += size
+    /// Recalculates storage sizes on a background queue and publishes results on main thread.
+    func refreshStorageSizes() {
+        let convDir = conversionsDirectory
+        let currentRecords = records
+        ioQueue.async { [weak self] in
+            guard let self else { return }
+            let total = self.directorySize(at: convDir)
+            let categories = ["image", "video", "audio", "document"]
+            var categoryBytes: [String: Int64] = [:]
+            let fm = FileManager.default
+            for category in categories {
+                let catRecords = currentRecords.filter { $0.mediaCategory == category }
+                    .sorted { $0.date > $1.date }
+                var catTotal: Int64 = 0
+                for record in catRecords {
+                    guard let url = record.outputURL else { continue }
+                    if let attrs = try? fm.attributesOfItem(atPath: url.path),
+                       let size = attrs[.size] as? Int64 {
+                        catTotal += size
+                    }
+                }
+                categoryBytes[category] = catTotal
+            }
+            DispatchQueue.main.async {
+                self.cachedTotalStorageBytes = total
+                self.cachedCategoryStorageBytes = categoryBytes
             }
         }
-        return total
     }
 
     private func directorySize(at url: URL) -> Int64 {
@@ -110,14 +139,12 @@ final class HistoryStore: ObservableObject {
         return total
     }
 
-    private let saveQueue = DispatchQueue(label: "com.rango.historystore.save", qos: .utility)
-
     func save() {
         objectWillChange.send()
         let snapshot = records
         let encoder = self.encoder
         let url = self.fileURL
-        saveQueue.async {
+        ioQueue.async {
             do {
                 let data = try encoder.encode(snapshot)
                 try data.write(to: url, options: .atomic)
@@ -129,6 +156,8 @@ final class HistoryStore: ObservableObject {
 
     // MARK: - Private
 
+    /// Loads history synchronously at init so records are available immediately.
+    /// The JSON file is small (metadata + tiny thumbnails, max 500 records) so this is fast.
     private func load() {
         guard FileManager.default.fileExists(atPath: fileURL.path) else { return }
         do {

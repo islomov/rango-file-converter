@@ -102,7 +102,7 @@ struct HistoryRowView: View {
         let label = toolLabel
         Text(label)
             .font(.custom("Montserrat-SemiBold", size: 12))
-            .foregroundColor(.white)
+            .foregroundColor(toolBadgeTextColor)
             .padding(.horizontal, 8)
             .padding(.vertical, 4)
             .background(toolBadgeBackground)
@@ -130,6 +130,12 @@ struct HistoryRowView: View {
         }
     }
 
+    private var toolBadgeTextColor: Color {
+        record.tool == .rotate
+            ? AppColors.adaptive(light: "FFFFFF", dark: "1D1D1D")
+            : .white
+    }
+
     @ViewBuilder
     private var toolBadgeBackground: some View {
         switch record.tool {
@@ -142,7 +148,7 @@ struct HistoryRowView: View {
         case .compress:
             Color(hex: "43CF18")
         case .rotate:
-            Color(hex: "1D1D1D")
+            AppColors.adaptive(light: "1D1D1D", dark: "FFFFFF")
         case .resize:
             Color(hex: "196EDD")
         case .crop:

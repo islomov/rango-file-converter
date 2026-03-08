@@ -37,6 +37,7 @@ struct HistoryResultSheet: View {
         .padding(.horizontal, 16)
         .padding(.top, 12)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(AppColors.surface)
         .presentationDetents([.medium, .large])
         .presentationBackground(AppColors.surface)
         .presentationDragIndicator(.visible)

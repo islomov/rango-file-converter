@@ -18,8 +18,9 @@ final class HistoryStore: ObservableObject {
     private let ioQueue = DispatchQueue(label: "com.rango.historystore.io", qos: .utility)
 
     private init() {
-        let docs = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
-        fileURL = docs.appendingPathComponent("conversion_history.json")
+        let appSupport = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
+        try? FileManager.default.createDirectory(at: appSupport, withIntermediateDirectories: true)
+        fileURL = appSupport.appendingPathComponent("conversion_history.json")
         load()
     }
 

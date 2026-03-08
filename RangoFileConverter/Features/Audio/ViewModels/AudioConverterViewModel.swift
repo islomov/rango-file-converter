@@ -449,37 +449,52 @@ final class AudioConverterViewModel: ObservableObject {
 
                 let progressFile = tempDir.appendingPathComponent("progress_\(shortID).txt")
 
-                var args: [String] = []
-                args += ["-progress", progressFile.path]
+                // MP3 uses LAME via the coordinator; other formats use FFmpeg directly
+                if outputFormat == "mp3",
+                   let mp3Format = FormatRegistry.format(forExtension: "mp3") {
+                    var job = ConversionJob(inputURL: inputURL, outputFormat: mp3Format)
+                    job.quality = bitrate
 
-                // Codec and bitrate based on format
-                switch outputFormat {
-                case "flac":
-                    args += ["-c:a", "flac"]
-                case "wav":
-                    args += ["-c:a", "pcm_s16le"]
-                default:
-                    args += ["-b:a", "\(bitrate)k"]
-                }
+                    let result = try await self.coordinator.convert(job: job)
 
-                // Sample rate
-                if let sampleRate = sampleRate {
-                    args += ["-ar", String(sampleRate)]
-                }
+                    // Move output to our expected location
+                    if result.outputURL != outputURL {
+                        try? FileManager.default.removeItem(at: outputURL)
+                        try FileManager.default.moveItem(at: result.outputURL, to: outputURL)
+                    }
+                } else {
+                    var args: [String] = []
+                    args += ["-progress", progressFile.path]
 
-                if totalDurationUs > 0 {
-                    pollingTask = self.startProgressPolling(
-                        progressFile: progressFile,
-                        totalDurationUs: totalDurationUs,
-                        record: record
+                    // Codec and bitrate based on format
+                    switch outputFormat {
+                    case "flac":
+                        args += ["-c:a", "flac"]
+                    case "wav":
+                        args += ["-c:a", "pcm_s16le"]
+                    default:
+                        args += ["-b:a", "\(bitrate)k"]
+                    }
+
+                    // Sample rate
+                    if let sampleRate = sampleRate {
+                        args += ["-ar", String(sampleRate)]
+                    }
+
+                    if totalDurationUs > 0 {
+                        pollingTask = self.startProgressPolling(
+                            progressFile: progressFile,
+                            totalDurationUs: totalDurationUs,
+                            record: record
+                        )
+                    }
+
+                    try await FFmpegWrapper.shared.convert(
+                        input: inputURL,
+                        output: outputURL,
+                        extraArgs: args
                     )
                 }
-
-                try await FFmpegWrapper.shared.convert(
-                    input: inputURL,
-                    output: outputURL,
-                    extraArgs: args
-                )
 
                 pollingTask?.cancel()
                 try? FileManager.default.removeItem(at: progressFile)
@@ -614,16 +629,35 @@ final class AudioConverterViewModel: ObservableObject {
                     )
                 }
 
-                let outputURL = try await mergeEngine.mergeAudio(
-                    inputs: inputs,
-                    outputExtension: outputExtension,
-                    progressFilePath: progressFile.path
-                )
+                let finalURL: URL
+
+                if outputExtension.lowercased() == "mp3" {
+                    // MP3: merge to WAV first, then encode to MP3 via LAME
+                    let mergedWAV = try await mergeEngine.mergeAudio(
+                        inputs: inputs,
+                        outputExtension: "wav",
+                        progressFilePath: progressFile.path
+                    )
+                    defer { try? FileManager.default.removeItem(at: mergedWAV) }
+
+                    guard let mp3Format = FormatRegistry.format(forExtension: "mp3") else {
+                        throw ConversionError.unsupportedFormat("MP3")
+                    }
+                    let job = ConversionJob(inputURL: mergedWAV, outputFormat: mp3Format)
+                    let result = try await self.coordinator.convert(job: job)
+                    finalURL = result.outputURL
+                } else {
+                    finalURL = try await mergeEngine.mergeAudio(
+                        inputs: inputs,
+                        outputExtension: outputExtension,
+                        progressFilePath: progressFile.path
+                    )
+                }
 
                 pollingTask?.cancel()
                 try? FileManager.default.removeItem(at: progressFile)
 
-                let outputPath = ConversionRecord.persistOutput(from: outputURL)
+                let outputPath = ConversionRecord.persistOutput(from: finalURL)
                 await MainActor.run {
                     record.progress = 1.0
                     record.status = .converted

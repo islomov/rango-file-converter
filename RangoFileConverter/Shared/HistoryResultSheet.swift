@@ -25,6 +25,12 @@ struct HistoryResultSheet: View {
 
     var body: some View {
         VStack(spacing: 0) {
+            Capsule()
+                .fill(Color(.quaternaryLabel))
+                .frame(width: 36, height: 5)
+                .padding(.top, 12)
+                .padding(.bottom, 20)
+
             switch record.status {
             case .pending, .converting:
                 convertingContent
@@ -35,12 +41,11 @@ struct HistoryResultSheet: View {
             }
         }
         .padding(.horizontal, 16)
-        .padding(.top, 24)
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
         .background(AppColors.surface)
         .presentationDetents([.medium, .large])
         .presentationBackground(AppColors.surface)
-        .presentationDragIndicator(.visible)
+        .presentationDragIndicator(.hidden)
         .quickLookPreview($quickLookURL)
         .onDisappear {
             audioPlayer?.pause()

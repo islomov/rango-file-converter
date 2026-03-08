@@ -29,6 +29,8 @@ Not included: `libvpx`, `libtheora`, `libvorbis`, `libmp3lame`, `libx264`, `libx
 ## Native Engines (bypass FFmpeg)
 - **HEIC**: `CGImageDestinationCreateWithData` + `UTType.heic` — use data-based API, not URL-based
 - **WebP**: iOS only supports decoding. Encoding uses `awxkee/webp.swift` package. Quality param is `Float`, not `CGFloat`
+- **MP3**: iOS cannot encode MP3 natively. Uses `Phisto/swift-lame` (LAME C library via SPM). `NativeAudioEngine` reads audio via `AVAudioFile`, encodes with LAME. MP3 is in FFmpegConversionEngine's `nativeOnlyFormats` to prevent FFmpeg from claiming it.
+- **M4A**: `NativeAudioEngine` uses `AVAssetExportSession` with `AVAssetExportPresetAppleM4A` — handles both audio and video inputs (strips video automatically). Declines speed-change jobs via `canHandle(job:)` so FFmpeg handles those.
 
 ## GIF Output (single-pass palette)
 Filter: `[0:v] fps=N,scale=W:-1:flags=lanczos,split [a][b]; [a] palettegen [p]; [b][p] paletteuse`

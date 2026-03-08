@@ -69,6 +69,7 @@ struct HistoryRowView: View {
             }
         }
         .padding(.vertical, 2)
+        .contentShape(Rectangle())
     }
 
     // MARK: - Placeholder Icon

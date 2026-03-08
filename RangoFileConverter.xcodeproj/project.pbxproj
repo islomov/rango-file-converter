@@ -12,6 +12,7 @@
 		157079C32F4AEC5C00B64C40 /* webp in Frameworks */ = {isa = PBXBuildFile; productRef = 157079C22F4AEC5C00B64C40 /* webp */; };
 		15707A032F5B000100B64C40 /* FirebaseRemoteConfig in Frameworks */ = {isa = PBXBuildFile; productRef = 15707A012F5B000100B64C40 /* FirebaseRemoteConfig */; };
 		15707A042F5B000100B64C40 /* FirebaseAnalytics in Frameworks */ = {isa = PBXBuildFile; productRef = 15707A022F5B000100B64C40 /* FirebaseAnalytics */; };
+		15A0B0032F6C800000B64C40 /* lame in Frameworks */ = {isa = PBXBuildFile; productRef = 15A0B0022F6C800000B64C40 /* lame */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -36,6 +37,7 @@
 				157079BC2F4ADBFB00B64C40 /* FFmpeg-iOS in Frameworks */,
 				15707A032F5B000100B64C40 /* FirebaseRemoteConfig in Frameworks */,
 				15707A042F5B000100B64C40 /* FirebaseAnalytics in Frameworks */,
+				15A0B0032F6C800000B64C40 /* lame in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -83,6 +85,7 @@
 				157079C22F4AEC5C00B64C40 /* webp */,
 				15707A012F5B000100B64C40 /* FirebaseRemoteConfig */,
 				15707A022F5B000100B64C40 /* FirebaseAnalytics */,
+				15A0B0022F6C800000B64C40 /* lame */,
 			);
 			productName = RangoFileConverter;
 			productReference = 157079572F4881F500B64C40 /* RangoFileConverter.app */;
@@ -146,6 +149,7 @@
 				157079BA2F4ADBFB00B64C40 /* XCRemoteSwiftPackageReference "FFmpeg-iOS" */,
 				157079C12F4AEC5C00B64C40 /* XCRemoteSwiftPackageReference "webp.swift" */,
 				15707A002F5B000100B64C40 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */,
+				15A0B0012F6C800000B64C40 /* XCRemoteSwiftPackageReference "swift-lame" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 157079582F4881F500B64C40 /* Products */;
@@ -436,6 +440,14 @@
 				minimumVersion = 11.0.0;
 			};
 		};
+		15A0B0012F6C800000B64C40 /* XCRemoteSwiftPackageReference "swift-lame" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/Phisto/swift-lame.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 3.100.0;
+			};
+		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
@@ -458,6 +470,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 15707A002F5B000100B64C40 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
 			productName = FirebaseAnalytics;
+		};
+		15A0B0022F6C800000B64C40 /* lame */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 15A0B0012F6C800000B64C40 /* XCRemoteSwiftPackageReference "swift-lame" */;
+			productName = lame;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

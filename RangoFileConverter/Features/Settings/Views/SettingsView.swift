@@ -6,6 +6,7 @@ struct SettingsView: View {
     @StateObject private var reminderManager = DailyReminderManager.shared
     @State private var showClearStorageAlert = false
     @State private var clearStorageCategory: String?
+    @EnvironmentObject private var languageManager: LanguageManager
     @State private var showLanguagePicker = false
     @State private var showPrivacyPolicy = false
     @State private var showTermsOfUse = false
@@ -69,6 +70,12 @@ struct SettingsView: View {
             .interactiveDismissDisabled()
             .preferredColorScheme(themeManager.colorScheme)
         }
+        .sheet(isPresented: $showLanguagePicker) {
+            LanguagePickerSheet()
+                .presentationDetents([.large])
+                .presentationDragIndicator(.hidden)
+                .preferredColorScheme(themeManager.colorScheme)
+        }
         .onAppear {
             if !sectionsAppeared {
                 sectionsAppeared = true
@@ -117,22 +124,27 @@ struct SettingsView: View {
             }
 
             // App language
-            settingsRow(
-                icon: "globe",
-                title: "App language",
-                showDivider: true
-            ) {
-                HStack(spacing: 0) {
-                    Text("English")
-                        .font(.system(size: 12, weight: .semibold))
-                        .foregroundColor(AppColors.textSecondary)
+            Button {
+                showLanguagePicker = true
+            } label: {
+                settingsRow(
+                    icon: "globe",
+                    title: "App language",
+                    showDivider: true
+                ) {
+                    HStack(spacing: 0) {
+                        Text(languageManager.currentLanguage.nativeName)
+                            .font(.system(size: 12, weight: .semibold))
+                            .foregroundColor(AppColors.textSecondary)
 
-                    Image(systemName: "chevron.right")
-                        .font(.system(size: 14, weight: .medium))
-                        .foregroundColor(AppColors.textSecondary)
-                        .frame(width: 24, height: 24)
+                        Image(systemName: "chevron.right")
+                            .font(.system(size: 14, weight: .medium))
+                            .foregroundColor(AppColors.textSecondary)
+                            .frame(width: 24, height: 24)
+                    }
                 }
             }
+            .buttonStyle(.plain)
 
             // Default save location
             settingsRow(
@@ -424,4 +436,5 @@ struct SettingsView: View {
     SettingsView()
         .environmentObject(HistoryStore.shared)
         .environmentObject(ThemeManager.shared)
+        .environmentObject(LanguageManager.shared)
 }

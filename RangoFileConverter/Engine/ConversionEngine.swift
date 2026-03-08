@@ -41,5 +41,12 @@ struct ConversionResult {
 protocol ConversionEngine {
     var supportedMediaTypes: Set<MediaType> { get }
     func canConvert(from inputExtension: String, to outputFormat: FormatDefinition) -> Bool
+    /// Check if the engine can handle this specific job's parameters (speed, trim, etc.).
+    /// Default returns true. Override to decline jobs with unsupported parameters.
+    func canHandle(job: ConversionJob) -> Bool
     func convert(job: ConversionJob) async throws -> ConversionResult
+}
+
+extension ConversionEngine {
+    func canHandle(job: ConversionJob) -> Bool { true }
 }

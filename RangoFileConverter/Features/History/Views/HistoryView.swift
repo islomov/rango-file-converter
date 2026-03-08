@@ -74,6 +74,8 @@ struct HistoryView: View {
                 HStack(spacing: 8) {
                     Image("icon_search")
                         .resizable()
+                        .renderingMode(.template)
+                        .foregroundColor(AppColors.textSecondary)
                         .frame(width: 24, height: 24)
 
                     TextField("Search", text: $searchText)
@@ -85,19 +87,25 @@ struct HistoryView: View {
                 .frame(height: 48)
                 .background(AppColors.surface)
                 .clipShape(RoundedRectangle(cornerRadius: 16))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 16)
+                        .stroke(AppColors.border, lineWidth: 1)
+                )
 
                 Button {
                     showFilterSheet = true
                 } label: {
                     Image("icon_filter")
                         .resizable()
+                        .renderingMode(.template)
+                        .foregroundColor(AppColors.textPrimary)
                         .frame(width: 24, height: 24)
                         .frame(width: 48, height: 48)
-                        .background(filterState.isActive ? AppColors.accent.opacity(0.12) : Color.white)
+                        .background(filterState.isActive ? AppColors.accent.opacity(0.12) : AppColors.surface)
                         .clipShape(RoundedRectangle(cornerRadius: 16))
                         .overlay(
                             RoundedRectangle(cornerRadius: 16)
-                                .stroke(filterState.isActive ? AppColors.accent : Color.clear, lineWidth: 1.5)
+                                .stroke(filterState.isActive ? AppColors.accent : AppColors.border, lineWidth: 1)
                         )
                 }
                 .buttonStyle(.plain)

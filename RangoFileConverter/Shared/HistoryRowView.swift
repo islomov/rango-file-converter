@@ -142,7 +142,7 @@ struct HistoryRowView: View {
         case .compress:
             Color(hex: "43CF18")
         case .rotate:
-            AppColors.textPrimary
+            Color(hex: "1D1D1D")
         case .resize:
             Color(hex: "196EDD")
         case .crop:

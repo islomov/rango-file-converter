@@ -56,6 +56,7 @@ struct RangoFileConverterApp: App {
     @UIApplicationDelegateAdaptor(AppDelegate.self) private var appDelegate
     @StateObject private var historyStore = HistoryStore.shared
     @StateObject private var themeManager = ThemeManager.shared
+    @StateObject private var languageManager = LanguageManager.shared
     @ObservedObject private var remoteConfig = RemoteConfigManager.shared
     @State private var showSplash = true
 
@@ -63,8 +64,10 @@ struct RangoFileConverterApp: App {
         WindowGroup {
             ZStack {
                 ContentView()
+                    .id(languageManager.refreshID)
                     .environmentObject(historyStore)
                     .environmentObject(themeManager)
+                    .environmentObject(languageManager)
                     .preferredColorScheme(themeManager.colorScheme)
 
                 if showSplash {

@@ -1,5 +1,5 @@
 {
-  "originHash" : "5fcf2750710c0b7ff8dad19a5f316edd873cd60d23440955aa83cbd82dd265e2",
+  "originHash" : "91e99c0420c5b71006c53948a43d21354e15dd988a9b5e4ff138b13be2ff002c",
   "pins" : [
     {
       "identity" : "abseil-cpp-binary",
@@ -143,6 +143,15 @@
       "state" : {
         "revision" : "6b2aa2748a7881eebb9f84fb10c01293e15b52ca",
         "version" : "0.5.0"
+      }
+    },
+    {
+      "identity" : "swift-lame",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/Phisto/swift-lame.git",
+      "state" : {
+        "revision" : "d85ee80128d7cc36796c984463cfd75b1d38587d",
+        "version" : "3.100.0"
       }
     },
     {

@@ -7,7 +7,7 @@ final class FFmpegConversionEngine: ConversionEngine {
     let supportedMediaTypes: Set<MediaType> = [.image, .video, .audio]
 
     /// Formats handled by NativeImageEngine instead of FFmpeg.
-    private static let nativeOnlyFormats: Set<String> = ["webp", "heic"]
+    private static let nativeOnlyFormats: Set<String> = ["webp", "heic", "mp3"]
 
     /// Formats that require external libraries not included in this FFmpeg build.
     private static let unsupportedFormats: Set<String> = ["webm", "ogv", "swf", "amv"]

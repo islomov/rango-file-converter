@@ -6,13 +6,10 @@ import Combine
 final class VideoLibraryViewModel: ObservableObject {
     @Published private(set) var fetchResult: PHFetchResult<PHAsset>?
     @Published var assetCount: Int = 0
-    @Published var thumbnails: [String: UIImage] = [:]
     @Published var authorizationStatus: PHAuthorizationStatus = .notDetermined
     @Published var isLoading = false
 
     private let imageManager = PHCachingImageManager()
-    private let thumbnailSize = CGSize(width: 200, height: 200)
-    private static let maxCachedThumbnails = 200
 
     func asset(at index: Int) -> PHAsset? {
         guard let fetchResult, index < fetchResult.count else { return nil }
@@ -53,32 +50,6 @@ final class VideoLibraryViewModel: ObservableObject {
                 self?.fetchResult = result
                 self?.assetCount = result.count
                 self?.isLoading = false
-            }
-        }
-    }
-
-    func loadThumbnail(for asset: PHAsset) {
-        let id = asset.localIdentifier
-        guard thumbnails[id] == nil else { return }
-
-        let options = PHImageRequestOptions()
-        options.deliveryMode = .opportunistic
-        options.isNetworkAccessAllowed = true
-
-        imageManager.requestImage(
-            for: asset,
-            targetSize: thumbnailSize,
-            contentMode: .aspectFill,
-            options: options
-        ) { [weak self] image, _ in
-            if let image {
-                DispatchQueue.main.async {
-                    guard let self else { return }
-                    if self.thumbnails.count >= Self.maxCachedThumbnails {
-                        self.thumbnails.removeAll(keepingCapacity: true)
-                    }
-                    self.thumbnails[id] = image
-                }
             }
         }
     }

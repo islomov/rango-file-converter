@@ -205,80 +205,15 @@ struct AudioMergePickerView: View {
     }
 
     private func thumbnailCell(for asset: PHAsset) -> some View {
-        Button {
+        VideoThumbnailCell(
+            asset: asset,
+            isMultiSelect: true,
+            isSelected: selectedAssetIDs.contains(asset.localIdentifier),
+            selectionIndex: selectionOrder(for: asset),
+            isDisabled: isLoading
+        ) {
             toggleSelection(asset)
-        } label: {
-            GeometryReader { geo in
-                ZStack {
-                    if let thumbnail = videoVM.thumbnails[asset.localIdentifier] {
-                        Image(uiImage: thumbnail)
-                            .resizable()
-                            .aspectRatio(contentMode: .fill)
-                            .frame(width: geo.size.width, height: geo.size.width)
-                            .clipped()
-                    } else {
-                        Rectangle()
-                            .fill(AppColors.placeholder)
-                            .frame(width: geo.size.width, height: geo.size.width)
-                    }
-
-                    // Duration badge
-                    VStack {
-                        Spacer()
-                        HStack {
-                            HStack(spacing: 4) {
-                                Image(systemName: "play.fill")
-                                    .font(.system(size: 8))
-                                Text(formattedDuration(asset.duration))
-                                    .font(.caption2.weight(.medium))
-                            }
-                            .foregroundStyle(.white)
-                            .padding(.horizontal, 5)
-                            .padding(.vertical, 2)
-                            .background(.black.opacity(0.6), in: Capsule())
-                            Spacer()
-                        }
-                        .padding(4)
-                    }
-
-                    // Selection indicator
-                    VStack {
-                        HStack {
-                            Spacer()
-                            let isSelected = selectedAssetIDs.contains(asset.localIdentifier)
-                            let idx = selectionOrder(for: asset)
-                            ZStack {
-                                Circle()
-                                    .fill(isSelected ? AppColors.accent : Color.black.opacity(0.3))
-                                    .frame(width: 26, height: 26)
-                                Circle()
-                                    .stroke(Color.white, lineWidth: 2)
-                                    .frame(width: 26, height: 26)
-                                if isSelected, let idx {
-                                    Text("\(idx)")
-                                        .font(.caption2.weight(.bold))
-                                        .foregroundStyle(.white)
-                                }
-                            }
-                            .padding(6)
-                        }
-                        Spacer()
-                    }
-                }
-            }
-            .aspectRatio(1, contentMode: .fit)
-            .clipShape(RoundedRectangle(cornerRadius: 8))
-            .onAppear {
-                videoVM.loadThumbnail(for: asset)
-            }
         }
-        .disabled(isLoading)
-    }
-
-    private func formattedDuration(_ duration: TimeInterval) -> String {
-        let minutes = Int(duration) / 60
-        let seconds = Int(duration) % 60
-        return String(format: "%d:%02d", minutes, seconds)
     }
 
     // MARK: - Multi-select

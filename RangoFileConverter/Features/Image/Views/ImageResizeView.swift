@@ -78,7 +78,7 @@ struct ImageResizeView: View {
 
             bottomButtons
         }
-        .background(Color.white)
+        .background(AppColors.surface)
         .navigationBarHidden(true)
         .onAppear {
             previewImage = ImageConverterViewModel.loadPreviewImage(from: fileURL)
@@ -95,7 +95,7 @@ struct ImageResizeView: View {
         ZStack {
             Text("Resize image")
                 .font(.system(size: 20, weight: .semibold))
-                .foregroundColor(Color(hex: "1D1D1D"))
+                .foregroundColor(AppColors.textPrimary)
                 .tracking(-0.408)
 
             HStack {
@@ -105,11 +105,11 @@ struct ImageResizeView: View {
                 } label: {
                     Image(systemName: "xmark")
                         .font(.system(size: 14, weight: .semibold))
-                        .foregroundColor(Color(hex: "1D1D1D"))
+                        .foregroundColor(AppColors.textPrimary)
                         .frame(width: 40, height: 40)
                         .background(
                             Circle()
-                                .fill(Color(hex: "888888").opacity(0.08))
+                                .fill(AppColors.textSecondary.opacity(0.08))
                         )
                 }
             }
@@ -141,10 +141,10 @@ struct ImageResizeView: View {
             fileSizeInfo
                 .padding(.bottom, 12)
         }
-        .background(Color.white)
+        .background(AppColors.surface)
         .overlay(
             Rectangle()
-                .fill(Color(hex: "565656").opacity(0.08))
+                .fill(AppColors.shadow.opacity(0.08))
                 .frame(height: 1),
             alignment: .bottom
         )
@@ -154,23 +154,23 @@ struct ImageResizeView: View {
         HStack(spacing: 4) {
             Text("\(originalWidth) \u{00D7} \(originalHeight)")
                 .font(.system(size: 12, weight: .semibold))
-                .foregroundColor(Color(hex: "1D1D1D"))
+                .foregroundColor(AppColors.textPrimary)
                 .tracking(-0.408)
 
             if dimensionsChanged {
                 Image(systemName: "arrow.right")
                     .font(.system(size: 10))
-                    .foregroundColor(Color(hex: "1D1D1D"))
+                    .foregroundColor(AppColors.textPrimary)
 
                 Text("\(width) \u{00D7} \(height)")
                     .font(.system(size: 12, weight: .semibold))
-                    .foregroundColor(Color(hex: "F4800D"))
+                    .foregroundColor(AppColors.accent)
                     .tracking(-0.408)
 
                 let ratio = Double(width * height) / Double(originalWidth * originalHeight) * 100
                 Text(String(format: "(%.0f%%)", ratio))
                     .font(.system(size: 12, weight: .semibold))
-                    .foregroundColor(Color(hex: "888888"))
+                    .foregroundColor(AppColors.textSecondary)
                     .tracking(-0.408)
             }
         }
@@ -183,7 +183,7 @@ struct ImageResizeView: View {
             VStack(spacing: 8) {
                 Text("Presets")
                     .font(.system(size: 14, weight: .semibold))
-                    .foregroundColor(Color(hex: "888888"))
+                    .foregroundColor(AppColors.textSecondary)
                     .tracking(-0.408)
                     .frame(maxWidth: .infinity, alignment: .leading)
                 presetPicker
@@ -198,9 +198,9 @@ struct ImageResizeView: View {
                     } label: {
                         Image(systemName: lockAspectRatio ? "lock.fill" : "lock.open")
                             .font(.body)
-                            .foregroundColor(lockAspectRatio ? Color(hex: "F4800D") : Color(hex: "888888"))
+                            .foregroundColor(lockAspectRatio ? AppColors.accent : AppColors.textSecondary)
                             .frame(width: 36, height: 36)
-                            .background(Color(hex: "888888").opacity(0.12))
+                            .background(AppColors.textSecondary.opacity(0.12))
                             .clipShape(RoundedRectangle(cornerRadius: 8))
                     }
 
@@ -228,10 +228,10 @@ struct ImageResizeView: View {
                 } label: {
                     Text("Reset")
                         .font(.system(size: 16, weight: .semibold))
-                        .foregroundColor(Color(hex: "1D1D1D"))
+                        .foregroundColor(AppColors.textPrimary)
                         .tracking(-0.408)
                         .frame(width: resetWidth, height: 60)
-                        .background(Color(hex: "888888").opacity(0.12))
+                        .background(AppColors.textSecondary.opacity(0.12))
                         .clipShape(RoundedRectangle(cornerRadius: 16))
                 }
                 .disabled(!dimensionsChanged)
@@ -249,8 +249,8 @@ struct ImageResizeView: View {
                         .background(
                             LinearGradient(
                                 colors: dimensionsChanged && width > 0 && height > 0
-                                    ? [Color(hex: "FFA05C"), Color(hex: "EF731A")]
-                                    : [Color(hex: "FFD9B8"), Color(hex: "F8C192"), Color(hex: "FFD9B8")],
+                                    ? [AppColors.buttonGradientStart, AppColors.buttonGradientEnd]
+                                    : [AppColors.buttonDisabledStart, AppColors.buttonDisabledMid, AppColors.buttonDisabledStart],
                                 startPoint: .leading,
                                 endPoint: .trailing
                             )

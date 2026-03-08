@@ -53,7 +53,7 @@ struct FAQBottomSheetView: View {
 
                 Text("FAQ")
                     .font(.system(size: 16, weight: .bold))
-                    .foregroundColor(Color(hex: "1D1D1D"))
+                    .foregroundColor(AppColors.textPrimary)
 
                 Spacer()
 
@@ -62,12 +62,12 @@ struct FAQBottomSheetView: View {
                 } label: {
                     ZStack {
                         Circle()
-                            .fill(Color(hex: "888888").opacity(0.08))
+                            .fill(AppColors.textSecondary.opacity(0.08))
                             .frame(width: 40, height: 40)
 
                         Image(systemName: "xmark")
                             .font(.system(size: 14, weight: .semibold))
-                            .foregroundColor(Color(hex: "1D1D1D"))
+                            .foregroundColor(AppColors.textPrimary)
                     }
                 }
             }
@@ -99,7 +99,7 @@ struct FAQBottomSheetView: View {
             VStack(spacing: 10) {
                 Text("More questions?")
                     .font(.system(size: 14))
-                    .foregroundColor(Color(hex: "242424"))
+                    .foregroundColor(AppColors.textPrimary)
 
                 Button {
                     openMail()
@@ -111,7 +111,7 @@ struct FAQBottomSheetView: View {
                         .padding(.vertical, 20)
                         .background(
                             LinearGradient(
-                                colors: [Color(hex: "FFAD5B"), Color(hex: "F4800D"), Color(hex: "FFAD5B")],
+                                colors: [AppColors.accentLight, AppColors.accent, AppColors.accentLight],
                                 startPoint: .topTrailing,
                                 endPoint: .bottomLeading
                             )
@@ -121,7 +121,7 @@ struct FAQBottomSheetView: View {
             }
             .padding(16)
         }
-        .background(Color.white)
+        .background(AppColors.surface)
     }
 
     private func openMail() {
@@ -144,7 +144,7 @@ private struct FAQItemView: View {
                 HStack(spacing: 8) {
                     Text(question)
                         .font(.system(size: 14, weight: .semibold))
-                        .foregroundColor(Color(hex: "2F2E41"))
+                        .foregroundColor(AppColors.textPrimary)
                         .multilineTextAlignment(.leading)
                         .lineSpacing(14 * 0.4)
 
@@ -152,7 +152,7 @@ private struct FAQItemView: View {
 
                     Image(systemName: isExpanded ? "minus" : "plus")
                         .font(.system(size: 14, weight: .medium))
-                        .foregroundColor(Color(hex: "2F2E41"))
+                        .foregroundColor(AppColors.textPrimary)
                         .frame(width: 24, height: 24)
                 }
                 .padding(.bottom, isExpanded ? 12 : 0)
@@ -161,17 +161,17 @@ private struct FAQItemView: View {
 
             if isExpanded {
                 Divider()
-                    .background(Color(hex: "F0F0F0"))
+                    .background(AppColors.surfaceSecondary)
                     .padding(.bottom, 8)
 
                 Text(answer)
                     .font(.system(size: 12))
-                    .foregroundColor(Color(hex: "2F2E41"))
+                    .foregroundColor(AppColors.textPrimary)
                     .lineSpacing(12 * 0.4)
             }
         }
         .padding(16)
-        .background(Color(hex: "888888").opacity(0.08))
+        .background(AppColors.textSecondary.opacity(0.08))
         .cornerRadius(20)
     }
 }

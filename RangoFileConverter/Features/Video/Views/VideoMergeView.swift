@@ -23,7 +23,7 @@ struct VideoMergeView: View {
             videoList
             bottomSection
         }
-        .background(Color.white)
+        .background(AppColors.surface)
         .navigationBarHidden(true)
         .hidesFloatingTabBar()
         .task { await loadDurations() }
@@ -35,7 +35,7 @@ struct VideoMergeView: View {
         ZStack {
             Text("Merge video")
                 .font(.system(size: 20, weight: .semibold))
-                .foregroundColor(Color(hex: "1D1D1D"))
+                .foregroundColor(AppColors.textPrimary)
                 .tracking(-0.408)
 
             HStack {
@@ -43,9 +43,9 @@ struct VideoMergeView: View {
                 Button { dismiss() } label: {
                     Image(systemName: "xmark")
                         .font(.system(size: 14, weight: .semibold))
-                        .foregroundColor(Color(hex: "1D1D1D"))
+                        .foregroundColor(AppColors.textPrimary)
                         .frame(width: 40, height: 40)
-                        .background(Circle().fill(Color(hex: "888888").opacity(0.08)))
+                        .background(Circle().fill(AppColors.textSecondary.opacity(0.08)))
                 }
             }
         }
@@ -61,7 +61,7 @@ struct VideoMergeView: View {
                 HStack(spacing: 12) {
                     Text("\(index + 1)")
                         .font(.system(size: 14, weight: .semibold))
-                        .foregroundColor(Color(hex: "888888"))
+                        .foregroundColor(AppColors.textSecondary)
                         .tracking(-0.408)
                         .frame(width: 20)
 
@@ -74,13 +74,13 @@ struct VideoMergeView: View {
                     VStack(alignment: .leading, spacing: 4) {
                         Text(video.fileName)
                             .font(.system(size: 12, weight: .semibold))
-                            .foregroundColor(Color(hex: "1D1D1D"))
+                            .foregroundColor(AppColors.textPrimary)
                             .tracking(-0.408)
                             .lineLimit(1)
 
                         Text(durations[video.url] ?? "0:00")
                             .font(.system(size: 12, weight: .semibold))
-                            .foregroundColor(Color(hex: "888888"))
+                            .foregroundColor(AppColors.textSecondary)
                             .tracking(-0.408)
                     }
 
@@ -91,7 +91,7 @@ struct VideoMergeView: View {
                 .listRowSeparator(.hidden)
                 .overlay(alignment: .bottom) {
                     Rectangle()
-                        .fill(Color(hex: "888888").opacity(0.12))
+                        .fill(AppColors.textSecondary.opacity(0.12))
                         .frame(height: 1)
                         .padding(.leading, 84)
                 }
@@ -104,7 +104,7 @@ struct VideoMergeView: View {
         .environment(\.editMode, .constant(.active))
         .overlay(alignment: .top) {
             Rectangle()
-                .fill(Color(hex: "565656").opacity(0.08))
+                .fill(AppColors.shadow.opacity(0.08))
                 .frame(height: 1)
         }
     }
@@ -114,7 +114,7 @@ struct VideoMergeView: View {
     private var bottomSection: some View {
         VStack(spacing: 0) {
             Rectangle()
-                .fill(Color(hex: "565656").opacity(0.08))
+                .fill(AppColors.shadow.opacity(0.08))
                 .frame(height: 1)
 
             VStack(spacing: 0) {
@@ -122,7 +122,7 @@ struct VideoMergeView: View {
                 VStack(alignment: .leading, spacing: 8) {
                     Text("Output format")
                         .font(.system(size: 14, weight: .semibold))
-                        .foregroundColor(Color(hex: "888888"))
+                        .foregroundColor(AppColors.textSecondary)
                         .tracking(-0.408)
 
                     HStack(spacing: 8) {
@@ -133,14 +133,14 @@ struct VideoMergeView: View {
                                 Text(format.rawValue)
                                     .font(.system(size: 14, weight: .semibold))
                                     .tracking(-0.408)
-                                    .foregroundColor(outputFormat == format ? .white : Color(hex: "1D1D1D"))
+                                    .foregroundColor(outputFormat == format ? .white : AppColors.textPrimary)
                                     .frame(maxWidth: .infinity)
                                     .padding(.vertical, 8)
                                     .background(
                                         Capsule().fill(
                                             outputFormat == format
-                                                ? Color(hex: "F4800D")
-                                                : Color(hex: "888888").opacity(0.08)
+                                                ? AppColors.accent
+                                                : AppColors.textSecondary.opacity(0.08)
                                         )
                                     )
                             }
@@ -175,13 +175,13 @@ struct VideoMergeView: View {
     private var mergeButtonGradient: LinearGradient {
         if videos.count < 2 {
             return LinearGradient(
-                colors: [Color(hex: "FFD9B8"), Color(hex: "F8C192"), Color(hex: "FFD9B8")],
+                colors: [AppColors.buttonDisabledStart, AppColors.buttonDisabledMid, AppColors.buttonDisabledStart],
                 startPoint: .topTrailing,
                 endPoint: .bottomLeading
             )
         } else {
             return LinearGradient(
-                colors: [Color(hex: "FFAD5B"), Color(hex: "F4800D"), Color(hex: "FFAD5B")],
+                colors: [AppColors.accentLight, AppColors.accent, AppColors.accentLight],
                 startPoint: .topTrailing,
                 endPoint: .bottomLeading
             )

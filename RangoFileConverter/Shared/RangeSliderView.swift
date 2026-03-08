@@ -4,7 +4,7 @@ struct RangeSliderView: View {
     @Binding var lowerValue: Double
     @Binding var upperValue: Double
     let bounds: ClosedRange<Double>
-    var accentColor: Color = Color(hex: "F4800D")
+    var accentColor: Color = AppColors.accent
     var onLowerChanged: () -> Void = {}
     var onUpperChanged: () -> Void = {}
 
@@ -21,7 +21,7 @@ struct RangeSliderView: View {
 
             ZStack(alignment: .leading) {
                 Capsule()
-                    .fill(Color(hex: "888888").opacity(0.16))
+                    .fill(AppColors.textSecondary.opacity(0.16))
                     .frame(height: trackHeight)
                     .padding(.horizontal, thumbSize / 2)
 

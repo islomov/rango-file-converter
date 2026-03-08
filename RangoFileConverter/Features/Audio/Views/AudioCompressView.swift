@@ -83,7 +83,7 @@ struct AudioCompressView: View {
 
             bottomButton
         }
-        .background(Color.white)
+        .background(AppColors.surface)
         .navigationBarHidden(true)
         .hidesFloatingTabBar()
         .onAppear { loadOriginalSize() }
@@ -102,7 +102,7 @@ struct AudioCompressView: View {
         ZStack {
             Text("Convert audio")
                 .font(.system(size: 20, weight: .semibold))
-                .foregroundColor(Color(hex: "1D1D1D"))
+                .foregroundColor(AppColors.textPrimary)
                 .tracking(-0.408)
 
             HStack {
@@ -112,11 +112,11 @@ struct AudioCompressView: View {
                 } label: {
                     Image(systemName: "xmark")
                         .font(.system(size: 14, weight: .semibold))
-                        .foregroundColor(Color(hex: "1D1D1D"))
+                        .foregroundColor(AppColors.textPrimary)
                         .frame(width: 40, height: 40)
                         .background(
                             Circle()
-                                .fill(Color(hex: "888888").opacity(0.08))
+                                .fill(AppColors.textSecondary.opacity(0.08))
                         )
                 }
             }
@@ -133,22 +133,22 @@ struct AudioCompressView: View {
 
             ZStack {
                 RoundedRectangle(cornerRadius: 16)
-                    .fill(Color(hex: "E6E6EC"))
+                    .fill(AppColors.placeholder)
                     .frame(height: 180)
 
                 VStack(spacing: 12) {
                     Image(systemName: "music.note")
                         .font(.system(size: 32, weight: .bold))
-                        .foregroundColor(Color(hex: "1D1D1D"))
+                        .foregroundColor(AppColors.textPrimary)
 
                     Text(sourceExtension.uppercased())
                         .font(.system(size: 14, weight: .semibold))
-                        .foregroundColor(Color(hex: "1D1D1D"))
+                        .foregroundColor(AppColors.textPrimary)
                         .tracking(-0.408)
                         .padding(.horizontal, 8)
                         .padding(.vertical, 4)
                         .background(
-                            Color(hex: "888888").opacity(0.12),
+                            AppColors.textSecondary.opacity(0.12),
                             in: Capsule()
                         )
                 }
@@ -157,15 +157,15 @@ struct AudioCompressView: View {
 
             Text(formatBytes(originalSize))
                 .font(.system(size: 12, weight: .semibold))
-                .foregroundColor(Color(hex: "888888"))
+                .foregroundColor(AppColors.textSecondary)
                 .tracking(-0.408)
                 .padding(.top, 12)
                 .padding(.bottom, 12)
         }
-        .background(Color.white)
+        .background(AppColors.surface)
         .overlay(
             Rectangle()
-                .fill(Color(hex: "565656").opacity(0.08))
+                .fill(AppColors.shadow.opacity(0.08))
                 .frame(height: 1),
             alignment: .bottom
         )
@@ -183,7 +183,7 @@ struct AudioCompressView: View {
             VStack(alignment: .leading, spacing: 8) {
                 Text("Format")
                     .font(.system(size: 14, weight: .semibold))
-                    .foregroundColor(Color(hex: "888888"))
+                    .foregroundColor(AppColors.textSecondary)
                     .tracking(-0.408)
 
                 chipPicker(
@@ -198,7 +198,7 @@ struct AudioCompressView: View {
                 VStack(alignment: .leading, spacing: 8) {
                     Text("Bitrate")
                         .font(.system(size: 14, weight: .semibold))
-                        .foregroundColor(Color(hex: "888888"))
+                        .foregroundColor(AppColors.textSecondary)
                         .tracking(-0.408)
 
                     chipPicker(
@@ -213,7 +213,7 @@ struct AudioCompressView: View {
             VStack(alignment: .leading, spacing: 8) {
                 Text("Sample rate")
                     .font(.system(size: 14, weight: .semibold))
-                    .foregroundColor(Color(hex: "888888"))
+                    .foregroundColor(AppColors.textSecondary)
                     .tracking(-0.408)
 
                 chipPicker(
@@ -237,32 +237,32 @@ struct AudioCompressView: View {
                     .font(.system(size: 20))
                     .foregroundColor(.white)
                     .frame(width: 56, height: 56)
-                    .background(Color(hex: "F4800D"))
+                    .background(AppColors.accent)
                     .clipShape(Circle())
             }
 
             Text(formatTime(currentTime))
                 .font(.system(size: 12, weight: .semibold))
-                .foregroundColor(Color(hex: "888888"))
+                .foregroundColor(AppColors.textSecondary)
                 .tracking(-0.408)
                 .monospacedDigit()
 
             GeometryReader { geo in
                 ZStack(alignment: .leading) {
                     Capsule()
-                        .fill(Color(hex: "F4800D").opacity(0.2))
+                        .fill(AppColors.accent.opacity(0.2))
                         .frame(height: 4)
 
                     Capsule()
-                        .fill(Color(hex: "F4800D"))
+                        .fill(AppColors.accent)
                         .frame(width: max(0, progress * geo.size.width), height: 4)
 
                     Circle()
-                        .fill(Color(hex: "F4800D"))
+                        .fill(AppColors.accent)
                         .frame(width: 16, height: 16)
                         .overlay(
                             Circle()
-                                .fill(Color.white)
+                                .fill(AppColors.surface)
                                 .frame(width: 6, height: 6)
                         )
                         .offset(x: max(0, progress * geo.size.width - 8))
@@ -286,7 +286,7 @@ struct AudioCompressView: View {
 
             Text(formatTime(duration))
                 .font(.system(size: 12, weight: .semibold))
-                .foregroundColor(Color(hex: "888888"))
+                .foregroundColor(AppColors.textSecondary)
                 .tracking(-0.408)
                 .monospacedDigit()
         }
@@ -313,11 +313,11 @@ struct AudioCompressView: View {
                             .padding(.vertical, 8)
                             .background(
                                 selected == item
-                                    ? Color(hex: "F4800D")
-                                    : Color(hex: "888888").opacity(0.08),
+                                    ? AppColors.accent
+                                    : AppColors.textSecondary.opacity(0.08),
                                 in: Capsule()
                             )
-                            .foregroundColor(selected == item ? .white : Color(hex: "1D1D1D"))
+                            .foregroundColor(selected == item ? .white : AppColors.textPrimary)
                     }
                     .buttonStyle(.plain)
                 }
@@ -344,7 +344,7 @@ struct AudioCompressView: View {
                     .frame(height: 60)
                     .background(
                         LinearGradient(
-                            colors: [Color(hex: "FFAD5B"), Color(hex: "F4800D"), Color(hex: "FFAD5B")],
+                            colors: [AppColors.accentLight, AppColors.accent, AppColors.accentLight],
                             startPoint: .topTrailing,
                             endPoint: .bottomLeading
                         )

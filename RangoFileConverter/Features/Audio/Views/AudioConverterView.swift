@@ -47,7 +47,7 @@ struct AudioConverterView: View {
     var body: some View {
         NavigationStack {
             ZStack {
-                Color(hex: "F2F2F6")
+                AppColors.background
                     .ignoresSafeArea()
 
                 VStack(spacing: 0) {
@@ -268,7 +268,7 @@ struct AudioConverterView: View {
         ZStack {
             Text("Audio")
                 .font(.system(size: 20, weight: .semibold))
-                .foregroundColor(Color(hex: "1D1D1D"))
+                .foregroundColor(AppColors.textPrimary)
 
             HStack {
                 Button {
@@ -278,7 +278,7 @@ struct AudioConverterView: View {
                         .resizable()
                         .renderingMode(.template)
                         .frame(width: 24, height: 24)
-                        .foregroundColor(Color(hex: "1D1D1D"))
+                        .foregroundColor(AppColors.textPrimary)
                         .frame(width: 40, height: 40)
                 }
                 Spacer()
@@ -316,12 +316,12 @@ struct AudioConverterView: View {
 
             Text(tool.title)
                 .font(.system(size: 16, weight: .semibold))
-                .foregroundColor(Color(hex: "1D1D1D"))
+                .foregroundColor(AppColors.textPrimary)
                 .tracking(-0.408)
         }
         .frame(maxWidth: .infinity)
         .frame(height: 106)
-        .background(Color.white)
+        .background(AppColors.surface)
         .cornerRadius(16)
     }
 

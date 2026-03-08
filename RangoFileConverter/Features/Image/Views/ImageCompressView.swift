@@ -61,7 +61,7 @@ struct ImageCompressView: View {
 
             bottomButtons
         }
-        .background(Color.white)
+        .background(AppColors.surface)
         .navigationBarHidden(true)
         .hidesFloatingTabBar()
         .onAppear {
@@ -84,7 +84,7 @@ struct ImageCompressView: View {
         ZStack {
             Text("Compress image")
                 .font(.system(size: 20, weight: .semibold))
-                .foregroundColor(Color(hex: "1D1D1D"))
+                .foregroundColor(AppColors.textPrimary)
                 .tracking(-0.408)
 
             HStack {
@@ -94,11 +94,11 @@ struct ImageCompressView: View {
                 } label: {
                     Image(systemName: "xmark")
                         .font(.system(size: 14, weight: .semibold))
-                        .foregroundColor(Color(hex: "1D1D1D"))
+                        .foregroundColor(AppColors.textPrimary)
                         .frame(width: 40, height: 40)
                         .background(
                             Circle()
-                                .fill(Color(hex: "888888").opacity(0.08))
+                                .fill(AppColors.textSecondary.opacity(0.08))
                         )
                 }
             }
@@ -130,10 +130,10 @@ struct ImageCompressView: View {
             fileSizeInfo
                 .padding(.bottom, 12)
         }
-        .background(Color.white)
+        .background(AppColors.surface)
         .overlay(
             Rectangle()
-                .fill(Color(hex: "565656").opacity(0.08))
+                .fill(AppColors.shadow.opacity(0.08))
                 .frame(height: 1),
             alignment: .bottom
         )
@@ -143,23 +143,23 @@ struct ImageCompressView: View {
         HStack(spacing: 4) {
             Text(formatBytes(originalSize))
                 .font(.system(size: 12, weight: .semibold))
-                .foregroundColor(Color(hex: "1D1D1D"))
+                .foregroundColor(AppColors.textPrimary)
                 .tracking(-0.408)
 
             Image(systemName: "arrow.right")
                 .font(.system(size: 10))
-                .foregroundColor(Color(hex: "1D1D1D"))
+                .foregroundColor(AppColors.textPrimary)
 
             Text(formatBytes(estimatedSize))
                 .font(.system(size: 12, weight: .semibold))
-                .foregroundColor(Color(hex: "F4800D"))
+                .foregroundColor(AppColors.accent)
                 .tracking(-0.408)
 
             if originalSize > 0 && estimatedSize > 0 {
                 let ratio = Double(estimatedSize) / Double(originalSize) * 100
                 Text(String(format: "(%.0f%%)", ratio))
                     .font(.system(size: 12, weight: .semibold))
-                    .foregroundColor(Color(hex: "888888"))
+                    .foregroundColor(AppColors.textSecondary)
                     .tracking(-0.408)
             }
         }
@@ -173,7 +173,7 @@ struct ImageCompressView: View {
             VStack(alignment: .leading, spacing: 8) {
                 Text("Format")
                     .font(.system(size: 14, weight: .semibold))
-                    .foregroundColor(Color(hex: "888888"))
+                    .foregroundColor(AppColors.textSecondary)
                     .tracking(-0.408)
 
                 formatPicker
@@ -185,28 +185,28 @@ struct ImageCompressView: View {
                     HStack {
                         Text("Quality")
                             .font(.system(size: 14, weight: .semibold))
-                            .foregroundColor(Color(hex: "888888"))
+                            .foregroundColor(AppColors.textSecondary)
                             .tracking(-0.408)
                         Spacer()
                         Text("\(Int(quality))%")
                             .font(.system(size: 14, weight: .semibold))
-                            .foregroundColor(Color(hex: "888888"))
+                            .foregroundColor(AppColors.textSecondary)
                             .tracking(-0.408)
                     }
 
                     Slider(value: $quality, in: 1...100, step: 1)
-                        .tint(Color(hex: "F4800D"))
+                        .tint(AppColors.accent)
                 }
             } else {
                 HStack {
                     Text("Quality")
                         .font(.system(size: 14, weight: .semibold))
-                        .foregroundColor(Color(hex: "888888"))
+                        .foregroundColor(AppColors.textSecondary)
                         .tracking(-0.408)
                     Spacer()
                     Text("Lossless")
                         .font(.system(size: 14, weight: .semibold))
-                        .foregroundColor(Color(hex: "888888"))
+                        .foregroundColor(AppColors.textSecondary)
                         .tracking(-0.408)
                 }
             }
@@ -239,15 +239,15 @@ struct ImageCompressView: View {
                 .font(.system(size: 16, weight: .semibold))
                 .foregroundColor(
                     selectedFormat == format
-                        ? Color(hex: "F4800D")
-                        : Color(hex: "1D1D1D")
+                        ? AppColors.accent
+                        : AppColors.textPrimary
                 )
                 .tracking(-0.408)
                 .frame(maxWidth: .infinity)
                 .padding(.vertical, 12)
                 .background(
                     selectedFormat == format
-                        ? Color(hex: "F4800D").opacity(0.08)
+                        ? AppColors.accent.opacity(0.08)
                         : Color.clear,
                     in: RoundedRectangle(cornerRadius: 12)
                 )
@@ -276,10 +276,10 @@ struct ImageCompressView: View {
                 } label: {
                     Text("Reset")
                         .font(.system(size: 16, weight: .semibold))
-                        .foregroundColor(Color(hex: "1D1D1D"))
+                        .foregroundColor(AppColors.textPrimary)
                         .tracking(-0.408)
                         .frame(width: resetWidth, height: 60)
-                        .background(Color(hex: "888888").opacity(0.12))
+                        .background(AppColors.textSecondary.opacity(0.12))
                         .clipShape(RoundedRectangle(cornerRadius: 16))
                 }
                 .disabled(!hasChanges)
@@ -297,8 +297,8 @@ struct ImageCompressView: View {
                         .background(
                             LinearGradient(
                                 colors: hasChanges
-                                    ? [Color(hex: "FFA05C"), Color(hex: "EF731A")]
-                                    : [Color(hex: "FFD9B8"), Color(hex: "F8C192"), Color(hex: "FFD9B8")],
+                                    ? [AppColors.buttonGradientStart, AppColors.buttonGradientEnd]
+                                    : [AppColors.buttonDisabledStart, AppColors.buttonDisabledMid, AppColors.buttonDisabledStart],
                                 startPoint: .leading,
                                 endPoint: .trailing
                             )

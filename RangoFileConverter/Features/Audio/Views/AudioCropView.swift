@@ -31,7 +31,7 @@ struct AudioCropView: View {
 
             bottomButton
         }
-        .background(Color.white)
+        .background(AppColors.surface)
         .navigationBarHidden(true)
         .task {
             await setupPlayer()
@@ -47,7 +47,7 @@ struct AudioCropView: View {
         ZStack {
             Text("Crop audio")
                 .font(.system(size: 20, weight: .semibold))
-                .foregroundColor(Color(hex: "1D1D1D"))
+                .foregroundColor(AppColors.textPrimary)
                 .tracking(-0.408)
 
             HStack {
@@ -58,11 +58,11 @@ struct AudioCropView: View {
                 } label: {
                     Image(systemName: "xmark")
                         .font(.system(size: 14, weight: .semibold))
-                        .foregroundColor(Color(hex: "1D1D1D"))
+                        .foregroundColor(AppColors.textPrimary)
                         .frame(width: 40, height: 40)
                         .background(
                             Circle()
-                                .fill(Color(hex: "888888").opacity(0.08))
+                                .fill(AppColors.textSecondary.opacity(0.08))
                         )
                 }
             }
@@ -79,23 +79,23 @@ struct AudioCropView: View {
 
             ZStack {
                 RoundedRectangle(cornerRadius: 16)
-                    .fill(Color(hex: "E6E6EC"))
+                    .fill(AppColors.placeholder)
 
                 VStack(spacing: 12) {
                     Image(systemName: "music.note")
                         .font(.system(size: 28, weight: .medium))
-                        .foregroundColor(Color(hex: "1D1D1D"))
+                        .foregroundColor(AppColors.textPrimary)
                         .frame(width: 40, height: 40)
 
                     Text(sourceExtension.uppercased())
                         .font(.system(size: 14, weight: .semibold))
-                        .foregroundColor(Color(hex: "1D1D1D"))
+                        .foregroundColor(AppColors.textPrimary)
                         .tracking(-0.408)
                         .padding(.horizontal, 8)
                         .padding(.vertical, 4)
                         .background(
                             Capsule()
-                                .fill(Color(hex: "888888").opacity(0.12))
+                                .fill(AppColors.textSecondary.opacity(0.12))
                         )
                 }
             }
@@ -105,17 +105,17 @@ struct AudioCropView: View {
             if duration > 0 {
                 Text(formatTime(currentTime))
                     .font(.system(size: 12, weight: .semibold))
-                    .foregroundColor(Color(hex: "1D1D1D"))
+                    .foregroundColor(AppColors.textPrimary)
                     .tracking(-0.408)
                     .monospacedDigit()
                     .padding(.top, 16)
                     .padding(.bottom, 12)
             }
         }
-        .background(Color.white)
+        .background(AppColors.surface)
         .overlay(
             Rectangle()
-                .fill(Color(hex: "565656").opacity(0.08))
+                .fill(AppColors.shadow.opacity(0.08))
                 .frame(height: 1),
             alignment: .bottom
         )
@@ -131,7 +131,7 @@ struct AudioCropView: View {
                     ProgressView()
                     Text("Preparing audio...")
                         .font(.system(size: 14, weight: .semibold))
-                        .foregroundColor(Color(hex: "888888"))
+                        .foregroundColor(AppColors.textSecondary)
                 }
             } else if player != nil {
                 HStack(spacing: 12) {
@@ -140,7 +140,7 @@ struct AudioCropView: View {
                     } label: {
                         Image(systemName: "backward.fill")
                             .font(.system(size: 22))
-                            .foregroundColor(Color(hex: "1D1D1D"))
+                            .foregroundColor(AppColors.textPrimary)
                             .frame(width: 32, height: 32)
                     }
 
@@ -149,7 +149,7 @@ struct AudioCropView: View {
                     } label: {
                         Image(systemName: isPlaying ? "pause.circle.fill" : "play.circle.fill")
                             .font(.system(size: 56))
-                            .foregroundColor(Color(hex: "F4800D"))
+                            .foregroundColor(AppColors.accent)
                     }
 
                     Button {
@@ -157,7 +157,7 @@ struct AudioCropView: View {
                     } label: {
                         Image(systemName: "forward.fill")
                             .font(.system(size: 22))
-                            .foregroundColor(Color(hex: "1D1D1D"))
+                            .foregroundColor(AppColors.textPrimary)
                             .frame(width: 32, height: 32)
                     }
                 }
@@ -168,21 +168,21 @@ struct AudioCropView: View {
                 HStack {
                     Text("Start: \(formatTime(startTime))")
                         .font(.system(size: 14, weight: .semibold))
-                        .foregroundColor(Color(hex: "888888"))
+                        .foregroundColor(AppColors.textSecondary)
                         .tracking(-0.408)
 
                     Spacer()
 
                     Text("Clip length \(formatTime(max(endTime - startTime, 0)))")
                         .font(.system(size: 14, weight: .semibold))
-                        .foregroundColor(Color(hex: "888888"))
+                        .foregroundColor(AppColors.textSecondary)
                         .tracking(-0.408)
 
                     Spacer()
 
                     Text("End: \(formatTime(endTime))")
                         .font(.system(size: 14, weight: .semibold))
-                        .foregroundColor(Color(hex: "888888"))
+                        .foregroundColor(AppColors.textSecondary)
                         .tracking(-0.408)
                 }
                 .monospacedDigit()
@@ -220,7 +220,7 @@ struct AudioCropView: View {
                     .frame(height: 60)
                     .background(
                         LinearGradient(
-                            colors: [Color(hex: "FFAD5B"), Color(hex: "F4800D"), Color(hex: "FFAD5B")],
+                            colors: [AppColors.accentLight, AppColors.accent, AppColors.accentLight],
                             startPoint: .topTrailing,
                             endPoint: .bottomLeading
                         )

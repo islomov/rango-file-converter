@@ -30,7 +30,7 @@ struct AudioPickerView: View {
 
     var body: some View {
         ZStack {
-            Color(hex: "F2F2F6")
+            AppColors.background
                 .ignoresSafeArea()
 
             VStack(spacing: 0) {
@@ -74,7 +74,7 @@ struct AudioPickerView: View {
         ZStack {
             Text("Select Audio")
                 .font(.system(size: 20, weight: .semibold))
-                .foregroundColor(Color(hex: "1D1D1D"))
+                .foregroundColor(AppColors.textPrimary)
                 .tracking(-0.408)
 
             HStack {
@@ -83,7 +83,7 @@ struct AudioPickerView: View {
                 } label: {
                     Image(systemName: "chevron.left")
                         .font(.system(size: 18, weight: .medium))
-                        .foregroundColor(Color(hex: "1D1D1D"))
+                        .foregroundColor(AppColors.textPrimary)
                         .frame(width: 40, height: 40)
                 }
 
@@ -106,15 +106,15 @@ struct AudioPickerView: View {
                 } label: {
                     Text(source.rawValue)
                         .font(.system(size: 14, weight: .semibold))
-                        .foregroundColor(Color(hex: "1D1D1D"))
+                        .foregroundColor(AppColors.textPrimary)
                         .frame(maxWidth: .infinity)
                         .frame(height: 36)
                         .background(
                             Group {
                                 if selectedSource == source {
                                     RoundedRectangle(cornerRadius: 10)
-                                        .fill(Color.white)
-                                        .shadow(color: Color(hex: "2F2E41").opacity(0.12), radius: 4, x: 0, y: 0)
+                                        .fill(AppColors.surface)
+                                        .shadow(color: AppColors.textPrimary.opacity(0.12), radius: 4, x: 0, y: 0)
                                 }
                             }
                         )
@@ -125,7 +125,7 @@ struct AudioPickerView: View {
         .padding(4)
         .background(
             RoundedRectangle(cornerRadius: 12)
-                .fill(Color.white)
+                .fill(AppColors.surface)
         )
     }
 
@@ -214,7 +214,7 @@ struct AudioPickerView: View {
                             .clipped()
                     } else {
                         Rectangle()
-                            .fill(Color(hex: "E6E6EC"))
+                            .fill(AppColors.placeholder)
                             .frame(width: geo.size.width, height: geo.size.width)
                     }
 
@@ -266,7 +266,7 @@ struct AudioPickerView: View {
                 showFilePicker = true
             }
             .buttonStyle(.borderedProminent)
-            .tint(Color(hex: "F4800D"))
+            .tint(AppColors.accent)
             Spacer()
         }
     }

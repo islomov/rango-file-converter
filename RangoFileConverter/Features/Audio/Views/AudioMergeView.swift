@@ -25,7 +25,7 @@ struct AudioMergeView: View {
             audioList
             bottomSection
         }
-        .background(Color.white)
+        .background(AppColors.surface)
         .navigationBarHidden(true)
         .hidesFloatingTabBar()
         .task { await loadDurations() }
@@ -37,7 +37,7 @@ struct AudioMergeView: View {
         ZStack {
             Text("Merge audio")
                 .font(.system(size: 20, weight: .semibold))
-                .foregroundColor(Color(hex: "1D1D1D"))
+                .foregroundColor(AppColors.textPrimary)
                 .tracking(-0.408)
 
             HStack {
@@ -45,9 +45,9 @@ struct AudioMergeView: View {
                 Button { dismiss() } label: {
                     Image(systemName: "xmark")
                         .font(.system(size: 14, weight: .semibold))
-                        .foregroundColor(Color(hex: "1D1D1D"))
+                        .foregroundColor(AppColors.textPrimary)
                         .frame(width: 40, height: 40)
-                        .background(Circle().fill(Color(hex: "888888").opacity(0.08)))
+                        .background(Circle().fill(AppColors.textSecondary.opacity(0.08)))
                 }
             }
         }
@@ -63,32 +63,32 @@ struct AudioMergeView: View {
                 HStack(spacing: 12) {
                     Text("\(index + 1)")
                         .font(.system(size: 14, weight: .semibold))
-                        .foregroundColor(Color(hex: "888888"))
+                        .foregroundColor(AppColors.textSecondary)
                         .tracking(-0.408)
                         .frame(width: 20)
 
                     ZStack {
                         RoundedRectangle(cornerRadius: 8.32)
-                            .fill(Color(hex: "E6E6EC"))
+                            .fill(AppColors.placeholder)
                             .frame(width: 56, height: 56)
 
                         Image("icon_musicnote_bold")
                             .resizable()
                             .renderingMode(.template)
-                            .foregroundColor(Color(hex: "888888"))
+                            .foregroundColor(AppColors.textSecondary)
                             .frame(width: 24, height: 24)
                     }
 
                     VStack(alignment: .leading, spacing: 4) {
                         Text(audio.fileName)
                             .font(.system(size: 12, weight: .semibold))
-                            .foregroundColor(Color(hex: "1D1D1D"))
+                            .foregroundColor(AppColors.textPrimary)
                             .tracking(-0.408)
                             .lineLimit(1)
 
                         Text(audio.duration)
                             .font(.system(size: 12, weight: .semibold))
-                            .foregroundColor(Color(hex: "888888"))
+                            .foregroundColor(AppColors.textSecondary)
                             .tracking(-0.408)
                     }
 
@@ -99,7 +99,7 @@ struct AudioMergeView: View {
                 .listRowSeparator(.hidden)
                 .overlay(alignment: .bottom) {
                     Rectangle()
-                        .fill(Color(hex: "888888").opacity(0.12))
+                        .fill(AppColors.textSecondary.opacity(0.12))
                         .frame(height: 1)
                         .padding(.leading, 48)
                 }
@@ -112,7 +112,7 @@ struct AudioMergeView: View {
         .environment(\.editMode, .constant(.active))
         .overlay(alignment: .top) {
             Rectangle()
-                .fill(Color(hex: "565656").opacity(0.08))
+                .fill(AppColors.shadow.opacity(0.08))
                 .frame(height: 1)
         }
     }
@@ -122,7 +122,7 @@ struct AudioMergeView: View {
     private var bottomSection: some View {
         VStack(spacing: 0) {
             Rectangle()
-                .fill(Color(hex: "565656").opacity(0.08))
+                .fill(AppColors.shadow.opacity(0.08))
                 .frame(height: 1)
 
             VStack(spacing: 0) {
@@ -130,7 +130,7 @@ struct AudioMergeView: View {
                 VStack(alignment: .leading, spacing: 8) {
                     Text("Output format")
                         .font(.system(size: 14, weight: .semibold))
-                        .foregroundColor(Color(hex: "888888"))
+                        .foregroundColor(AppColors.textSecondary)
                         .tracking(-0.408)
 
                     HStack(spacing: 8) {
@@ -141,14 +141,14 @@ struct AudioMergeView: View {
                                 Text(format.rawValue)
                                     .font(.system(size: 14, weight: .semibold))
                                     .tracking(-0.408)
-                                    .foregroundColor(outputFormat == format ? .white : Color(hex: "1D1D1D"))
+                                    .foregroundColor(outputFormat == format ? .white : AppColors.textPrimary)
                                     .frame(maxWidth: .infinity)
                                     .padding(.vertical, 8)
                                     .background(
                                         Capsule().fill(
                                             outputFormat == format
-                                                ? Color(hex: "F4800D")
-                                                : Color(hex: "888888").opacity(0.08)
+                                                ? AppColors.accent
+                                                : AppColors.textSecondary.opacity(0.08)
                                         )
                                     )
                             }
@@ -182,13 +182,13 @@ struct AudioMergeView: View {
     private var combineButtonGradient: LinearGradient {
         if audios.count < 2 {
             return LinearGradient(
-                colors: [Color(hex: "FFD9B8"), Color(hex: "F8C192"), Color(hex: "FFD9B8")],
+                colors: [AppColors.buttonDisabledStart, AppColors.buttonDisabledMid, AppColors.buttonDisabledStart],
                 startPoint: .topTrailing,
                 endPoint: .bottomLeading
             )
         } else {
             return LinearGradient(
-                colors: [Color(hex: "FFAD5B"), Color(hex: "F4800D"), Color(hex: "FFAD5B")],
+                colors: [AppColors.accentLight, AppColors.accent, AppColors.accentLight],
                 startPoint: .topTrailing,
                 endPoint: .bottomLeading
             )

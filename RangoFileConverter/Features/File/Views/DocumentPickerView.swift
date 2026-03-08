@@ -95,7 +95,7 @@ struct DocumentPickerView: View {
 
     var body: some View {
         ZStack {
-            Color(hex: "F2F2F6")
+            AppColors.background
                 .ignoresSafeArea()
 
             VStack(spacing: 0) {
@@ -122,7 +122,7 @@ struct DocumentPickerView: View {
         ZStack {
             Text(config.navTitle)
                 .font(.system(size: 20, weight: .semibold))
-                .foregroundColor(Color(hex: "1D1D1D"))
+                .foregroundColor(AppColors.textPrimary)
                 .tracking(-0.408)
 
             HStack {
@@ -133,7 +133,7 @@ struct DocumentPickerView: View {
                         .resizable()
                         .renderingMode(.template)
                         .frame(width: 24, height: 24)
-                        .foregroundColor(Color(hex: "1D1D1D"))
+                        .foregroundColor(AppColors.textPrimary)
                         .frame(width: 40, height: 40)
                 }
                 Spacer()
@@ -156,14 +156,14 @@ struct DocumentPickerView: View {
                 VStack(spacing: 8) {
                     Text(config.heading)
                         .font(.system(size: 20, weight: .semibold))
-                        .foregroundColor(Color(hex: "1D1D1D"))
+                        .foregroundColor(AppColors.textPrimary)
                         .tracking(-0.408)
                         .multilineTextAlignment(.center)
 
                     if !config.subtitle.isEmpty {
                         Text(config.subtitle)
                             .font(.system(size: 14, weight: .semibold))
-                            .foregroundColor(Color(hex: "888888"))
+                            .foregroundColor(AppColors.textSecondary)
                             .tracking(-0.408)
                             .multilineTextAlignment(.center)
                     }
@@ -181,7 +181,7 @@ struct DocumentPickerView: View {
                     .frame(width: 180)
                     .background(
                         LinearGradient(
-                            colors: [Color(hex: "FFAD5B"), Color(hex: "F4800D"), Color(hex: "FFAD5B")],
+                            colors: [AppColors.accentLight, AppColors.accent, AppColors.accentLight],
                             startPoint: .topTrailing,
                             endPoint: .bottomLeading
                         )

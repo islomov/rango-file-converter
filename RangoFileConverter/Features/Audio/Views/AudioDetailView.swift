@@ -46,7 +46,7 @@ struct AudioDetailView: View {
 
             bottomButton
         }
-        .background(Color.white)
+        .background(AppColors.surface)
         .navigationBarHidden(true)
         .task {
             let path = fileURL.path
@@ -74,7 +74,7 @@ struct AudioDetailView: View {
         ZStack {
             Text("Convert audio")
                 .font(.system(size: 20, weight: .semibold))
-                .foregroundColor(Color(hex: "1D1D1D"))
+                .foregroundColor(AppColors.textPrimary)
                 .tracking(-0.408)
 
             HStack {
@@ -84,11 +84,11 @@ struct AudioDetailView: View {
                 } label: {
                     Image(systemName: "xmark")
                         .font(.system(size: 14, weight: .semibold))
-                        .foregroundColor(Color(hex: "1D1D1D"))
+                        .foregroundColor(AppColors.textPrimary)
                         .frame(width: 40, height: 40)
                         .background(
                             Circle()
-                                .fill(Color(hex: "888888").opacity(0.08))
+                                .fill(AppColors.textSecondary.opacity(0.08))
                         )
                 }
             }
@@ -105,33 +105,33 @@ struct AudioDetailView: View {
 
             ZStack {
                 RoundedRectangle(cornerRadius: 16)
-                    .fill(Color(hex: "E6E6EC"))
+                    .fill(AppColors.placeholder)
                     .frame(height: 180)
 
                 VStack(spacing: 12) {
                     Image(systemName: "music.note")
                         .font(.system(size: 32, weight: .medium))
-                        .foregroundColor(Color(hex: "1D1D1D"))
+                        .foregroundColor(AppColors.textPrimary)
 
                     Text(sourceExtension.uppercased())
                         .font(.system(size: 14, weight: .semibold))
-                        .foregroundColor(Color(hex: "1D1D1D"))
+                        .foregroundColor(AppColors.textPrimary)
                         .tracking(-0.408)
                         .padding(.horizontal, 8)
                         .padding(.vertical, 4)
                         .background(
                             Capsule()
-                                .fill(Color(hex: "888888").opacity(0.12))
+                                .fill(AppColors.textSecondary.opacity(0.12))
                         )
                 }
             }
             .padding(.horizontal, 16)
             .padding(.bottom, 16)
         }
-        .background(Color.white)
+        .background(AppColors.surface)
         .overlay(
             Rectangle()
-                .fill(Color(hex: "565656").opacity(0.08))
+                .fill(AppColors.shadow.opacity(0.08))
                 .frame(height: 1),
             alignment: .bottom
         )
@@ -146,12 +146,12 @@ struct AudioDetailView: View {
             } label: {
                 Image(systemName: isPlayingAudio ? "pause.circle.fill" : "play.circle.fill")
                     .font(.system(size: 56))
-                    .foregroundColor(Color(hex: "F4800D"))
+                    .foregroundColor(AppColors.accent)
             }
 
             Text(formatTime(currentTime))
                 .font(.system(size: 12, weight: .semibold))
-                .foregroundColor(Color(hex: "888888"))
+                .foregroundColor(AppColors.textSecondary)
                 .tracking(-0.408)
 
             VStack(spacing: 0) {
@@ -164,12 +164,12 @@ struct AudioDetailView: View {
                         seekTo(currentTime)
                     }
                 }
-                .tint(Color(hex: "F4800D"))
+                .tint(AppColors.accent)
             }
 
             Text(formatTime(duration))
                 .font(.system(size: 12, weight: .semibold))
-                .foregroundColor(Color(hex: "888888"))
+                .foregroundColor(AppColors.textSecondary)
                 .tracking(-0.408)
         }
         .padding(.horizontal, 16)
@@ -181,7 +181,7 @@ struct AudioDetailView: View {
         VStack(alignment: .leading, spacing: 8) {
             Text("Convert to")
                 .font(.system(size: 14, weight: .semibold))
-                .foregroundColor(Color(hex: "888888"))
+                .foregroundColor(AppColors.textSecondary)
                 .tracking(-0.408)
 
             LazyVGrid(columns: formatColumns, spacing: 4) {
@@ -194,8 +194,8 @@ struct AudioDetailView: View {
                             .tracking(-0.408)
                             .foregroundColor(
                                 targetFormat.id == format.id
-                                    ? Color(hex: "F4800D")
-                                    : Color(hex: "1D1D1D")
+                                    ? AppColors.accent
+                                    : AppColors.textPrimary
                             )
                             .frame(maxWidth: .infinity)
                             .padding(.vertical, 12)
@@ -203,7 +203,7 @@ struct AudioDetailView: View {
                                 RoundedRectangle(cornerRadius: 12)
                                     .fill(
                                         targetFormat.id == format.id
-                                            ? Color(hex: "F4800D").opacity(0.08)
+                                            ? AppColors.accent.opacity(0.08)
                                             : Color.clear
                                     )
                             )
@@ -229,7 +229,7 @@ struct AudioDetailView: View {
                 .frame(height: 60)
                 .background(
                     LinearGradient(
-                        colors: [Color(hex: "FFAD5B"), Color(hex: "F4800D"), Color(hex: "FFAD5B")],
+                        colors: [AppColors.accentLight, AppColors.accent, AppColors.accentLight],
                         startPoint: .topTrailing,
                         endPoint: .bottomLeading
                     )

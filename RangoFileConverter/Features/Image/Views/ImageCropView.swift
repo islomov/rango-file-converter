@@ -103,7 +103,7 @@ struct ImageCropView: View {
 
             bottomButtons
         }
-        .background(Color.white)
+        .background(AppColors.surface)
         .navigationBarHidden(true)
         .onAppear {
             imageSize = ImageConverterViewModel.imageDimensions(from: fileURL) ?? .zero
@@ -121,7 +121,7 @@ struct ImageCropView: View {
         ZStack {
             Text("Crop image")
                 .font(.system(size: 20, weight: .semibold))
-                .foregroundColor(Color(hex: "1D1D1D"))
+                .foregroundColor(AppColors.textPrimary)
                 .tracking(-0.408)
 
             HStack {
@@ -131,11 +131,11 @@ struct ImageCropView: View {
                 } label: {
                     Image(systemName: "xmark")
                         .font(.system(size: 14, weight: .semibold))
-                        .foregroundColor(Color(hex: "1D1D1D"))
+                        .foregroundColor(AppColors.textPrimary)
                         .frame(width: 40, height: 40)
                         .background(
                             Circle()
-                                .fill(Color(hex: "888888").opacity(0.08))
+                                .fill(AppColors.textSecondary.opacity(0.08))
                         )
                 }
             }
@@ -185,10 +185,10 @@ struct ImageCropView: View {
             fileSizeInfo
                 .padding(.bottom, 12)
         }
-        .background(Color.white)
+        .background(AppColors.surface)
         .overlay(
             Rectangle()
-                .fill(Color(hex: "565656").opacity(0.08))
+                .fill(AppColors.shadow.opacity(0.08))
                 .frame(height: 1),
             alignment: .bottom
         )
@@ -198,17 +198,17 @@ struct ImageCropView: View {
         HStack(spacing: 4) {
             Text("\(Int(imageSize.width)) \u{00D7} \(Int(imageSize.height))")
                 .font(.system(size: 12, weight: .semibold))
-                .foregroundColor(Color(hex: "1D1D1D"))
+                .foregroundColor(AppColors.textPrimary)
                 .tracking(-0.408)
 
             if hasChanges {
                 Image(systemName: "arrow.right")
                     .font(.system(size: 10))
-                    .foregroundColor(Color(hex: "1D1D1D"))
+                    .foregroundColor(AppColors.textPrimary)
 
                 Text("\(pixelWidth) \u{00D7} \(pixelHeight)")
                     .font(.system(size: 12, weight: .semibold))
-                    .foregroundColor(Color(hex: "F4800D"))
+                    .foregroundColor(AppColors.accent)
                     .tracking(-0.408)
 
                 if imageSize.width > 0 && imageSize.height > 0 {
@@ -217,7 +217,7 @@ struct ImageCropView: View {
                     let ratio = cropPixels / originalPixels * 100
                     Text(String(format: "(%.0f%%)", ratio))
                         .font(.system(size: 12, weight: .semibold))
-                        .foregroundColor(Color(hex: "888888"))
+                        .foregroundColor(AppColors.textSecondary)
                         .tracking(-0.408)
                 }
             }
@@ -430,7 +430,7 @@ struct ImageCropView: View {
             VStack(alignment: .leading, spacing: 8) {
                 Text("Fit mode")
                     .font(.system(size: 14, weight: .semibold))
-                    .foregroundColor(Color(hex: "888888"))
+                    .foregroundColor(AppColors.textSecondary)
                     .tracking(-0.408)
 
                 HStack(spacing: 8) {
@@ -441,13 +441,13 @@ struct ImageCropView: View {
                             Text(mode.rawValue)
                                 .font(.system(size: 14, weight: .semibold))
                                 .tracking(-0.408)
-                                .foregroundColor(fitMode == mode ? .white : Color(hex: "1D1D1D"))
+                                .foregroundColor(fitMode == mode ? .white : AppColors.textPrimary)
                                 .frame(maxWidth: .infinity)
                                 .padding(.vertical, 8)
                                 .background(
                                     fitMode == mode
-                                        ? Color(hex: "F4800D")
-                                        : Color(hex: "888888").opacity(0.08)
+                                        ? AppColors.accent
+                                        : AppColors.textSecondary.opacity(0.08)
                                 )
                                 .clipShape(Capsule())
                         }
@@ -475,20 +475,20 @@ struct ImageCropView: View {
                         Text(ratio.rawValue)
                             .font(.system(size: 9, weight: .semibold))
                             .tracking(-0.37)
-                            .foregroundColor(Color(hex: "1D1D1D"))
+                            .foregroundColor(AppColors.textPrimary)
                     }
                     .frame(maxWidth: .infinity)
                     .frame(height: 74)
                     .background(
                         selectedRatio == ratio
-                            ? Color(hex: "F4800D").opacity(0.08)
-                            : Color(hex: "888888").opacity(0.12)
+                            ? AppColors.accent.opacity(0.08)
+                            : AppColors.textSecondary.opacity(0.12)
                     )
                     .clipShape(RoundedRectangle(cornerRadius: 16))
                     .overlay(
                         RoundedRectangle(cornerRadius: 16)
                             .stroke(
-                                selectedRatio == ratio ? Color(hex: "FFAD5B") : .clear,
+                                selectedRatio == ratio ? AppColors.accentLight : .clear,
                                 lineWidth: 2
                             )
                     )
@@ -517,10 +517,10 @@ struct ImageCropView: View {
                 } label: {
                     Text("Reset")
                         .font(.system(size: 16, weight: .semibold))
-                        .foregroundColor(Color(hex: "1D1D1D"))
+                        .foregroundColor(AppColors.textPrimary)
                         .tracking(-0.408)
                         .frame(width: resetWidth, height: 60)
-                        .background(Color(hex: "888888").opacity(0.12))
+                        .background(AppColors.textSecondary.opacity(0.12))
                         .clipShape(RoundedRectangle(cornerRadius: 16))
                 }
                 .disabled(!hasChanges)
@@ -537,8 +537,8 @@ struct ImageCropView: View {
                         .background(
                             LinearGradient(
                                 colors: hasChanges
-                                    ? [Color(hex: "FFA05C"), Color(hex: "EF731A")]
-                                    : [Color(hex: "FFD9B8"), Color(hex: "F8C192"), Color(hex: "FFD9B8")],
+                                    ? [AppColors.buttonGradientStart, AppColors.buttonGradientEnd]
+                                    : [AppColors.buttonDisabledStart, AppColors.buttonDisabledMid, AppColors.buttonDisabledStart],
                                 startPoint: .leading,
                                 endPoint: .trailing
                             )
@@ -633,7 +633,7 @@ private struct RatioIconView: View {
 
     var body: some View {
         RoundedRectangle(cornerRadius: 3)
-            .stroke(Color(hex: "1D1D1D"), lineWidth: 1.5)
+            .stroke(AppColors.textPrimary, lineWidth: 1.5)
             .frame(width: ratio.iconWidth, height: ratio.iconHeight)
     }
 }

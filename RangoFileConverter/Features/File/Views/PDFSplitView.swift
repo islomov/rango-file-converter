@@ -23,7 +23,7 @@ struct PDFSplitView: View {
 
     var body: some View {
         ZStack {
-            Color(hex: "F2F2F6")
+            AppColors.background
                 .ignoresSafeArea()
 
             if fileURL == nil {
@@ -60,7 +60,7 @@ struct PDFSplitView: View {
 
                     Text("Select a PDF to split")
                         .font(.system(size: 20, weight: .semibold))
-                        .foregroundColor(Color(hex: "1D1D1D"))
+                        .foregroundColor(AppColors.textPrimary)
                         .tracking(-0.408)
                         .multilineTextAlignment(.center)
                 }
@@ -76,7 +76,7 @@ struct PDFSplitView: View {
                         .frame(width: 180)
                         .background(
                             LinearGradient(
-                                colors: [Color(hex: "FFAD5B"), Color(hex: "F4800D"), Color(hex: "FFAD5B")],
+                                colors: [AppColors.accentLight, AppColors.accent, AppColors.accentLight],
                                 startPoint: .topTrailing,
                                 endPoint: .bottomLeading
                             )
@@ -95,7 +95,7 @@ struct PDFSplitView: View {
     private var detailState: some View {
         VStack(spacing: 0) {
             navBar
-                .background(Color.white)
+                .background(AppColors.surface)
 
             fileInfoRow
 
@@ -129,26 +129,26 @@ struct PDFSplitView: View {
         HStack(spacing: 12) {
             ZStack {
                 RoundedRectangle(cornerRadius: 6)
-                    .fill(Color(hex: "E6E6EC"))
+                    .fill(AppColors.placeholder)
                     .frame(width: 28, height: 28)
 
                 Image("icon_doc_split")
                     .resizable()
                     .renderingMode(.template)
-                    .foregroundColor(Color(hex: "888888"))
+                    .foregroundColor(AppColors.textSecondary)
                     .frame(width: 16, height: 16)
             }
 
             VStack(alignment: .leading, spacing: 4) {
                 Text(fileName)
                     .font(.system(size: 12, weight: .semibold))
-                    .foregroundColor(Color(hex: "1D1D1D"))
+                    .foregroundColor(AppColors.textPrimary)
                     .tracking(-0.408)
                     .lineLimit(1)
 
                 Text("\(pageCount) pages")
                     .font(.system(size: 12, weight: .semibold))
-                    .foregroundColor(Color(hex: "888888"))
+                    .foregroundColor(AppColors.textSecondary)
                     .tracking(-0.408)
             }
 
@@ -159,16 +159,16 @@ struct PDFSplitView: View {
             } label: {
                 Text("Change")
                     .font(.system(size: 12, weight: .semibold))
-                    .foregroundColor(Color(hex: "F4800D"))
+                    .foregroundColor(AppColors.accent)
                     .tracking(-0.408)
             }
         }
         .padding(.horizontal, 16)
         .padding(.vertical, 16)
-        .background(Color.white)
+        .background(AppColors.surface)
         .overlay(
             Rectangle()
-                .fill(Color(hex: "888888").opacity(0.12))
+                .fill(AppColors.textSecondary.opacity(0.12))
                 .frame(height: 1),
             alignment: .bottom
         )
@@ -180,14 +180,14 @@ struct PDFSplitView: View {
         HStack {
             Text("Select pages to extract")
                 .font(.system(size: 12, weight: .semibold))
-                .foregroundColor(Color(hex: "888888"))
+                .foregroundColor(AppColors.textSecondary)
                 .tracking(-0.408)
 
             Spacer()
 
             Text(allSelected ? "Deselect all" : "Select all")
                 .font(.system(size: 12, weight: .semibold))
-                .foregroundColor(Color(hex: "F4800D"))
+                .foregroundColor(AppColors.accent)
                 .tracking(-0.408)
                 .contentShape(Rectangle())
                 .onTapGesture {
@@ -228,18 +228,18 @@ struct PDFSplitView: View {
                         .clipped()
                 } else {
                     Rectangle()
-                        .fill(Color(hex: "E6E6EC"))
+                        .fill(AppColors.placeholder)
                         .frame(height: 140)
                 }
 
                 // Page number badge
                 Text("\(index + 1)")
                     .font(.system(size: 10, weight: .bold))
-                    .foregroundColor(isSelected ? .white : Color(hex: "888888"))
+                    .foregroundColor(isSelected ? .white : AppColors.textSecondary)
                     .frame(width: 22, height: 22)
                     .background(
                         Circle()
-                            .fill(isSelected ? Color(hex: "F4800D") : Color.white)
+                            .fill(isSelected ? AppColors.accent : Color.white)
                     )
                     .padding(6)
             }
@@ -247,7 +247,7 @@ struct PDFSplitView: View {
             .overlay(
                 RoundedRectangle(cornerRadius: 8)
                     .stroke(
-                        isSelected ? Color(hex: "F4800D") : Color.clear,
+                        isSelected ? AppColors.accent : Color.clear,
                         lineWidth: 2.5
                     )
             )
@@ -260,7 +260,7 @@ struct PDFSplitView: View {
     private var splitButton: some View {
         VStack(spacing: 0) {
             Rectangle()
-                .fill(Color(hex: "565656").opacity(0.08))
+                .fill(AppColors.shadow.opacity(0.08))
                 .frame(height: 1)
 
             Button {
@@ -290,7 +290,7 @@ struct PDFSplitView: View {
         ZStack {
             Text("Split PDF")
                 .font(.system(size: 20, weight: .semibold))
-                .foregroundColor(Color(hex: "1D1D1D"))
+                .foregroundColor(AppColors.textPrimary)
                 .tracking(-0.408)
 
             HStack {
@@ -301,9 +301,9 @@ struct PDFSplitView: View {
                 } label: {
                     Image(systemName: "xmark")
                         .font(.system(size: 16, weight: .semibold))
-                        .foregroundColor(Color(hex: "1D1D1D"))
+                        .foregroundColor(AppColors.textPrimary)
                         .frame(width: 40, height: 40)
-                        .background(Circle().fill(Color(hex: "888888").opacity(0.08)))
+                        .background(Circle().fill(AppColors.textSecondary.opacity(0.08)))
                 }
             }
         }
@@ -314,13 +314,13 @@ struct PDFSplitView: View {
     private var splitButtonGradient: LinearGradient {
         if selectedCount == 0 {
             return LinearGradient(
-                colors: [Color(hex: "FFD9B8"), Color(hex: "F8C192"), Color(hex: "FFD9B8")],
+                colors: [AppColors.buttonDisabledStart, AppColors.buttonDisabledMid, AppColors.buttonDisabledStart],
                 startPoint: .topTrailing,
                 endPoint: .bottomLeading
             )
         } else {
             return LinearGradient(
-                colors: [Color(hex: "FFAD5B"), Color(hex: "F4800D"), Color(hex: "FFAD5B")],
+                colors: [AppColors.accentLight, AppColors.accent, AppColors.accentLight],
                 startPoint: .topTrailing,
                 endPoint: .bottomLeading
             )

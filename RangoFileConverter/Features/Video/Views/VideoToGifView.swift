@@ -31,7 +31,7 @@ struct VideoToGifView: View {
 
             bottomButton
         }
-        .background(Color.white)
+        .background(AppColors.surface)
         .navigationBarHidden(true)
         .onAppear { extractFrames() }
         .onDisappear {
@@ -48,7 +48,7 @@ struct VideoToGifView: View {
         ZStack {
             Text("GIF")
                 .font(.system(size: 20, weight: .semibold))
-                .foregroundColor(Color(hex: "1D1D1D"))
+                .foregroundColor(AppColors.textPrimary)
                 .tracking(-0.408)
 
             HStack {
@@ -58,11 +58,11 @@ struct VideoToGifView: View {
                 } label: {
                     Image(systemName: "xmark")
                         .font(.system(size: 14, weight: .semibold))
-                        .foregroundColor(Color(hex: "1D1D1D"))
+                        .foregroundColor(AppColors.textPrimary)
                         .frame(width: 40, height: 40)
                         .background(
                             Circle()
-                                .fill(Color(hex: "888888").opacity(0.08))
+                                .fill(AppColors.textSecondary.opacity(0.08))
                         )
                 }
             }
@@ -80,7 +80,7 @@ struct VideoToGifView: View {
             VStack(spacing: 8) {
                 ZStack {
                     RoundedRectangle(cornerRadius: 16)
-                        .fill(Color(hex: "E6E6EC"))
+                        .fill(AppColors.placeholder)
                         .aspectRatio(200.0 / 286.0, contentMode: .fit)
                         .frame(width: 200)
 
@@ -97,7 +97,7 @@ struct VideoToGifView: View {
                                         ProgressView()
                                         Text("Generating preview...")
                                             .font(.system(size: 12, weight: .semibold))
-                                            .foregroundColor(Color(hex: "888888"))
+                                            .foregroundColor(AppColors.textSecondary)
                                             .tracking(-0.408)
                                     }
                                 }
@@ -114,17 +114,17 @@ struct VideoToGifView: View {
                 if !frames.isEmpty {
                     Text("Frame \(currentFrameIndex + 1) of \(frames.count)")
                         .font(.system(size: 12, weight: .semibold))
-                        .foregroundColor(Color(hex: "1D1D1D"))
+                        .foregroundColor(AppColors.textPrimary)
                         .tracking(-0.408)
                 }
             }
             .padding(.horizontal, 16)
             .padding(.vertical, 24)
         }
-        .background(Color.white)
+        .background(AppColors.surface)
         .overlay(
             Rectangle()
-                .fill(Color(hex: "565656").opacity(0.08))
+                .fill(AppColors.shadow.opacity(0.08))
                 .frame(height: 1),
             alignment: .bottom
         )
@@ -139,17 +139,17 @@ struct VideoToGifView: View {
                 HStack {
                     Text("Frame rate")
                         .font(.system(size: 14, weight: .semibold))
-                        .foregroundColor(Color(hex: "888888"))
+                        .foregroundColor(AppColors.textSecondary)
                         .tracking(-0.408)
                     Spacer()
                     Text("\(Int(fps)) FPS")
                         .font(.system(size: 14, weight: .semibold))
-                        .foregroundColor(Color(hex: "888888"))
+                        .foregroundColor(AppColors.textSecondary)
                         .tracking(-0.408)
                 }
 
                 Slider(value: $fps, in: 5...30, step: 1)
-                    .tint(Color(hex: "F4800D"))
+                    .tint(AppColors.accent)
             }
 
             // Width slider
@@ -157,17 +157,17 @@ struct VideoToGifView: View {
                 HStack {
                     Text("Width")
                         .font(.system(size: 14, weight: .semibold))
-                        .foregroundColor(Color(hex: "888888"))
+                        .foregroundColor(AppColors.textSecondary)
                         .tracking(-0.408)
                     Spacer()
                     Text("\(Int(width))px")
                         .font(.system(size: 14, weight: .semibold))
-                        .foregroundColor(Color(hex: "888888"))
+                        .foregroundColor(AppColors.textSecondary)
                         .tracking(-0.408)
                 }
 
                 Slider(value: $width, in: 160...640, step: 20)
-                    .tint(Color(hex: "F4800D"))
+                    .tint(AppColors.accent)
             }
         }
         .padding(16)
@@ -188,7 +188,7 @@ struct VideoToGifView: View {
                     .padding(.vertical, 20)
                     .background(
                         LinearGradient(
-                            colors: [Color(hex: "FFAD5B"), Color(hex: "F4800D"), Color(hex: "FFAD5B")],
+                            colors: [AppColors.accentLight, AppColors.accent, AppColors.accentLight],
                             startPoint: .topTrailing,
                             endPoint: .bottomLeading
                         )

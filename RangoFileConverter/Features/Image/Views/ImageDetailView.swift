@@ -27,7 +27,7 @@ struct ImageDetailView: View {
 
             bottomButton
         }
-        .background(Color.white)
+        .background(AppColors.surface)
         .navigationBarHidden(true)
         .onAppear {
             previewImage = ImageConverterViewModel.loadPreviewImage(from: fileURL)
@@ -41,7 +41,7 @@ struct ImageDetailView: View {
         ZStack {
             Text("Convert image")
                 .font(.system(size: 20, weight: .semibold))
-                .foregroundColor(Color(hex: "1D1D1D"))
+                .foregroundColor(AppColors.textPrimary)
                 .tracking(-0.408)
 
             HStack {
@@ -51,11 +51,11 @@ struct ImageDetailView: View {
                 } label: {
                     Image(systemName: "xmark")
                         .font(.system(size: 14, weight: .semibold))
-                        .foregroundColor(Color(hex: "1D1D1D"))
+                        .foregroundColor(AppColors.textPrimary)
                         .frame(width: 40, height: 40)
                         .background(
                             Circle()
-                                .fill(Color(hex: "888888").opacity(0.08))
+                                .fill(AppColors.textSecondary.opacity(0.08))
                         )
                 }
             }
@@ -80,7 +80,7 @@ struct ImageDetailView: View {
                     .padding(.vertical, 24)
             } else {
                 RoundedRectangle(cornerRadius: 16)
-                    .fill(Color(hex: "E6E6EC"))
+                    .fill(AppColors.placeholder)
                     .frame(width: 200, height: 260)
                     .padding(.vertical, 24)
             }
@@ -88,10 +88,10 @@ struct ImageDetailView: View {
             fileSizeInfo
                 .padding(.bottom, 12)
         }
-        .background(Color.white)
+        .background(AppColors.surface)
         .overlay(
             Rectangle()
-                .fill(Color(hex: "565656").opacity(0.08))
+                .fill(AppColors.shadow.opacity(0.08))
                 .frame(height: 1),
             alignment: .bottom
         )
@@ -101,7 +101,7 @@ struct ImageDetailView: View {
         HStack(spacing: 4) {
             Text(formatBytes(originalSize))
                 .font(.system(size: 12, weight: .semibold))
-                .foregroundColor(Color(hex: "1D1D1D"))
+                .foregroundColor(AppColors.textPrimary)
                 .tracking(-0.408)
         }
     }
@@ -112,7 +112,7 @@ struct ImageDetailView: View {
         VStack(alignment: .leading, spacing: 8) {
             Text("Convert to")
                 .font(.system(size: 14, weight: .semibold))
-                .foregroundColor(Color(hex: "888888"))
+                .foregroundColor(AppColors.textSecondary)
                 .tracking(-0.408)
 
             LazyVGrid(columns: formatColumns, spacing: 4) {
@@ -125,8 +125,8 @@ struct ImageDetailView: View {
                             .tracking(-0.408)
                             .foregroundColor(
                                 targetFormat.id == format.id
-                                    ? Color(hex: "F4800D")
-                                    : Color(hex: "1D1D1D")
+                                    ? AppColors.accent
+                                    : AppColors.textPrimary
                             )
                             .frame(maxWidth: .infinity)
                             .padding(.vertical, 12)
@@ -134,7 +134,7 @@ struct ImageDetailView: View {
                                 RoundedRectangle(cornerRadius: 12)
                                     .fill(
                                         targetFormat.id == format.id
-                                            ? Color(hex: "F4800D").opacity(0.08)
+                                            ? AppColors.accent.opacity(0.08)
                                             : Color.clear
                                     )
                             )
@@ -162,10 +162,10 @@ struct ImageDetailView: View {
                 } label: {
                     Text("Reset")
                         .font(.system(size: 16, weight: .semibold))
-                        .foregroundColor(Color(hex: "1D1D1D"))
+                        .foregroundColor(AppColors.textPrimary)
                         .tracking(-0.408)
                         .frame(width: resetWidth, height: 60)
-                        .background(Color(hex: "888888").opacity(0.12))
+                        .background(AppColors.textSecondary.opacity(0.12))
                         .clipShape(RoundedRectangle(cornerRadius: 16))
                 }
 
@@ -180,7 +180,7 @@ struct ImageDetailView: View {
                         .frame(width: convertWidth, height: 60)
                         .background(
                             LinearGradient(
-                                colors: [Color(hex: "FFA05C"), Color(hex: "EF731A")],
+                                colors: [AppColors.buttonGradientStart, AppColors.buttonGradientEnd],
                                 startPoint: .leading,
                                 endPoint: .trailing
                             )

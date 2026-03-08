@@ -76,7 +76,7 @@ struct HistoryFilterSheet: View {
             // Bottom buttons
             bottomButtons
         }
-        .background(Color.white)
+        .background(AppColors.surface)
     }
 
     // MARK: - Header
@@ -90,7 +90,7 @@ struct HistoryFilterSheet: View {
 
             Text("Filtr")
                 .font(.custom("Montserrat-SemiBold", size: 20))
-                .foregroundColor(Color(hex: "1D1D1D"))
+                .foregroundColor(AppColors.textPrimary)
 
             Spacer()
 
@@ -99,12 +99,12 @@ struct HistoryFilterSheet: View {
             } label: {
                 ZStack {
                     Circle()
-                        .fill(Color(hex: "888888").opacity(0.08))
+                        .fill(AppColors.textSecondary.opacity(0.08))
                         .frame(width: 40, height: 40)
 
                     Image(systemName: "xmark")
                         .font(.system(size: 14, weight: .semibold))
-                        .foregroundColor(Color(hex: "1D1D1D"))
+                        .foregroundColor(AppColors.textPrimary)
                 }
             }
         }
@@ -116,7 +116,7 @@ struct HistoryFilterSheet: View {
         VStack(alignment: .leading, spacing: 8) {
             Text("Show only")
                 .font(.custom("Montserrat-SemiBold", size: 14))
-                .foregroundColor(Color(hex: "888888"))
+                .foregroundColor(AppColors.textSecondary)
 
             FlowLayout(spacing: 8) {
                 // "All" chip
@@ -152,7 +152,7 @@ struct HistoryFilterSheet: View {
         VStack(alignment: .leading, spacing: 8) {
             Text("Type")
                 .font(.custom("Montserrat-SemiBold", size: 14))
-                .foregroundColor(Color(hex: "888888"))
+                .foregroundColor(AppColors.textSecondary)
 
             FlowLayout(spacing: 8) {
                 ForEach(ToolType.allCases, id: \.self) { tool in
@@ -178,7 +178,7 @@ struct HistoryFilterSheet: View {
         VStack(alignment: .leading, spacing: 8) {
             Text("Status")
                 .font(.custom("Montserrat-SemiBold", size: 14))
-                .foregroundColor(Color(hex: "888888"))
+                .foregroundColor(AppColors.textSecondary)
 
             FlowLayout(spacing: 8) {
                 ForEach(statuses, id: \.id) { status in
@@ -219,19 +219,19 @@ struct HistoryFilterSheet: View {
                 } else if let icon = icon {
                     Image(systemName: icon)
                         .font(.system(size: 12))
-                        .foregroundColor(Color(hex: "1D1D1D"))
+                        .foregroundColor(AppColors.textPrimary)
                         .frame(width: 20, height: 20)
                 }
 
                 Text(label)
                     .font(.custom("Montserrat-SemiBold", size: 14))
-                    .foregroundColor(isSelected ? .white : Color(hex: "1D1D1D"))
+                    .foregroundColor(isSelected ? .white : AppColors.textPrimary)
             }
             .padding(12)
             .background(
                 isSelected
-                    ? AnyView(Color(hex: "F4800D"))
-                    : AnyView(Color(hex: "888888").opacity(0.08))
+                    ? AnyView(AppColors.accent)
+                    : AnyView(AppColors.textSecondary.opacity(0.08))
             )
             .clipShape(Capsule())
         }
@@ -250,10 +250,10 @@ struct HistoryFilterSheet: View {
                 } label: {
                     Text("Clear all")
                         .font(.custom("Montserrat-SemiBold", size: 16))
-                        .foregroundColor(Color(hex: "F21414"))
+                        .foregroundColor(AppColors.destructive)
                         .padding(.horizontal, 24)
                         .padding(.vertical, 20)
-                        .background(Color(hex: "888888").opacity(0.08))
+                        .background(AppColors.textSecondary.opacity(0.08))
                         .clipShape(RoundedRectangle(cornerRadius: 16))
                 }
                 .buttonStyle(.plain)
@@ -274,7 +274,7 @@ struct HistoryFilterSheet: View {
                         .padding(.vertical, 20)
                         .background(
                             LinearGradient(
-                                colors: [Color(hex: "FFAD5B"), Color(hex: "F4800D"), Color(hex: "FFAD5B")],
+                                colors: [AppColors.accentLight, AppColors.accent, AppColors.accentLight],
                                 startPoint: .topTrailing,
                                 endPoint: .bottomLeading
                             )

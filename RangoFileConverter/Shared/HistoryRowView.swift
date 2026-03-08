@@ -14,18 +14,18 @@ struct HistoryRowView: View {
                     .clipShape(RoundedRectangle(cornerRadius: 16))
                     .overlay(
                         RoundedRectangle(cornerRadius: 16)
-                            .stroke(Color(hex: "E0E0E6"), lineWidth: 1)
+                            .stroke(AppColors.border, lineWidth: 1)
                     )
             } else {
                 RoundedRectangle(cornerRadius: 16)
-                    .fill(Color(hex: "E6E6EC"))
+                    .fill(AppColors.placeholder)
                     .frame(width: 56, height: 56)
                     .overlay(
                         placeholderIcon
                     )
                     .overlay(
                         RoundedRectangle(cornerRadius: 16)
-                            .stroke(Color(hex: "E0E0E6"), lineWidth: 1)
+                            .stroke(AppColors.border, lineWidth: 1)
                     )
             }
 
@@ -33,7 +33,7 @@ struct HistoryRowView: View {
             VStack(alignment: .leading, spacing: 4) {
                 Text(record.sourceFileName)
                     .font(.custom("Montserrat-SemiBold", size: 16))
-                    .foregroundColor(Color(hex: "1D1D1D"))
+                    .foregroundColor(AppColors.textPrimary)
                     .lineLimit(1)
 
                 HStack(spacing: 4) {
@@ -42,15 +42,15 @@ struct HistoryRowView: View {
                     HStack(spacing: 4) {
                         Text(record.sourceFormat.uppercased())
                             .font(.custom("Montserrat-SemiBold", size: 12))
-                            .foregroundColor(Color(hex: "1D1D1D"))
+                            .foregroundColor(AppColors.textPrimary)
 
                         Image(systemName: "arrow.right")
                             .font(.system(size: 10, weight: .semibold))
-                            .foregroundColor(Color(hex: "1D1D1D"))
+                            .foregroundColor(AppColors.textPrimary)
 
                         Text(record.targetFormat.displayName)
                             .font(.custom("Montserrat-SemiBold", size: 12))
-                            .foregroundColor(Color(hex: "1D1D1D"))
+                            .foregroundColor(AppColors.textPrimary)
                     }
                 }
             }
@@ -63,7 +63,7 @@ struct HistoryRowView: View {
 
                 Text(formattedDate)
                     .font(.custom("Montserrat-SemiBold", size: 12))
-                    .foregroundColor(Color(hex: "888888"))
+                    .foregroundColor(AppColors.textSecondary)
                     .lineLimit(1)
                     .fixedSize(horizontal: true, vertical: false)
             }
@@ -79,19 +79,19 @@ struct HistoryRowView: View {
         case "video":
             Image(systemName: "video.fill")
                 .font(.system(size: 18))
-                .foregroundColor(Color(hex: "B0B0B8"))
+                .foregroundColor(AppColors.textTertiary)
         case "audio":
             Image(systemName: "music.note")
                 .font(.system(size: 18))
-                .foregroundColor(Color(hex: "B0B0B8"))
+                .foregroundColor(AppColors.textTertiary)
         case "document":
             Image(systemName: "doc.fill")
                 .font(.system(size: 18))
-                .foregroundColor(Color(hex: "B0B0B8"))
+                .foregroundColor(AppColors.textTertiary)
         default:
             Image(systemName: "photo.fill")
                 .font(.system(size: 18))
-                .foregroundColor(Color(hex: "B0B0B8"))
+                .foregroundColor(AppColors.textTertiary)
         }
     }
 
@@ -135,14 +135,14 @@ struct HistoryRowView: View {
         switch record.tool {
         case .convert:
             LinearGradient(
-                colors: [Color(hex: "FFAD5B"), Color(hex: "F4800D"), Color(hex: "FFAD5B")],
+                colors: [AppColors.accentLight, AppColors.accent, AppColors.accentLight],
                 startPoint: .topTrailing,
                 endPoint: .bottomLeading
             )
         case .compress:
             Color(hex: "43CF18")
         case .rotate:
-            Color(hex: "1D1D1D")
+            AppColors.textPrimary
         case .resize:
             Color(hex: "196EDD")
         case .crop:
@@ -150,15 +150,15 @@ struct HistoryRowView: View {
         case .stitch:
             Color(hex: "E5A800")
         case .gif:
-            Color(hex: "FF4D4D")
+            AppColors.error
         case .speed:
             Color(hex: "9B59B6")
         case .timeClip:
             Color(hex: "E67E22")
         case .extractAudio:
-            Color(hex: "3498DB")
+            AppColors.info
         case .ratio:
-            Color(hex: "2ECC71")
+            AppColors.success
         case .merge:
             Color(hex: "E74C3C")
         case .mergePDF:
@@ -181,10 +181,10 @@ struct HistoryRowView: View {
             HStack(spacing: 4) {
                 Text("Pending")
                     .font(.custom("Montserrat-SemiBold", size: 12))
-                    .foregroundColor(Color(hex: "F4800D"))
+                    .foregroundColor(AppColors.accent)
                 Image(systemName: "clock")
                     .font(.system(size: 10))
-                    .foregroundColor(Color(hex: "F4800D"))
+                    .foregroundColor(AppColors.accent)
             }
         case .converting:
             HStack(spacing: 4) {
@@ -192,14 +192,14 @@ struct HistoryRowView: View {
                     .font(.custom("Montserrat-SemiBold", size: 12))
                     .foregroundStyle(
                         LinearGradient(
-                            colors: [Color(hex: "FFAD5B"), Color(hex: "F4800D"), Color(hex: "FFAD5B")],
+                            colors: [AppColors.accentLight, AppColors.accent, AppColors.accentLight],
                             startPoint: .topTrailing,
                             endPoint: .bottomLeading
                         )
                     )
                 ProgressView()
                     .controlSize(.mini)
-                    .tint(Color(hex: "F4800D"))
+                    .tint(AppColors.accent)
             }
         case .converted:
             HStack(spacing: 4) {
@@ -214,10 +214,10 @@ struct HistoryRowView: View {
             HStack(spacing: 4) {
                 Text("Fail")
                     .font(.custom("Montserrat-SemiBold", size: 12))
-                    .foregroundColor(Color(hex: "F21414"))
+                    .foregroundColor(AppColors.destructive)
                 Image(systemName: "xmark.circle.fill")
                     .font(.system(size: 12))
-                    .foregroundColor(Color(hex: "F21414"))
+                    .foregroundColor(AppColors.destructive)
             }
         }
     }

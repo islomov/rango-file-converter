@@ -30,7 +30,7 @@ struct DocumentDetailView: View {
 
             bottomButton
         }
-        .background(Color.white)
+        .background(AppColors.surface)
         .navigationBarHidden(true)
         .hidesFloatingTabBar()
         .task {
@@ -55,7 +55,7 @@ struct DocumentDetailView: View {
         ZStack {
             Text("Convert document")
                 .font(.system(size: 20, weight: .semibold))
-                .foregroundColor(Color(hex: "1D1D1D"))
+                .foregroundColor(AppColors.textPrimary)
                 .tracking(-0.408)
 
             HStack {
@@ -65,11 +65,11 @@ struct DocumentDetailView: View {
                 } label: {
                     Image(systemName: "xmark")
                         .font(.system(size: 14, weight: .semibold))
-                        .foregroundColor(Color(hex: "1D1D1D"))
+                        .foregroundColor(AppColors.textPrimary)
                         .frame(width: 40, height: 40)
                         .background(
                             Circle()
-                                .fill(Color(hex: "888888").opacity(0.08))
+                                .fill(AppColors.textSecondary.opacity(0.08))
                         )
                 }
             }
@@ -86,23 +86,23 @@ struct DocumentDetailView: View {
 
             ZStack {
                 RoundedRectangle(cornerRadius: 16)
-                    .fill(Color(hex: "E6E6EC"))
+                    .fill(AppColors.placeholder)
                     .frame(height: 180)
 
                 VStack(spacing: 12) {
                     Image(systemName: documentIcon)
                         .font(.system(size: 32, weight: .medium))
-                        .foregroundColor(Color(hex: "1D1D1D"))
+                        .foregroundColor(AppColors.textPrimary)
 
                     Text(sourceExtension.uppercased())
                         .font(.system(size: 14, weight: .semibold))
-                        .foregroundColor(Color(hex: "1D1D1D"))
+                        .foregroundColor(AppColors.textPrimary)
                         .tracking(-0.408)
                         .padding(.horizontal, 8)
                         .padding(.vertical, 4)
                         .background(
                             Capsule()
-                                .fill(Color(hex: "888888").opacity(0.12))
+                                .fill(AppColors.textSecondary.opacity(0.12))
                         )
                 }
             }
@@ -113,23 +113,23 @@ struct DocumentDetailView: View {
             VStack(spacing: 4) {
                 Text(fileName)
                     .font(.system(size: 14, weight: .semibold))
-                    .foregroundColor(Color(hex: "1D1D1D"))
+                    .foregroundColor(AppColors.textPrimary)
                     .tracking(-0.408)
                     .lineLimit(1)
 
                 if !fileSizeText.isEmpty {
                     Text(fileSizeText)
                         .font(.system(size: 12, weight: .semibold))
-                        .foregroundColor(Color(hex: "888888"))
+                        .foregroundColor(AppColors.textSecondary)
                         .tracking(-0.408)
                 }
             }
             .padding(.bottom, 16)
         }
-        .background(Color.white)
+        .background(AppColors.surface)
         .overlay(
             Rectangle()
-                .fill(Color(hex: "565656").opacity(0.08))
+                .fill(AppColors.shadow.opacity(0.08))
                 .frame(height: 1),
             alignment: .bottom
         )
@@ -141,7 +141,7 @@ struct DocumentDetailView: View {
         VStack(alignment: .leading, spacing: 8) {
             Text("Convert to")
                 .font(.system(size: 14, weight: .semibold))
-                .foregroundColor(Color(hex: "888888"))
+                .foregroundColor(AppColors.textSecondary)
                 .tracking(-0.408)
 
             LazyVGrid(columns: formatColumns, spacing: 4) {
@@ -154,8 +154,8 @@ struct DocumentDetailView: View {
                             .tracking(-0.408)
                             .foregroundColor(
                                 targetFormat.id == format.id
-                                    ? Color(hex: "F4800D")
-                                    : Color(hex: "1D1D1D")
+                                    ? AppColors.accent
+                                    : AppColors.textPrimary
                             )
                             .frame(maxWidth: .infinity)
                             .padding(.vertical, 12)
@@ -163,7 +163,7 @@ struct DocumentDetailView: View {
                                 RoundedRectangle(cornerRadius: 12)
                                     .fill(
                                         targetFormat.id == format.id
-                                            ? Color(hex: "F4800D").opacity(0.08)
+                                            ? AppColors.accent.opacity(0.08)
                                             : Color.clear
                                     )
                             )
@@ -189,7 +189,7 @@ struct DocumentDetailView: View {
                 .frame(height: 60)
                 .background(
                     LinearGradient(
-                        colors: [Color(hex: "FFAD5B"), Color(hex: "F4800D"), Color(hex: "FFAD5B")],
+                        colors: [AppColors.accentLight, AppColors.accent, AppColors.accentLight],
                         startPoint: .topTrailing,
                         endPoint: .bottomLeading
                     )

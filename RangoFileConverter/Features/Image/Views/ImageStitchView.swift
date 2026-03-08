@@ -41,7 +41,7 @@ struct ImageStitchView: View {
             Spacer(minLength: 0)
             bottomButtons
         }
-        .background(Color.white)
+        .background(AppColors.surface)
         .navigationBarHidden(true)
         .onAppear {
             loadPreviews()
@@ -57,7 +57,7 @@ struct ImageStitchView: View {
         ZStack {
             Text("Stitch images")
                 .font(.system(size: 20, weight: .semibold))
-                .foregroundColor(Color(hex: "1D1D1D"))
+                .foregroundColor(AppColors.textPrimary)
                 .tracking(-0.408)
             HStack {
                 Spacer()
@@ -66,9 +66,9 @@ struct ImageStitchView: View {
                 } label: {
                     Image(systemName: "xmark")
                         .font(.system(size: 14, weight: .semibold))
-                        .foregroundColor(Color(hex: "1D1D1D"))
+                        .foregroundColor(AppColors.textPrimary)
                         .frame(width: 40, height: 40)
-                        .background(Circle().fill(Color(hex: "888888").opacity(0.08)))
+                        .background(Circle().fill(AppColors.textSecondary.opacity(0.08)))
                 }
             }
         }
@@ -90,7 +90,7 @@ struct ImageStitchView: View {
                     .clipShape(RoundedRectangle(cornerRadius: 16))
                     .overlay(
                         RoundedRectangle(cornerRadius: 16)
-                            .stroke(Color(hex: "565656").opacity(0.08), lineWidth: 1)
+                            .stroke(AppColors.shadow.opacity(0.08), lineWidth: 1)
                     )
                     .padding(.horizontal, 16)
                     .padding(.vertical, 24)
@@ -103,9 +103,9 @@ struct ImageStitchView: View {
             imageInfo
                 .padding(.bottom, 12)
         }
-        .background(Color.white)
+        .background(AppColors.surface)
         .overlay(
-            Rectangle().fill(Color(hex: "565656").opacity(0.08)).frame(height: 1),
+            Rectangle().fill(AppColors.shadow.opacity(0.08)).frame(height: 1),
             alignment: .bottom
         )
     }
@@ -114,16 +114,16 @@ struct ImageStitchView: View {
         HStack(spacing: 4) {
             Text("\(fileURLs.count) images")
                 .font(.system(size: 12, weight: .semibold))
-                .foregroundColor(Color(hex: "1D1D1D"))
+                .foregroundColor(AppColors.textPrimary)
                 .tracking(-0.408)
 
             if let size = previewImage?.size {
                 Text("\u{00B7}")
                     .font(.system(size: 12, weight: .semibold))
-                    .foregroundColor(Color(hex: "888888"))
+                    .foregroundColor(AppColors.textSecondary)
                 Text("\(Int(size.width))\u{00D7}\(Int(size.height))")
                     .font(.system(size: 12, weight: .semibold))
-                    .foregroundColor(Color(hex: "F4800D"))
+                    .foregroundColor(AppColors.accent)
                     .tracking(-0.408)
             }
         }
@@ -136,7 +136,7 @@ struct ImageStitchView: View {
             VStack(alignment: .leading, spacing: 8) {
                 Text("Layout")
                     .font(.system(size: 14, weight: .semibold))
-                    .foregroundColor(Color(hex: "888888"))
+                    .foregroundColor(AppColors.textSecondary)
                     .tracking(-0.408)
 
                 HStack(spacing: 8) {
@@ -155,7 +155,7 @@ struct ImageStitchView: View {
             VStack(alignment: .leading, spacing: 8) {
                 Text("Background")
                     .font(.system(size: 14, weight: .semibold))
-                    .foregroundColor(Color(hex: "888888"))
+                    .foregroundColor(AppColors.textSecondary)
                     .tracking(-0.408)
 
                 HStack(spacing: 8) {
@@ -185,14 +185,14 @@ struct ImageStitchView: View {
                     .font(.system(size: 14, weight: .semibold))
                     .tracking(-0.408)
             }
-            .foregroundColor(isSelected ? .white : Color(hex: "1D1D1D"))
+            .foregroundColor(isSelected ? .white : AppColors.textPrimary)
             .frame(maxWidth: .infinity)
             .padding(.vertical, 8)
             .padding(.horizontal, 12)
             .background(
                 isSelected
-                    ? AnyShapeStyle(Color(hex: "F4800D"))
-                    : AnyShapeStyle(Color(hex: "888888").opacity(0.08))
+                    ? AnyShapeStyle(AppColors.accent)
+                    : AnyShapeStyle(AppColors.textSecondary.opacity(0.08))
             )
             .clipShape(Capsule())
         }
@@ -222,10 +222,10 @@ struct ImageStitchView: View {
                 } label: {
                     Text("Reset")
                         .font(.system(size: 16, weight: .semibold))
-                        .foregroundColor(Color(hex: "1D1D1D"))
+                        .foregroundColor(AppColors.textPrimary)
                         .tracking(-0.408)
                         .frame(width: resetWidth, height: 60)
-                        .background(Color(hex: "888888").opacity(0.12))
+                        .background(AppColors.textSecondary.opacity(0.12))
                         .clipShape(RoundedRectangle(cornerRadius: 16))
                 }
 
@@ -239,7 +239,7 @@ struct ImageStitchView: View {
                         .frame(width: actionWidth, height: 60)
                         .background(
                             LinearGradient(
-                                colors: [Color(hex: "FFA05C"), Color(hex: "EF731A")],
+                                colors: [AppColors.buttonGradientStart, AppColors.buttonGradientEnd],
                                 startPoint: .leading,
                                 endPoint: .trailing
                             )

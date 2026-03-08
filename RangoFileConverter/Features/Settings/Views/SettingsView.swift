@@ -6,6 +6,8 @@ struct SettingsView: View {
     @State private var dailyReminders = true
     @State private var showClearHistoryAlert = false
     @State private var showLanguagePicker = false
+    @State private var showPrivacyPolicy = false
+    @State private var showTermsOfUse = false
 
     var body: some View {
         ZStack {
@@ -28,6 +30,24 @@ struct SettingsView: View {
             headerView
         }
         .navigationBarHidden(true)
+        .sheet(isPresented: $showPrivacyPolicy) {
+            WebViewSheet(
+                title: "Privacy policy",
+                url: URL(string: "https://viralapps.studio/rangosimpleconverter/privacy-policy")!
+            )
+            .presentationDetents([.large])
+            .presentationDragIndicator(.hidden)
+            .preferredColorScheme(themeManager.colorScheme)
+        }
+        .sheet(isPresented: $showTermsOfUse) {
+            WebViewSheet(
+                title: "Terms of use",
+                url: URL(string: "https://viralapps.studio/rangosimpleconverter/terms-of-use")!
+            )
+            .presentationDetents([.large])
+            .presentationDragIndicator(.hidden)
+            .preferredColorScheme(themeManager.colorScheme)
+        }
         .alert("Clear History", isPresented: $showClearHistoryAlert) {
             Button("Clear", role: .destructive) {
                 historyStore.removeAll()
@@ -184,11 +204,17 @@ struct SettingsView: View {
 
     private var linksSection: some View {
         VStack(spacing: 0) {
-            linkRow(title: "Rate app", isFirst: true, isLast: false)
+            linkRow(title: "Rate app", isFirst: true, isLast: false) {
+                // Handle rate app
+            }
 
-            linkRow(title: "Privacy policy", isFirst: false, isLast: false)
+            linkRow(title: "Privacy policy", isFirst: false, isLast: false) {
+                showPrivacyPolicy = true
+            }
 
-            linkRow(title: "Terms of use", isFirst: false, isLast: false)
+            linkRow(title: "Terms of use", isFirst: false, isLast: false) {
+                showTermsOfUse = true
+            }
 
             versionRow
         }
@@ -196,9 +222,9 @@ struct SettingsView: View {
         .cornerRadius(16)
     }
 
-    private func linkRow(title: String, isFirst: Bool, isLast: Bool) -> some View {
+    private func linkRow(title: String, isFirst: Bool, isLast: Bool, action: @escaping () -> Void) -> some View {
         Button {
-            // Handle link tap
+            action()
         } label: {
             HStack {
                 Text(title)
@@ -213,6 +239,7 @@ struct SettingsView: View {
             }
             .frame(height: 56)
             .padding(.horizontal, 16)
+            .contentShape(Rectangle())
             .overlay(alignment: .bottom) {
                 if !isLast {
                     Rectangle()

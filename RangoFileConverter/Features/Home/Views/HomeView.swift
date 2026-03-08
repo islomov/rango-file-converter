@@ -74,7 +74,7 @@ struct HomeView: View {
                         }
                         .zIndex(1)
                         .opacity(cardsAppeared ? 1 : 0)
-                        .offset(y: cardsAppeared ? 0 : 30)
+                        .offset(y: cardsAppeared ? 0 : 25)
                         .animation(.spring(response: 0.5, dampingFraction: 0.8).delay(0.05), value: cardsAppeared)
 
                         ServiceCard(
@@ -91,7 +91,7 @@ struct HomeView: View {
                         .offset(y: offset2)
                         .zIndex(2)
                         .opacity(cardsAppeared ? 1 : 0)
-                        .offset(y: cardsAppeared ? 0 : 30)
+                        .offset(y: cardsAppeared ? 0 : 25)
                         .animation(.spring(response: 0.5, dampingFraction: 0.8).delay(0.12), value: cardsAppeared)
 
                         ServiceCard(
@@ -101,14 +101,15 @@ struct HomeView: View {
                             backgroundColor: AppColors.cardAudio,
                             foregroundColor: AppColors.cardDarkText,
                             height: cardHeight,
-                            topCornerRadius: 32
+                            topCornerRadius: 32,
+                            hasBottomRadius: true
                         ) {
                             onCategorySelected?(.audio)
                         }
                         .offset(y: offset3)
                         .zIndex(3)
                         .opacity(cardsAppeared ? 1 : 0)
-                        .offset(y: cardsAppeared ? 0 : 30)
+                        .offset(y: cardsAppeared ? 0 : 25)
                         .animation(.spring(response: 0.5, dampingFraction: 0.8).delay(0.19), value: cardsAppeared)
 
                         ServiceCard(
@@ -126,7 +127,7 @@ struct HomeView: View {
                         .offset(y: offset4)
                         .zIndex(4)
                         .opacity(cardsAppeared ? 1 : 0)
-                        .offset(y: cardsAppeared ? 0 : 30)
+                        .offset(y: cardsAppeared ? 0 : 25)
                         .animation(.spring(response: 0.5, dampingFraction: 0.8).delay(0.26), value: cardsAppeared)
                     }
                     .frame(height: totalHeight, alignment: .top)

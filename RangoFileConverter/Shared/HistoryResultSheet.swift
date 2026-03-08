@@ -23,13 +23,7 @@ struct HistoryResultSheet: View {
     @State private var quickLookURL: URL?
 
     var body: some View {
-        VStack(spacing: 20) {
-            grabHandle
-
-            headerSection
-
-            Divider()
-
+        VStack(spacing: 0) {
             switch record.status {
             case .pending, .converting:
                 convertingContent
@@ -38,12 +32,13 @@ struct HistoryResultSheet: View {
             case .failed:
                 failedContent
             }
-
-            Spacer()
         }
-        .padding(.horizontal, 20)
-        .padding(.top, 8)
+        .padding(.horizontal, 16)
+        .padding(.top, 12)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
         .presentationDetents([.medium, .large])
+        .presentationBackground(AppColors.surface)
+        .presentationDragIndicator(.visible)
         .quickLookPreview($quickLookURL)
         .onDisappear {
             audioPlayer?.pause()
@@ -68,13 +63,7 @@ struct HistoryResultSheet: View {
         }
     }
 
-    // MARK: - Header
-
-    private var grabHandle: some View {
-        Capsule()
-            .fill(.quaternary)
-            .frame(width: 36, height: 5)
-    }
+    // MARK: - Header (matches HistoryRowView style)
 
     private var headerSection: some View {
         HStack(spacing: 12) {
@@ -83,37 +72,216 @@ struct HistoryResultSheet: View {
                     .resizable()
                     .aspectRatio(contentMode: .fill)
                     .frame(width: 56, height: 56)
-                    .clipShape(RoundedRectangle(cornerRadius: 10))
+                    .clipShape(RoundedRectangle(cornerRadius: 16))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 16)
+                            .stroke(AppColors.border, lineWidth: 1)
+                    )
             } else {
-                RoundedRectangle(cornerRadius: 10)
-                    .fill(.quaternary)
+                RoundedRectangle(cornerRadius: 16)
+                    .fill(AppColors.placeholder)
                     .frame(width: 56, height: 56)
-                    .overlay {
-                        Image(systemName: headerPlaceholderIcon)
-                            .foregroundStyle(.secondary)
-                    }
+                    .overlay(placeholderIcon)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 16)
+                            .stroke(AppColors.border, lineWidth: 1)
+                    )
             }
 
             VStack(alignment: .leading, spacing: 4) {
                 Text(record.sourceFileName)
-                    .font(.headline)
+                    .font(.custom("Montserrat-SemiBold", size: 16))
+                    .foregroundColor(AppColors.textPrimary)
                     .lineLimit(1)
 
-                HStack(spacing: 6) {
-                    Text(record.toolType)
-                        .font(.caption2.weight(.semibold))
-                        .foregroundStyle(.white)
-                        .padding(.horizontal, 6)
-                        .padding(.vertical, 2)
-                        .background(toolColor, in: Capsule())
+                HStack(spacing: 4) {
+                    toolBadge
 
-                    Text("\(record.sourceFormat) → \(record.targetFormat.displayName)")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
+                    HStack(spacing: 4) {
+                        Text(record.sourceFormat.uppercased())
+                            .font(.custom("Montserrat-SemiBold", size: 12))
+                            .foregroundColor(AppColors.textPrimary)
+
+                        Image(systemName: "arrow.right")
+                            .font(.system(size: 10, weight: .semibold))
+                            .foregroundColor(AppColors.textPrimary)
+
+                        Text(record.targetFormat.displayName)
+                            .font(.custom("Montserrat-SemiBold", size: 12))
+                            .foregroundColor(AppColors.textPrimary)
+                    }
                 }
             }
 
-            Spacer()
+            Spacer(minLength: 4)
+
+            VStack(alignment: .trailing, spacing: 4) {
+                statusBadge
+
+                Text(formattedDate)
+                    .font(.custom("Montserrat-SemiBold", size: 12))
+                    .foregroundColor(AppColors.textSecondary)
+                    .lineLimit(1)
+                    .fixedSize(horizontal: true, vertical: false)
+            }
+        }
+    }
+
+    // MARK: - Tool Badge
+
+    @ViewBuilder
+    private var toolBadge: some View {
+        Text(toolLabel)
+            .font(.custom("Montserrat-SemiBold", size: 12))
+            .foregroundColor(.white)
+            .padding(.horizontal, 8)
+            .padding(.vertical, 4)
+            .background(toolBadgeBackground)
+            .clipShape(Capsule())
+    }
+
+    private var toolLabel: String {
+        switch record.tool {
+        case .convert: return "Convert:"
+        case .compress: return "Compress:"
+        case .rotate: return "Rotate:"
+        case .resize: return "Resize:"
+        case .crop: return "Crop:"
+        case .gif: return "GIF"
+        case .stitch: return "Stitch"
+        case .merge: return "Merge:"
+        case .speed: return "Speed:"
+        case .timeClip: return "Time Clip:"
+        case .extractAudio: return "Extract Audio:"
+        case .ratio: return "Ratio:"
+        case .mergePDF: return "Merge PDF:"
+        case .splitPDF: return "Split PDF:"
+        case .reorderPDF: return "Reorder PDF:"
+        case .protectPDF: return "Protect PDF:"
+        }
+    }
+
+    @ViewBuilder
+    private var toolBadgeBackground: some View {
+        switch record.tool {
+        case .convert:
+            LinearGradient(
+                colors: [AppColors.accentLight, AppColors.accent, AppColors.accentLight],
+                startPoint: .topTrailing,
+                endPoint: .bottomLeading
+            )
+        case .compress:
+            Color(hex: "43CF18")
+        case .rotate:
+            Color(hex: "1D1D1D")
+        case .resize:
+            Color(hex: "196EDD")
+        case .crop:
+            Color(hex: "14C5A2")
+        case .stitch:
+            Color(hex: "E5A800")
+        case .gif:
+            AppColors.error
+        case .speed:
+            Color(hex: "9B59B6")
+        case .timeClip:
+            Color(hex: "E67E22")
+        case .extractAudio:
+            AppColors.info
+        case .ratio:
+            AppColors.success
+        case .merge:
+            Color(hex: "E74C3C")
+        case .mergePDF:
+            Color(hex: "8E44AD")
+        case .splitPDF:
+            Color(hex: "2980B9")
+        case .reorderPDF:
+            Color(hex: "27AE60")
+        case .protectPDF:
+            Color(hex: "C0392B")
+        }
+    }
+
+    // MARK: - Status Badge
+
+    @ViewBuilder
+    private var statusBadge: some View {
+        switch record.status {
+        case .pending:
+            HStack(spacing: 4) {
+                Text("Pending")
+                    .font(.custom("Montserrat-SemiBold", size: 12))
+                    .foregroundColor(AppColors.accent)
+                Image(systemName: "clock")
+                    .font(.system(size: 10))
+                    .foregroundColor(AppColors.accent)
+            }
+        case .converting:
+            HStack(spacing: 4) {
+                Text("\(Int(record.progress * 100))%")
+                    .font(.custom("Montserrat-SemiBold", size: 12))
+                    .foregroundStyle(
+                        LinearGradient(
+                            colors: [AppColors.accentLight, AppColors.accent, AppColors.accentLight],
+                            startPoint: .topTrailing,
+                            endPoint: .bottomLeading
+                        )
+                    )
+                ProgressView()
+                    .controlSize(.mini)
+                    .tint(AppColors.accent)
+            }
+        case .converted:
+            HStack(spacing: 4) {
+                Text("Done")
+                    .font(.custom("Montserrat-SemiBold", size: 12))
+                    .foregroundColor(Color(hex: "22C713"))
+                Image(systemName: "checkmark.circle.fill")
+                    .font(.system(size: 12))
+                    .foregroundColor(Color(hex: "22C713"))
+            }
+        case .failed:
+            HStack(spacing: 4) {
+                Text("Fail")
+                    .font(.custom("Montserrat-SemiBold", size: 12))
+                    .foregroundColor(AppColors.destructive)
+                Image(systemName: "xmark.circle.fill")
+                    .font(.system(size: 12))
+                    .foregroundColor(AppColors.destructive)
+            }
+        }
+    }
+
+    // MARK: - Date Formatting
+
+    private var formattedDate: String {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "d MMM, HH:mm"
+        return formatter.string(from: record.date)
+    }
+
+    // MARK: - Placeholder Icon
+
+    @ViewBuilder
+    private var placeholderIcon: some View {
+        switch record.mediaCategory {
+        case "video":
+            Image(systemName: "video.fill")
+                .font(.system(size: 18))
+                .foregroundColor(AppColors.textTertiary)
+        case "audio":
+            Image(systemName: "music.note")
+                .font(.system(size: 18))
+                .foregroundColor(AppColors.textTertiary)
+        case "document":
+            Image(systemName: "doc.fill")
+                .font(.system(size: 18))
+                .foregroundColor(AppColors.textTertiary)
+        default:
+            Image(systemName: "photo.fill")
+                .font(.system(size: 18))
+                .foregroundColor(AppColors.textTertiary)
         }
     }
 
@@ -121,6 +289,8 @@ struct HistoryResultSheet: View {
 
     private var convertingContent: some View {
         VStack(spacing: 16) {
+            headerSection
+
             ZStack {
                 Circle()
                     .stroke(.quaternary, lineWidth: 6)
@@ -128,23 +298,25 @@ struct HistoryResultSheet: View {
 
                 Circle()
                     .trim(from: 0, to: record.progress)
-                    .stroke(.blue, style: StrokeStyle(lineWidth: 6, lineCap: .round))
+                    .stroke(AppColors.accent, style: StrokeStyle(lineWidth: 6, lineCap: .round))
                     .frame(width: 100, height: 100)
                     .rotationEffect(.degrees(-90))
                     .animation(.easeInOut(duration: 0.3), value: record.progress)
 
                 if record.progress > 0 {
                     Text("\(Int(record.progress * 100))%")
-                        .font(.title2.monospacedDigit().bold())
-                        .foregroundStyle(.blue)
+                        .font(.custom("Montserrat-Bold", size: 22).monospacedDigit())
+                        .foregroundColor(AppColors.accent)
                 } else {
                     ProgressView()
+                        .tint(AppColors.accent)
                 }
             }
+            .padding(.top, 8)
 
             Text(record.progress > 0 ? "Converting..." : "Starting...")
-                .font(.subheadline)
-                .foregroundStyle(.secondary)
+                .font(.custom("Montserrat-SemiBold", size: 14))
+                .foregroundColor(AppColors.textSecondary)
 
             Button(role: .destructive) {
                 ConversionTaskManager.shared.cancel(id: record.id)
@@ -154,11 +326,14 @@ struct HistoryResultSheet: View {
                 dismiss()
             } label: {
                 Text("Cancel")
-                    .font(.body.weight(.medium))
+                    .font(.custom("Montserrat-SemiBold", size: 14))
+                    .foregroundColor(AppColors.destructive)
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 12)
-                    .background(.red.opacity(0.1), in: RoundedRectangle(cornerRadius: 10))
+                    .background(AppColors.destructive.opacity(0.08), in: RoundedRectangle(cornerRadius: 12))
             }
+
+            Spacer()
         }
     }
 
@@ -166,90 +341,142 @@ struct HistoryResultSheet: View {
 
     private var convertedContent: some View {
         VStack(spacing: 16) {
+            headerSection
+
             if let outputURL = record.outputURL {
-                assetPreview(url: outputURL)
+                compactPreview(url: outputURL)
 
                 fileInfoSection(url: outputURL)
 
-                HStack(spacing: 12) {
-                    if isDocumentOutput(url: outputURL) {
-                        Button {
-                            openWithSystemApp(url: outputURL)
-                        } label: {
-                            actionButton(title: "Open", icon: "arrow.up.forward.app", color: .blue)
-                        }
-                    } else {
-                        Button {
-                            saveToPhotos(url: outputURL)
-                        } label: {
-                            actionButton(title: "Save", icon: "square.and.arrow.down", color: .blue)
-                        }
-                    }
-
-                    ShareLink(item: outputURL) {
-                        actionButton(title: "Share", icon: "square.and.arrow.up", color: .orange)
-                    }
-
-                    Button(role: .destructive) {
-                        historyStore.remove(record)
-                        dismiss()
-                    } label: {
-                        actionButton(title: "Delete", icon: "trash", color: .red)
-                    }
-                }
+                actionButtonsRow(url: outputURL)
             }
+
+            Spacer()
         }
         .onAppear { loadFileInfo() }
     }
 
-    // MARK: - File Info
+    // MARK: - Compact Preview (centered thumbnail per Figma)
+
+    @ViewBuilder
+    private func compactPreview(url: URL) -> some View {
+        switch outputMediaType(for: url) {
+        case .video:
+            videoPreview(url: url)
+        case .image:
+            imagePreview(url: url)
+        case .audio:
+            audioPreview(url: url)
+        case .document:
+            documentPreview(url: url)
+        }
+    }
+
+    // MARK: - File Info (Figma style: gray card, no dividers)
 
     private func fileInfoSection(url: URL) -> some View {
-        VStack(spacing: 0) {
-            infoRow(label: "Name", value: url.lastPathComponent)
-            Divider()
-            infoRow(label: "Format", value: record.targetFormat.displayName)
+        VStack(alignment: .leading, spacing: 12) {
+            infoRow(label: "Name:", value: url.lastPathComponent)
+            infoRow(label: "Format:", value: record.targetFormat.displayName)
             if let fileSize = fileSize {
-                Divider()
-                infoRow(label: "Size", value: fileSize)
+                infoRow(label: "Size:", value: fileSize)
             }
             if let fileDimensions = fileDimensions {
-                Divider()
-                infoRow(label: "Resolution", value: fileDimensions)
+                infoRow(label: "Resolution:", value: fileDimensions)
             }
             if let fileDuration = fileDuration {
-                Divider()
-                infoRow(label: "Duration", value: fileDuration)
+                infoRow(label: "Duration:", value: fileDuration)
             }
-            Divider()
-            infoRow(label: "Location", value: url.deletingLastPathComponent().lastPathComponent + "/")
+            infoRow(label: "Location:", value: url.deletingLastPathComponent().lastPathComponent + "/")
         }
-        .background(.quaternary.opacity(0.5), in: RoundedRectangle(cornerRadius: 10))
+        .padding(.horizontal, 12)
+        .padding(.vertical, 16)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(AppColors.textSecondary.opacity(0.08), in: RoundedRectangle(cornerRadius: 16))
     }
 
     private func infoRow(label: String, value: String) -> some View {
-        HStack {
+        HStack(spacing: 8) {
             Text(label)
-                .font(.caption)
-                .foregroundStyle(.secondary)
-                .frame(width: 72, alignment: .leading)
+                .font(.custom("Montserrat-SemiBold", size: 12))
+                .foregroundColor(AppColors.textPrimary)
             Text(value)
-                .font(.caption.weight(.medium))
+                .font(.custom("Montserrat-SemiBold", size: 12))
+                .foregroundColor(AppColors.textPrimary)
                 .lineLimit(1)
                 .truncationMode(.middle)
-            Spacer()
         }
-        .padding(.horizontal, 12)
-        .padding(.vertical, 6)
+    }
+
+    // MARK: - Action Buttons (Figma: Share | Save | Delete)
+
+    private func actionButtonsRow(url: URL) -> some View {
+        HStack(spacing: 11) {
+            ShareLink(item: url) {
+                actionButton(
+                    title: "Share",
+                    icon: "square.and.arrow.up",
+                    foregroundColor: AppColors.textPrimary,
+                    backgroundColor: AppColors.textPrimary.opacity(0.08)
+                )
+            }
+
+            if isDocumentOutput(url: url) {
+                Button {
+                    openWithSystemApp(url: url)
+                } label: {
+                    actionButton(
+                        title: "Open",
+                        icon: "arrow.up.forward.app",
+                        foregroundColor: AppColors.accent,
+                        backgroundColor: AppColors.accent.opacity(0.08)
+                    )
+                }
+            } else {
+                Button {
+                    saveToPhotos(url: url)
+                } label: {
+                    actionButton(
+                        title: "Save",
+                        icon: "square.and.arrow.down",
+                        foregroundColor: AppColors.accent,
+                        backgroundColor: AppColors.accent.opacity(0.08)
+                    )
+                }
+            }
+
+            Button(role: .destructive) {
+                historyStore.remove(record)
+                dismiss()
+            } label: {
+                actionButton(
+                    title: "Delete",
+                    icon: "trash",
+                    foregroundColor: AppColors.destructive,
+                    backgroundColor: AppColors.destructive.opacity(0.08)
+                )
+            }
+        }
+    }
+
+    private func actionButton(title: String, icon: String, foregroundColor: Color, backgroundColor: Color) -> some View {
+        VStack(spacing: 4) {
+            Image(systemName: icon)
+                .font(.system(size: 20))
+            Text(title)
+                .font(.custom("Montserrat-SemiBold", size: 14))
+        }
+        .foregroundColor(foregroundColor)
+        .frame(maxWidth: .infinity)
+        .padding(.vertical, 12)
+        .background(backgroundColor, in: RoundedRectangle(cornerRadius: 12))
     }
 
     private func loadFileInfo() {
         guard let outputURL = record.outputURL else { return }
 
-        // Dimensions & duration from AVAsset (works for video and audio)
         let asset = AVAsset(url: outputURL)
         fileInfoTask = Task.detached(priority: .userInitiated) {
-            // File size (moved off main thread)
             if let attrs = try? FileManager.default.attributesOfItem(atPath: outputURL.path),
                let bytes = attrs[.size] as? Int64 {
                 let formatted = ByteCountFormatter.string(fromByteCount: bytes, countStyle: .file)
@@ -278,28 +505,14 @@ struct HistoryResultSheet: View {
         }
     }
 
-    // MARK: - Asset Preview
-
-    @ViewBuilder
-    private func assetPreview(url: URL) -> some View {
-        switch outputMediaType(for: url) {
-        case .video:
-            videoPreview(url: url)
-        case .image:
-            imagePreview(url: url)
-        case .audio:
-            audioPreview(url: url)
-        case .document:
-            documentPreview(url: url)
-        }
-    }
+    // MARK: - Asset Previews
 
     @ViewBuilder
     private func videoPreview(url: URL) -> some View {
         if isAVPlayerCompatible(url) {
             VideoPlayerView(url: url)
                 .aspectRatio(16 / 9, contentMode: .fit)
-                .clipShape(RoundedRectangle(cornerRadius: 12))
+                .clipShape(RoundedRectangle(cornerRadius: 16))
         } else {
             unsupportedPreview(icon: "video.fill", format: url.pathExtension.uppercased())
         }
@@ -309,8 +522,8 @@ struct HistoryResultSheet: View {
     private func imagePreview(url: URL) -> some View {
         if url.pathExtension.lowercased() == "gif" {
             AnimatedGIFView(url: url)
-                .frame(maxHeight: 240)
-                .clipShape(RoundedRectangle(cornerRadius: 12))
+                .frame(maxHeight: 180)
+                .clipShape(RoundedRectangle(cornerRadius: 16))
         } else if previewTooLarge {
             tooLargePreview(url: url)
         } else {
@@ -319,12 +532,12 @@ struct HistoryResultSheet: View {
                     Image(uiImage: image)
                         .resizable()
                         .aspectRatio(contentMode: .fit)
-                        .frame(maxHeight: 240)
-                        .clipShape(RoundedRectangle(cornerRadius: 12))
+                        .frame(maxHeight: 180)
+                        .clipShape(RoundedRectangle(cornerRadius: 16))
                 } else {
-                    RoundedRectangle(cornerRadius: 12)
-                        .fill(.quaternary)
-                        .frame(height: 180)
+                    RoundedRectangle(cornerRadius: 16)
+                        .fill(AppColors.placeholder)
+                        .frame(width: 52, height: 74)
                         .overlay { ProgressView() }
                 }
             }
@@ -338,16 +551,16 @@ struct HistoryResultSheet: View {
                 Image(uiImage: thumbnail)
                     .resizable()
                     .aspectRatio(contentMode: .fit)
-                    .frame(maxHeight: 120)
-                    .clipShape(RoundedRectangle(cornerRadius: 10))
+                    .frame(maxHeight: 100)
+                    .clipShape(RoundedRectangle(cornerRadius: 16))
             } else {
                 Image(systemName: "photo")
                     .font(.system(size: 40))
-                    .foregroundStyle(.secondary)
+                    .foregroundColor(AppColors.textTertiary)
             }
             Text("File too large to preview")
-                .font(.caption)
-                .foregroundStyle(.secondary)
+                .font(.custom("Montserrat-SemiBold", size: 12))
+                .foregroundColor(AppColors.textSecondary)
         }
         .padding(.vertical, 8)
     }
@@ -357,17 +570,18 @@ struct HistoryResultSheet: View {
         if isAVPlayerCompatible(url) {
             VStack(spacing: 12) {
                 Image(systemName: "waveform.circle.fill")
-                    .font(.system(size: 64))
-                    .foregroundStyle(.blue)
+                    .font(.system(size: 56))
+                    .foregroundColor(AppColors.accent)
 
                 Button {
                     toggleAudioPlayback(url: url)
                 } label: {
                     Label(isPlayingAudio ? "Pause" : "Play Audio", systemImage: isPlayingAudio ? "pause.fill" : "play.fill")
-                        .font(.body.weight(.medium))
+                        .font(.custom("Montserrat-SemiBold", size: 14))
                         .padding(.horizontal, 24)
                         .padding(.vertical, 10)
-                        .background(.blue.opacity(0.1), in: Capsule())
+                        .background(AppColors.accent.opacity(0.08), in: Capsule())
+                        .foregroundColor(AppColors.accent)
                 }
             }
             .padding(.vertical, 8)
@@ -385,17 +599,15 @@ struct HistoryResultSheet: View {
         }
     }
 
-    // MARK: - Document Preview
-
     private func documentPreview(url: URL) -> some View {
         VStack(spacing: 12) {
             Image(systemName: documentIcon(for: url.pathExtension))
-                .font(.system(size: 64))
-                .foregroundStyle(.blue)
+                .font(.system(size: 56))
+                .foregroundColor(AppColors.accent)
 
             Text(url.pathExtension.uppercased())
-                .font(.caption.weight(.semibold))
-                .foregroundStyle(.secondary)
+                .font(.custom("Montserrat-SemiBold", size: 12))
+                .foregroundColor(AppColors.textSecondary)
         }
         .padding(.vertical, 8)
     }
@@ -441,15 +653,12 @@ struct HistoryResultSheet: View {
         isPlayingAudio.toggle()
     }
 
-    /// Max file size for preview (50 MB)
     private static let maxPreviewFileSize: Int64 = 50 * 1024 * 1024
-    /// Max pixel area for preview (100 megapixels)
     private static let maxPreviewPixels: CGFloat = 100_000_000
 
     private func loadImage(url: URL) {
         imageLoadTask?.cancel()
         imageLoadTask = Task.detached(priority: .userInitiated) {
-            // Check file size
             if let attrs = try? FileManager.default.attributesOfItem(atPath: url.path),
                let bytes = attrs[.size] as? Int64,
                bytes > Self.maxPreviewFileSize {
@@ -458,7 +667,6 @@ struct HistoryResultSheet: View {
             }
             guard !Task.isCancelled else { return }
 
-            // Check pixel dimensions
             let sourceOptions: [CFString: Any] = [kCGImageSourceShouldCache: false]
             guard let source = CGImageSourceCreateWithURL(url as CFURL, sourceOptions as CFDictionary) else { return }
 
@@ -471,7 +679,6 @@ struct HistoryResultSheet: View {
             }
             guard !Task.isCancelled else { return }
 
-            // Use ImageIO to downsample for preview, avoiding GPU memory limits
             let maxPixelSize: CGFloat = 1920
             let downsampleOptions: [CFString: Any] = [
                 kCGImageSourceCreateThumbnailFromImageAlways: true,
@@ -501,16 +708,16 @@ struct HistoryResultSheet: View {
                 Image(uiImage: thumbnail)
                     .resizable()
                     .aspectRatio(contentMode: .fit)
-                    .frame(maxHeight: 120)
-                    .clipShape(RoundedRectangle(cornerRadius: 10))
+                    .frame(maxHeight: 100)
+                    .clipShape(RoundedRectangle(cornerRadius: 16))
             } else {
                 Image(systemName: icon)
                     .font(.system(size: 40))
-                    .foregroundStyle(.secondary)
+                    .foregroundColor(AppColors.textTertiary)
             }
             Text("Preview not available for \(format)")
-                .font(.caption)
-                .foregroundStyle(.secondary)
+                .font(.custom("Montserrat-SemiBold", size: 12))
+                .foregroundColor(AppColors.textSecondary)
         }
         .padding(.vertical, 8)
     }
@@ -543,17 +750,21 @@ struct HistoryResultSheet: View {
 
     private var failedContent: some View {
         VStack(spacing: 16) {
+            headerSection
+
             Image(systemName: "xmark.circle.fill")
                 .font(.system(size: 44))
-                .foregroundStyle(.red)
+                .foregroundColor(AppColors.destructive)
+                .padding(.top, 8)
 
             Text("Conversion Failed")
-                .font(.subheadline.weight(.medium))
+                .font(.custom("Montserrat-SemiBold", size: 16))
+                .foregroundColor(AppColors.textPrimary)
 
             if let errorMessage = record.errorMessage {
                 Text(errorMessage)
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
+                    .font(.custom("Montserrat-SemiBold", size: 12))
+                    .foregroundColor(AppColors.textSecondary)
                     .multilineTextAlignment(.center)
                     .padding(.horizontal)
             }
@@ -562,28 +773,18 @@ struct HistoryResultSheet: View {
                 dismiss()
             } label: {
                 Text("Dismiss")
-                    .font(.body.weight(.medium))
+                    .font(.custom("Montserrat-SemiBold", size: 14))
+                    .foregroundColor(AppColors.textPrimary)
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 12)
-                    .background(.quaternary, in: RoundedRectangle(cornerRadius: 10))
+                    .background(AppColors.textPrimary.opacity(0.08), in: RoundedRectangle(cornerRadius: 12))
             }
+
+            Spacer()
         }
     }
 
     // MARK: - Helpers
-
-    private func actionButton(title: String, icon: String, color: Color) -> some View {
-        VStack(spacing: 6) {
-            Image(systemName: icon)
-                .font(.title3)
-            Text(title)
-                .font(.caption.weight(.medium))
-        }
-        .foregroundStyle(color)
-        .frame(maxWidth: .infinity)
-        .padding(.vertical, 14)
-        .background(color.opacity(0.1), in: RoundedRectangle(cornerRadius: 10))
-    }
 
     private func isDocumentOutput(url: URL) -> Bool {
         outputMediaType(for: url) == .document
@@ -621,36 +822,6 @@ struct HistoryResultSheet: View {
                     }
                 }
             }
-        }
-    }
-
-    private var headerPlaceholderIcon: String {
-        switch record.mediaCategory {
-        case "document": return "doc.text"
-        case "video": return "video"
-        case "audio": return "waveform"
-        default: return "photo"
-        }
-    }
-
-    private var toolColor: Color {
-        switch record.tool {
-        case .rotate: return .blue
-        case .compress: return .purple
-        case .resize: return .orange
-        case .crop: return .teal
-        case .gif: return .pink
-        case .stitch: return .mint
-        case .convert: return .blue
-        case .merge: return .indigo
-        case .splitPDF: return .teal
-        case .reorderPDF: return .orange
-        case .protectPDF: return .purple
-        case .speed: return .cyan
-        case .timeClip: return .orange
-        case .extractAudio: return .indigo
-        case .ratio: return .green
-        case .mergePDF: return .indigo
         }
     }
 }

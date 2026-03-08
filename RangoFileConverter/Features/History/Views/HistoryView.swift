@@ -1,4 +1,5 @@
 import SwiftUI
+import Combine
 
 struct HistoryView: View {
     @EnvironmentObject private var historyStore: HistoryStore
@@ -6,7 +7,10 @@ struct HistoryView: View {
     @State private var searchText: String = ""
     @State private var showFilterSheet = false
     @State private var filterState = HistoryFilterState()
+    @State private var now = Date()
     private let categories = ["image", "video", "audio", "document"]
+    private let latestDuration: TimeInterval = 5 * 60 // 5 minutes
+    private let refreshTimer = Timer.publish(every: 30, on: .main, in: .common).autoconnect()
 
     private var filteredRecords: [ConversionRecord] {
         var records = historyStore.records
@@ -42,11 +46,24 @@ struct HistoryView: View {
         return records.sorted { $0.date > $1.date }
     }
 
+    private var latestRecords: [ConversionRecord] {
+        filteredRecords.filter { record in
+            switch record.status {
+            case .pending, .converting:
+                return true
+            case .converted, .failed:
+                guard let completed = record.completedDate else { return false }
+                return now.timeIntervalSince(completed) < latestDuration
+            }
+        }
+    }
+
     private var groupedRecords: [(category: String, records: [ConversionRecord])] {
+        let completedRecords = filteredRecords.filter { $0.status == .converted || $0.status == .failed }
         var groups: [(category: String, records: [ConversionRecord])] = []
 
         for category in categories {
-            let categoryRecords = filteredRecords.filter { $0.mediaCategory == category }
+            let categoryRecords = completedRecords.filter { $0.mediaCategory == category }
             if !categoryRecords.isEmpty {
                 groups.append((category: category, records: categoryRecords))
             }
@@ -114,7 +131,7 @@ struct HistoryView: View {
             .padding(.bottom, 24)
 
             // Content
-            if groupedRecords.isEmpty {
+            if latestRecords.isEmpty && groupedRecords.isEmpty {
                 Spacer()
                 VStack(spacing: 12) {
                     Image(systemName: filterState.isActive ? "line.3.horizontal.decrease.circle" : "clock.arrow.circlepath")
@@ -131,17 +148,48 @@ struct HistoryView: View {
                 Spacer()
             } else {
                 ScrollView {
-                    LazyVStack(alignment: .leading, spacing: 12, pinnedViews: [.sectionHeaders]) {
-                        ForEach(groupedRecords, id: \.category) { group in
+                    VStack(alignment: .leading, spacing: 12) {
+                        // Latest section
+                        if !latestRecords.isEmpty {
                             Section {
-                                ForEach(Array(group.records.enumerated()), id: \.element.id) { index, record in
+                                ForEach(latestRecords) { record in
                                     Button {
                                         selectedRecord = record
                                     } label: {
                                         HistoryRowView(record: record)
                                     }
                                     .buttonStyle(.plain)
-                                    .modifier(AppearAnimationModifier(delay: Double(index) * 0.06))
+                                }
+                            } header: {
+                                HStack(spacing: 8) {
+                                    Text("Latest")
+                                        .font(.custom("Montserrat-SemiBold", size: 20))
+                                        .foregroundColor(AppColors.textPrimary)
+
+                                    Text("\(latestRecords.count)")
+                                        .font(.custom("Montserrat-SemiBold", size: 14))
+                                        .foregroundColor(AppColors.accent)
+                                        .padding(.horizontal, 8)
+                                        .padding(.vertical, 2)
+                                        .background(AppColors.accent.opacity(0.12))
+                                        .clipShape(Capsule())
+                                }
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                                .padding(.vertical, 8)
+                                .background(AppColors.background)
+                            }
+                            .modifier(AppearAnimationModifier(delay: 0))
+                        }
+
+                        ForEach(Array(groupedRecords.enumerated()), id: \.element.category) { sectionIndex, group in
+                            Section {
+                                ForEach(group.records) { record in
+                                    Button {
+                                        selectedRecord = record
+                                    } label: {
+                                        HistoryRowView(record: record)
+                                    }
+                                    .buttonStyle(.plain)
                                 }
                             } header: {
                                 Text(group.category.capitalized)
@@ -150,8 +198,8 @@ struct HistoryView: View {
                                     .frame(maxWidth: .infinity, alignment: .leading)
                                     .padding(.vertical, 8)
                                     .background(AppColors.background)
-                                    .modifier(AppearAnimationModifier(delay: 0))
                             }
+                            .modifier(AppearAnimationModifier(delay: Double(sectionIndex) * 0.1))
                         }
 
                         // Small bottom padding for visual breathing room
@@ -163,6 +211,9 @@ struct HistoryView: View {
             }
         }
         .background(AppColors.background)
+        .onReceive(refreshTimer) { _ in
+            now = Date()
+        }
         .sheet(item: $selectedRecord) { record in
             HistoryResultSheet(record: record)
         }
@@ -192,3 +243,4 @@ private struct AppearAnimationModifier: ViewModifier {
             }
     }
 }
+

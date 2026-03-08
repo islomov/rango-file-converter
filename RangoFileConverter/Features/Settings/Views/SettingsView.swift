@@ -73,6 +73,7 @@ struct SettingsView: View {
             if !sectionsAppeared {
                 sectionsAppeared = true
             }
+            historyStore.refreshStorageSizes()
         }
         .alert("Clear \(clearStorageCategory?.capitalized ?? "") Storage", isPresented: $showClearStorageAlert) {
             Button("Delete", role: .destructive) {
@@ -225,7 +226,7 @@ struct SettingsView: View {
 
                 Spacer()
 
-                Text(formattedSize(historyStore.totalStorageBytes()))
+                Text(formattedSize(historyStore.cachedTotalStorageBytes))
                     .font(.system(size: 12, weight: .semibold))
                     .foregroundColor(AppColors.textSecondary)
             }
@@ -271,7 +272,7 @@ struct SettingsView: View {
 
                 Spacer()
 
-                Text(formattedSize(historyStore.storageBytes(for: category)))
+                Text(formattedSize(historyStore.cachedCategoryStorageBytes[category] ?? 0))
                     .font(.system(size: 12, weight: .semibold))
                     .foregroundColor(AppColors.textSecondary)
 

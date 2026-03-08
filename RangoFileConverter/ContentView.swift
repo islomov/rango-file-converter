@@ -141,6 +141,10 @@ struct FloatingTabBar: View {
             .background(
                 Capsule()
                     .fill(AppColors.tabBarBackground)
+                    .overlay(
+                        Capsule()
+                            .stroke(AppColors.border, lineWidth: 1)
+                    )
                     .shadow(color: AppColors.shadow.opacity(0.2), radius: 10, y: 0)
             )
         }

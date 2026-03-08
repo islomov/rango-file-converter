@@ -50,22 +50,22 @@ enum AppColors {
 
     // MARK: - Tab Bar
 
-    /// Tab bar background: light white, dark #2C2C2E
-    static let tabBarBackground = adaptive(light: "FFFFFF", dark: "2C2C2E")
+    /// Tab bar background: light white, dark #303030 (with opacity in view)
+    static let tabBarBackground = adaptive(light: "FFFFFF", dark: "303030")
 
-    /// Unselected tab icon: light #1D1D1D, dark #8E8E93
-    static let tabIconDefault = adaptive(light: "1D1D1D", dark: "8E8E93")
+    /// Unselected tab icon: light #1D1D1D, dark white
+    static let tabIconDefault = adaptive(light: "1D1D1D", dark: "FFFFFF")
 
     // MARK: - Service Cards (brand colors, kept consistent)
 
     /// Image card background
-    static let cardImage = adaptive(light: "1D1D1D", dark: "2C2C2E")
+    static let cardImage = adaptive(light: "1D1D1D", dark: "EEEEEE")
 
     /// Image card foreground
-    static let cardImageForeground = Color.white
+    static let cardImageForeground = adaptive(light: "FFFFFF", dark: "1D1D1D")
 
     /// Video card background
-    static let cardVideo = adaptive(light: "FFFFFF", dark: "3A3A3C")
+    static let cardVideo = adaptive(light: "FFFFFF", dark: "252525")
 
     /// Video card foreground
     static let cardVideoForeground = adaptive(light: "1D1D1D", dark: "F5F5F5")

@@ -163,6 +163,8 @@ private struct ServiceCard: View {
 
                     Image(arrowName)
                         .resizable()
+                        .renderingMode(.template)
+                        .foregroundColor(foregroundColor)
                         .frame(width: 24, height: 24)
                 }
                 .padding(.horizontal, 24)

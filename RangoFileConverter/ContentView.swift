@@ -30,27 +30,24 @@ struct ContentView: View {
     @State private var hideTabBar: Bool = false
 
     var body: some View {
-        ZStack(alignment: .bottom) {
-            // Tab content
-            Group {
-                switch selectedTab {
-                case .home:
-                    if let category = selectedCategory {
-                        categoryView(for: category)
-                    } else {
-                        HomeView { category in
-                            selectedCategory = category
-                        }
+        Group {
+            switch selectedTab {
+            case .home:
+                if let category = selectedCategory {
+                    categoryView(for: category)
+                } else {
+                    HomeView { category in
+                        selectedCategory = category
                     }
-                case .history:
-                    HistoryView()
-                case .settings:
-                    SettingsView()
                 }
+            case .history:
+                HistoryView()
+            case .settings:
+                SettingsView()
             }
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
-
-            // Floating tab bar
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .safeAreaInset(edge: .bottom, spacing: 0) {
             if !hideTabBar {
                 FloatingTabBar(selectedTab: $selectedTab) {
                     // Reset category when tapping home

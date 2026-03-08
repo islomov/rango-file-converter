@@ -152,9 +152,9 @@ struct HistoryView: View {
                             }
                         }
 
-                        // Spacer for floating tab bar
+                        // Small bottom padding for visual breathing room
                         Color.clear
-                            .frame(height: 100)
+                            .frame(height: 16)
                     }
                     .padding(.horizontal, 16)
                 }

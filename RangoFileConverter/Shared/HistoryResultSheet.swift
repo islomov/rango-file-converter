@@ -28,8 +28,8 @@ struct HistoryResultSheet: View {
             Capsule()
                 .fill(Color(.quaternaryLabel))
                 .frame(width: 36, height: 5)
-                .padding(.top, 8)
-                .padding(.bottom, 16)
+                .padding(.top, 12)
+                .padding(.bottom, 20)
 
             switch record.status {
             case .pending, .converting:

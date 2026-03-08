@@ -79,7 +79,7 @@ struct AssetPickerView: View {
             }
         }
         .navigationBarHidden(true)
-        .onAppear {
+        .task {
             photoVM.requestAccessAndFetch()
         }
         .fileImporter(
@@ -183,7 +183,7 @@ struct AssetPickerView: View {
                     Spacer()
                     ProgressView()
                     Spacer()
-                } else if photoVM.assets.isEmpty {
+                } else if photoVM.assetCount == 0 {
                     Spacer()
                     VStack(spacing: 12) {
                         Image(systemName: "photo.on.rectangle.angled")
@@ -197,8 +197,10 @@ struct AssetPickerView: View {
                 } else {
                     ScrollView {
                         LazyVGrid(columns: columns, spacing: 4) {
-                            ForEach(photoVM.assets, id: \.localIdentifier) { asset in
-                                thumbnailCell(for: asset)
+                            ForEach(0..<photoVM.assetCount, id: \.self) { index in
+                                if let asset = photoVM.asset(at: index) {
+                                    thumbnailCell(for: asset)
+                                }
                             }
                         }
                         .padding(.horizontal, 16)
@@ -340,8 +342,11 @@ struct AssetPickerView: View {
     }
 
     private func loadSelectedAndFinish() {
-        let orderedAssets = selectionOrderList.compactMap { id in
-            photoVM.assets.first { $0.localIdentifier == id }
+        let orderedAssets: [PHAsset] = selectionOrderList.compactMap { id in
+            guard let fetchResult = photoVM.fetchResult else { return nil }
+            let opts = PHFetchOptions()
+            opts.predicate = NSPredicate(format: "localIdentifier == %@", id)
+            return PHAsset.fetchAssets(with: opts).firstObject
         }
         guard orderedAssets.count >= minCount else { return }
 

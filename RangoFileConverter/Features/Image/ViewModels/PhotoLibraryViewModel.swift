@@ -3,7 +3,8 @@ import Combine
 import Photos
 
 final class PhotoLibraryViewModel: ObservableObject {
-    @Published var assets: [PHAsset] = []
+    @Published private(set) var fetchResult: PHFetchResult<PHAsset>?
+    @Published var assetCount: Int = 0
     @Published var thumbnails: [String: UIImage] = [:]
     @Published var authorizationStatus: PHAuthorizationStatus = .notDetermined
     @Published var isLoading = false
@@ -11,6 +12,11 @@ final class PhotoLibraryViewModel: ObservableObject {
     private let imageManager = PHCachingImageManager()
     private let thumbnailSize = CGSize(width: 200, height: 200)
     private static let maxCachedThumbnails = 200
+
+    func asset(at index: Int) -> PHAsset? {
+        guard let fetchResult, index < fetchResult.count else { return nil }
+        return fetchResult.object(at: index)
+    }
 
     deinit {
         imageManager.stopCachingImagesForAllAssets()
@@ -42,12 +48,9 @@ final class PhotoLibraryViewModel: ObservableObject {
             options.predicate = NSPredicate(format: "mediaType == %d", PHAssetMediaType.image.rawValue)
 
             let result = PHAsset.fetchAssets(with: options)
-            var fetched: [PHAsset] = []
-            result.enumerateObjects { asset, _, _ in
-                fetched.append(asset)
-            }
             DispatchQueue.main.async {
-                self?.assets = fetched
+                self?.fetchResult = result
+                self?.assetCount = result.count
                 self?.isLoading = false
             }
         }
@@ -80,26 +83,30 @@ final class PhotoLibraryViewModel: ObservableObject {
     }
 
     func loadFullImage(for asset: PHAsset) async -> (UIImage, String, URL)? {
-        await withCheckedContinuation { continuation in
+        let rawData: (Data, String?)? = await withCheckedContinuation { continuation in
             let options = PHImageRequestOptions()
             options.deliveryMode = .highQualityFormat
             options.isNetworkAccessAllowed = true
             options.isSynchronous = false
 
             imageManager.requestImageDataAndOrientation(for: asset, options: options) { data, uti, _, _ in
-                guard let data, let image = UIImage(data: data) else {
+                guard let data else {
                     continuation.resume(returning: nil)
                     return
                 }
-
-                let ext = Self.fileExtension(for: uti) ?? "jpg"
-                let fileName = "photo_\(UUID().uuidString.prefix(8)).\(ext)"
-                let tempURL = FileManager.default.temporaryDirectory.appendingPathComponent(fileName)
-                try? data.write(to: tempURL)
-
-                continuation.resume(returning: (image, fileName, tempURL))
+                continuation.resume(returning: (data, uti))
             }
         }
+        guard let (imageData, uti) = rawData else { return nil }
+
+        return await Task.detached(priority: .userInitiated) {
+            guard let image = UIImage(data: imageData) else { return nil }
+            let ext = Self.fileExtension(for: uti) ?? "jpg"
+            let fileName = "photo_\(UUID().uuidString.prefix(8)).\(ext)"
+            let tempURL = FileManager.default.temporaryDirectory.appendingPathComponent(fileName)
+            try? imageData.write(to: tempURL)
+            return (image, fileName, tempURL)
+        }.value
     }
 
     func loadFullImages(for assets: [PHAsset]) async -> [(UIImage, String, URL)] {

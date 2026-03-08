@@ -52,7 +52,7 @@ struct AudioMergePickerView: View {
             }
         }
         .navigationBarHidden(true)
-        .onAppear {
+        .task {
             videoVM.requestAccessAndFetch()
         }
         .fileImporter(
@@ -156,7 +156,7 @@ struct AudioMergePickerView: View {
                     Spacer()
                     ProgressView()
                     Spacer()
-                } else if videoVM.assets.isEmpty {
+                } else if videoVM.assetCount == 0 {
                     Spacer()
                     VStack(spacing: 12) {
                         Image(systemName: "video.slash")
@@ -170,8 +170,10 @@ struct AudioMergePickerView: View {
                 } else {
                     ScrollView {
                         LazyVGrid(columns: columns, spacing: 4) {
-                            ForEach(videoVM.assets, id: \.localIdentifier) { asset in
-                                thumbnailCell(for: asset)
+                            ForEach(0..<videoVM.assetCount, id: \.self) { index in
+                                if let asset = videoVM.asset(at: index) {
+                                    thumbnailCell(for: asset)
+                                }
                             }
                         }
                         .padding(.horizontal, 16)
@@ -341,8 +343,10 @@ struct AudioMergePickerView: View {
     }
 
     private func loadSelectedAndFinish() {
-        let orderedAssets = selectionOrderList.compactMap { id in
-            videoVM.assets.first { $0.localIdentifier == id }
+        let orderedAssets: [PHAsset] = selectionOrderList.compactMap { id in
+            let opts = PHFetchOptions()
+            opts.predicate = NSPredicate(format: "localIdentifier == %@", id)
+            return PHAsset.fetchAssets(with: opts).firstObject
         }
         guard orderedAssets.count >= minCount else { return }
 
@@ -383,23 +387,31 @@ struct AudioMergePickerView: View {
     private func handleFileImport(_ result: Result<[URL], Error>) {
         guard case .success(let urls) = result, urls.count >= minCount else { return }
 
-        var results: [(fileName: String, url: URL)] = []
-        for url in urls {
-            guard url.startAccessingSecurityScopedResource() else { continue }
-            defer { url.stopAccessingSecurityScopedResource() }
+        isLoading = true
+        let min = minCount
 
-            let tempDir = FileManager.default.temporaryDirectory
-                .appendingPathComponent("rango_audio_merge_import", isDirectory: true)
-            try? FileManager.default.createDirectory(at: tempDir, withIntermediateDirectories: true)
+        Task.detached(priority: .userInitiated) {
+            var results: [(fileName: String, url: URL)] = []
+            for url in urls {
+                guard url.startAccessingSecurityScopedResource() else { continue }
+                defer { url.stopAccessingSecurityScopedResource() }
 
-            let tempURL = tempDir.appendingPathComponent(url.lastPathComponent)
-            try? FileManager.default.removeItem(at: tempURL)
-            guard (try? FileManager.default.copyItem(at: url, to: tempURL)) != nil else { continue }
+                let tempDir = FileManager.default.temporaryDirectory
+                    .appendingPathComponent("rango_audio_merge_import", isDirectory: true)
+                try? FileManager.default.createDirectory(at: tempDir, withIntermediateDirectories: true)
 
-            results.append((fileName: url.lastPathComponent, url: tempURL))
-        }
-        if results.count >= minCount {
-            onAudiosSelected(results)
+                let tempURL = tempDir.appendingPathComponent(url.lastPathComponent)
+                try? FileManager.default.removeItem(at: tempURL)
+                guard (try? FileManager.default.copyItem(at: url, to: tempURL)) != nil else { continue }
+
+                results.append((fileName: url.lastPathComponent, url: tempURL))
+            }
+            await MainActor.run {
+                isLoading = false
+                if results.count >= min {
+                    onAudiosSelected(results)
+                }
+            }
         }
     }
 }

@@ -4,7 +4,8 @@ import AVFoundation
 import Combine
 
 final class VideoLibraryViewModel: ObservableObject {
-    @Published var assets: [PHAsset] = []
+    @Published private(set) var fetchResult: PHFetchResult<PHAsset>?
+    @Published var assetCount: Int = 0
     @Published var thumbnails: [String: UIImage] = [:]
     @Published var authorizationStatus: PHAuthorizationStatus = .notDetermined
     @Published var isLoading = false
@@ -12,6 +13,11 @@ final class VideoLibraryViewModel: ObservableObject {
     private let imageManager = PHCachingImageManager()
     private let thumbnailSize = CGSize(width: 200, height: 200)
     private static let maxCachedThumbnails = 200
+
+    func asset(at index: Int) -> PHAsset? {
+        guard let fetchResult, index < fetchResult.count else { return nil }
+        return fetchResult.object(at: index)
+    }
 
     deinit {
         imageManager.stopCachingImagesForAllAssets()
@@ -43,12 +49,9 @@ final class VideoLibraryViewModel: ObservableObject {
             options.predicate = NSPredicate(format: "mediaType == %d", PHAssetMediaType.video.rawValue)
 
             let result = PHAsset.fetchAssets(with: options)
-            var fetched: [PHAsset] = []
-            result.enumerateObjects { asset, _, _ in
-                fetched.append(asset)
-            }
             DispatchQueue.main.async {
-                self?.assets = fetched
+                self?.fetchResult = result
+                self?.assetCount = result.count
                 self?.isLoading = false
             }
         }
@@ -81,7 +84,7 @@ final class VideoLibraryViewModel: ObservableObject {
     }
 
     func loadFullVideo(for asset: PHAsset) async -> (UIImage, String, URL)? {
-        await withCheckedContinuation { continuation in
+        let fileInfo: (String, URL)? = await withCheckedContinuation { continuation in
             let resources = PHAssetResource.assetResources(for: asset)
             guard let videoResource = resources.first(where: { $0.type == .video })
                     ?? resources.first(where: { $0.type == .fullSizeVideo })
@@ -103,14 +106,18 @@ final class VideoLibraryViewModel: ObservableObject {
             PHAssetResourceManager.default().writeData(for: videoResource, toFile: tempURL, options: writeOptions) { error in
                 if error != nil {
                     continuation.resume(returning: nil)
-                    return
+                } else {
+                    continuation.resume(returning: (fileName, tempURL))
                 }
-
-                let thumbnail = Self.generateThumbnail(from: tempURL)
-                    ?? UIImage(systemName: "video")!
-                continuation.resume(returning: (thumbnail, fileName, tempURL))
             }
         }
+        guard let (fileName, tempURL) = fileInfo else { return nil }
+
+        let thumbnail = await Task.detached(priority: .userInitiated) {
+            Self.generateThumbnail(from: tempURL) ?? UIImage(systemName: "video")!
+        }.value
+
+        return (thumbnail, fileName, tempURL)
     }
 
     static func generateThumbnail(from url: URL) -> UIImage? {

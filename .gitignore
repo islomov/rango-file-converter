@@ -9,3 +9,4 @@ xcuserdata/
 
 # CloudConvert API key (dev config)
 CloudConvertConfig.plist
+.spm-cache

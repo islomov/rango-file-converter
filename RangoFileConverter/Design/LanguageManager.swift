@@ -10,15 +10,13 @@ final class LanguageManager: ObservableObject {
         didSet {
             UserDefaults.standard.set(currentLanguageCode, forKey: "app_language")
             UserDefaults.standard.set([currentLanguageCode], forKey: "AppleLanguages")
-            loadBundle(for: currentLanguageCode)
         }
     }
 
-    /// The bundle for the currently selected language, used by the swizzled Bundle.main.
-    private(set) var currentBundle: Bundle?
-
-    /// Unique ID that changes on language switch — attach to root view via `.id()` to force refresh.
-    @Published var refreshID = UUID()
+    /// The locale derived from the current language code — pass to `.environment(\.locale, ...)`.
+    var locale: Locale {
+        Locale(identifier: currentLanguageCode)
+    }
 
     static let supportedLanguages: [AppLanguage] = [
         AppLanguage(code: "en", nativeName: "English", englishName: "English"),
@@ -63,35 +61,11 @@ final class LanguageManager: ObservableObject {
         let saved = UserDefaults.standard.string(forKey: "app_language") ?? "en"
         self.currentLanguageCode = saved
         UserDefaults.standard.set([saved], forKey: "AppleLanguages")
-        loadBundle(for: saved)
-        Self.activateBundleSwizzle()
     }
 
     func setLanguage(_ code: String) {
         guard code != currentLanguageCode else { return }
         currentLanguageCode = code
-        refreshID = UUID()
-    }
-
-    // MARK: - Bundle Loading
-
-    private func loadBundle(for code: String) {
-        if let path = Bundle.main.path(forResource: code, ofType: "lproj"),
-           let bundle = Bundle(path: path) {
-            currentBundle = bundle
-        } else {
-            currentBundle = nil
-        }
-    }
-
-    // MARK: - Bundle Swizzle
-
-    private static var swizzled = false
-
-    private static func activateBundleSwizzle() {
-        guard !swizzled else { return }
-        swizzled = true
-        object_setClass(Bundle.main, OverrideBundle.self)
     }
 }
 
@@ -105,13 +79,3 @@ struct AppLanguage: Identifiable {
     var id: String { code }
 }
 
-// MARK: - Bundle Override
-
-private class OverrideBundle: Bundle, @unchecked Sendable {
-    override func localizedString(forKey key: String, value: String?, table tableName: String?) -> String {
-        if let bundle = LanguageManager.shared.currentBundle {
-            return bundle.localizedString(forKey: key, value: value, table: tableName)
-        }
-        return super.localizedString(forKey: key, value: value, table: tableName)
-    }
-}

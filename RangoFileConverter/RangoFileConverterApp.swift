@@ -7,6 +7,7 @@
 
 import SwiftUI
 import UserNotifications
+import FirebaseCore
 
 // MARK: - App Delegate
 
@@ -16,6 +17,9 @@ final class AppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCent
         _ application: UIApplication,
         didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]? = nil
     ) -> Bool {
+        FirebaseApp.configure()
+        RemoteConfigManager.shared.configure()
+        RemoteConfigManager.shared.fetchAndActivate()
         UNUserNotificationCenter.current().delegate = self
         DailyReminderManager.shared.rescheduleIfNeeded()
         return true
@@ -52,6 +56,7 @@ struct RangoFileConverterApp: App {
     @UIApplicationDelegateAdaptor(AppDelegate.self) private var appDelegate
     @StateObject private var historyStore = HistoryStore.shared
     @StateObject private var themeManager = ThemeManager.shared
+    @ObservedObject private var remoteConfig = RemoteConfigManager.shared
     @State private var showSplash = true
 
     var body: some Scene {
@@ -72,7 +77,13 @@ struct RangoFileConverterApp: App {
                             }
                         }
                 }
+
+                if remoteConfig.requiresForceUpdate {
+                    ForceUpdateView()
+                        .transition(.opacity)
+                }
             }
+            .animation(.easeInOut, value: remoteConfig.requiresForceUpdate)
         }
     }
 }

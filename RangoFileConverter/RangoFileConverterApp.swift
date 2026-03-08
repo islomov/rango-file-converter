@@ -52,13 +52,27 @@ struct RangoFileConverterApp: App {
     @UIApplicationDelegateAdaptor(AppDelegate.self) private var appDelegate
     @StateObject private var historyStore = HistoryStore.shared
     @StateObject private var themeManager = ThemeManager.shared
+    @State private var showSplash = true
 
     var body: some Scene {
         WindowGroup {
-            ContentView()
-                .environmentObject(historyStore)
-                .environmentObject(themeManager)
-                .preferredColorScheme(themeManager.colorScheme)
+            ZStack {
+                ContentView()
+                    .environmentObject(historyStore)
+                    .environmentObject(themeManager)
+                    .preferredColorScheme(themeManager.colorScheme)
+
+                if showSplash {
+                    SplashScreenView()
+                        .ignoresSafeArea()
+                        .preferredColorScheme(themeManager.colorScheme)
+                        .onAppear {
+                            DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
+                                showSplash = false
+                            }
+                        }
+                }
+            }
         }
     }
 }

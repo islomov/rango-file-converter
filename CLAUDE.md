@@ -67,5 +67,10 @@ FFmpegKit (format conversion), Firebase, Kingfisher, swift-algorithms
 - After making changes, verify the build succeeds with `xcodebuild build` but do **not** run UI tests or attempt to launch the simulator
 - Use a valid simulator destination (e.g. `iPhone 17 Pro`) — older names like `iPhone 16` may not be available
 
+## Localizable.xcstrings
+- Xcode auto-modifies `RangoFileConverter/Localizable.xcstrings` on every build — these changes are noise
+- Before committing, run `git restore RangoFileConverter/Localizable.xcstrings` to discard build-generated changes
+- Only commit `Localizable.xcstrings` when you intentionally added or modified localization strings
+
 ## Agent Learnings
 Before starting work, check `.claude/learnings/` for known issues and patterns discovered by previous agents. When you discover a bug, workaround, or important pattern, save it as a markdown file in `.claude/learnings/` so future agents benefit.

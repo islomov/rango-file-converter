@@ -1,6 +1,6 @@
 //
-//  rangofileconverterApp.swift
-//  rangofileconverter
+//  RangoFileConverterApp.swift
+//  RangoFileConverter
 //
 //  Created by Sardor Islomov on 20/02/26.
 //
@@ -8,7 +8,7 @@
 import SwiftUI
 
 @main
-struct rangofileconverterApp: App {
+struct RangoFileConverterApp: App {
     @StateObject private var historyStore = HistoryStore.shared
 
     var body: some Scene {

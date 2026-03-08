@@ -12,13 +12,13 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
-		157079572F4881F500B64C40 /* rangofileconverter.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = rangofileconverter.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		157079572F4881F500B64C40 /* RangoFileConverter.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = RangoFileConverter.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
-		157079592F4881F500B64C40 /* rangofileconverter */ = {
+		157079592F4881F500B64C40 /* RangoFileConverter */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
-			path = rangofileconverter;
+			path = RangoFileConverter;
 			sourceTree = "<group>";
 		};
 /* End PBXFileSystemSynchronizedRootGroup section */
@@ -39,7 +39,7 @@
 		1570794E2F4881F500B64C40 = {
 			isa = PBXGroup;
 			children = (
-				157079592F4881F500B64C40 /* rangofileconverter */,
+				157079592F4881F500B64C40 /* RangoFileConverter */,
 				157079582F4881F500B64C40 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -47,7 +47,7 @@
 		157079582F4881F500B64C40 /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				157079572F4881F500B64C40 /* rangofileconverter.app */,
+				157079572F4881F500B64C40 /* RangoFileConverter.app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -55,9 +55,9 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		157079562F4881F500B64C40 /* rangofileconverter */ = {
+		157079562F4881F500B64C40 /* RangoFileConverter */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 157079622F4881F600B64C40 /* Build configuration list for PBXNativeTarget "rangofileconverter" */;
+			buildConfigurationList = 157079622F4881F600B64C40 /* Build configuration list for PBXNativeTarget "RangoFileConverter" */;
 			buildPhases = (
 				157079532F4881F500B64C40 /* Sources */,
 				157079542F4881F500B64C40 /* Frameworks */,
@@ -68,15 +68,15 @@
 			dependencies = (
 			);
 			fileSystemSynchronizedGroups = (
-				157079592F4881F500B64C40 /* rangofileconverter */,
+				157079592F4881F500B64C40 /* RangoFileConverter */,
 			);
-			name = rangofileconverter;
+			name = RangoFileConverter;
 			packageProductDependencies = (
 				157079BB2F4ADBFB00B64C40 /* FFmpeg-iOS */,
 				157079C22F4AEC5C00B64C40 /* webp */,
 			);
-			productName = rangofileconverter;
-			productReference = 157079572F4881F500B64C40 /* rangofileconverter.app */;
+			productName = RangoFileConverter;
+			productReference = 157079572F4881F500B64C40 /* RangoFileConverter.app */;
 			productType = "com.apple.product-type.application";
 		};
 /* End PBXNativeTarget section */
@@ -94,7 +94,7 @@
 					};
 				};
 			};
-			buildConfigurationList = 157079522F4881F500B64C40 /* Build configuration list for PBXProject "rangofileconverter" */;
+			buildConfigurationList = 157079522F4881F500B64C40 /* Build configuration list for PBXProject "RangoFileConverter" */;
 			developmentRegion = en;
 			hasScannedForEncodings = 0;
 			knownRegions = (
@@ -112,7 +112,7 @@
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				157079562F4881F500B64C40 /* rangofileconverter */,
+				157079562F4881F500B64C40 /* RangoFileConverter */,
 			);
 		};
 /* End PBXProject section */
@@ -271,17 +271,11 @@
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = Rango;
-				INFOPLIST_KEY_UIAppFonts = (
-						"Montserrat-Bold.ttf",
-						"Montserrat-SemiBold.ttf",
-						"Montserrat-Medium.ttf",
-						"Montserrat-Regular.ttf",
-						"Sora-Regular.ttf",
-					);
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
 				INFOPLIST_KEY_NSCameraUsageDescription = "Rango needs access to the camera to capture photos and videos for conversion.";
 				INFOPLIST_KEY_NSMicrophoneUsageDescription = "Rango needs access to the microphone to record audio for conversion.";
 				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "Rango needs access to your photo library to select images for conversion.";
+				INFOPLIST_KEY_UIAppFonts = "Montserrat-Bold.ttf Montserrat-SemiBold.ttf Montserrat-Medium.ttf Montserrat-Regular.ttf Sora-Regular.ttf";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -320,19 +314,12 @@
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = Info.plist;
-				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = Rango;
-				INFOPLIST_KEY_UIAppFonts = (
-						"Montserrat-Bold.ttf",
-						"Montserrat-SemiBold.ttf",
-						"Montserrat-Medium.ttf",
-						"Montserrat-Regular.ttf",
-						"Sora-Regular.ttf",
-					);
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
 				INFOPLIST_KEY_NSCameraUsageDescription = "Rango needs access to the camera to capture photos and videos for conversion.";
 				INFOPLIST_KEY_NSMicrophoneUsageDescription = "Rango needs access to the microphone to record audio for conversion.";
 				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "Rango needs access to your photo library to select images for conversion.";
+				INFOPLIST_KEY_UIAppFonts = "Montserrat-Bold.ttf Montserrat-SemiBold.ttf Montserrat-Medium.ttf Montserrat-Regular.ttf Sora-Regular.ttf";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -363,7 +350,7 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		157079522F4881F500B64C40 /* Build configuration list for PBXProject "rangofileconverter" */ = {
+		157079522F4881F500B64C40 /* Build configuration list for PBXProject "RangoFileConverter" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				157079602F4881F600B64C40 /* Debug */,
@@ -372,7 +359,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		157079622F4881F600B64C40 /* Build configuration list for PBXNativeTarget "rangofileconverter" */ = {
+		157079622F4881F600B64C40 /* Build configuration list for PBXNativeTarget "RangoFileConverter" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				157079632F4881F600B64C40 /* Debug */,

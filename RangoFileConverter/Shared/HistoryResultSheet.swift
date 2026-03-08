@@ -61,7 +61,7 @@ struct HistoryResultSheet: View {
         )) {
             Button("OK", role: .cancel) { }
         } message: {
-            Text(saveError ?? "Unknown error")
+            Text(LocalizedStringKey(saveError ?? "Unknown error"))
         }
     }
 
@@ -142,7 +142,7 @@ struct HistoryResultSheet: View {
             .clipShape(Capsule())
     }
 
-    private var toolLabel: String {
+    private var toolLabel: LocalizedStringKey {
         switch record.tool {
         case .convert: return "Convert:"
         case .compress: return "Compress:"
@@ -316,7 +316,13 @@ struct HistoryResultSheet: View {
             }
             .padding(.top, 8)
 
-            Text(record.progress > 0 ? "Converting..." : "Starting...")
+            Group {
+                if record.progress > 0 {
+                    Text("Converting...")
+                } else {
+                    Text("Starting...")
+                }
+            }
                 .font(.custom("Montserrat-SemiBold", size: 14))
                 .foregroundColor(AppColors.textSecondary)
 
@@ -397,7 +403,7 @@ struct HistoryResultSheet: View {
         .background(AppColors.textSecondary.opacity(0.08), in: RoundedRectangle(cornerRadius: 16))
     }
 
-    private func infoRow(label: String, value: String) -> some View {
+    private func infoRow(label: LocalizedStringKey, value: String) -> some View {
         HStack(spacing: 8) {
             Text(label)
                 .font(.custom("Montserrat-SemiBold", size: 12))
@@ -461,7 +467,7 @@ struct HistoryResultSheet: View {
         }
     }
 
-    private func actionButton(title: String, icon: String, foregroundColor: Color, backgroundColor: Color) -> some View {
+    private func actionButton(title: LocalizedStringKey, icon: String, foregroundColor: Color, backgroundColor: Color) -> some View {
         VStack(spacing: 4) {
             Image(systemName: icon)
                 .font(.system(size: 20))

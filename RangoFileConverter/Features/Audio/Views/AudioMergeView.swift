@@ -138,7 +138,7 @@ struct AudioMergeView: View {
                             Button {
                                 outputFormat = format
                             } label: {
-                                Text(format.rawValue)
+                                Text(LocalizedStringKey(format.rawValue))
                                     .font(.system(size: 14, weight: .semibold))
                                     .tracking(-0.408)
                                     .foregroundColor(outputFormat == format ? .white : AppColors.textPrimary)

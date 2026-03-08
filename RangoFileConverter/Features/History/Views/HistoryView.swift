@@ -137,12 +137,24 @@ struct HistoryView: View {
                     Image(systemName: filterState.isActive ? "line.3.horizontal.decrease.circle" : "clock.arrow.circlepath")
                         .font(.system(size: 48))
                         .foregroundStyle(.tertiary)
-                    Text(filterState.isActive ? "No matching results" : "No history yet")
-                        .font(.custom("Montserrat-SemiBold", size: 16))
-                        .foregroundStyle(.secondary)
-                    Text(filterState.isActive ? "Try adjusting your filters" : "Your conversions will appear here")
-                        .font(.custom("Sora-Regular", size: 14))
-                        .foregroundStyle(.tertiary)
+                    Group {
+                        if filterState.isActive {
+                            Text("No matching results")
+                        } else {
+                            Text("No history yet")
+                        }
+                    }
+                    .font(.custom("Montserrat-SemiBold", size: 16))
+                    .foregroundStyle(.secondary)
+                    Group {
+                        if filterState.isActive {
+                            Text("Try adjusting your filters")
+                        } else {
+                            Text("Your conversions will appear here")
+                        }
+                    }
+                    .font(.custom("Sora-Regular", size: 14))
+                    .foregroundStyle(.tertiary)
                 }
                 .frame(maxWidth: .infinity)
                 Spacer()
@@ -192,7 +204,7 @@ struct HistoryView: View {
                                     .buttonStyle(.plain)
                                 }
                             } header: {
-                                Text(group.category.capitalized)
+                                Text(LocalizedStringKey(group.category.capitalized))
                                     .font(.custom("Montserrat-SemiBold", size: 20))
                                     .foregroundColor(AppColors.textPrimary)
                                     .frame(maxWidth: .infinity, alignment: .leading)

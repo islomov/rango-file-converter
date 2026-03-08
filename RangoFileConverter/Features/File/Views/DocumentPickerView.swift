@@ -2,11 +2,11 @@ import SwiftUI
 import UniformTypeIdentifiers
 
 struct DocumentPickerConfig {
-    let navTitle: String
+    let navTitle: LocalizedStringKey
     let icon: String
-    let heading: String
-    let subtitle: String
-    let buttonTitle: String
+    let heading: LocalizedStringKey
+    let subtitle: LocalizedStringKey?
+    let buttonTitle: LocalizedStringKey
     let allowedTypes: [UTType]
     let allowsMultipleSelection: Bool
 
@@ -39,7 +39,7 @@ struct DocumentPickerConfig {
         navTitle: "Split PDF",
         icon: "icon_doc_split",
         heading: "Select a PDF to split",
-        subtitle: "",
+        subtitle: nil,
         buttonTitle: "Choose PDF",
         allowedTypes: [.pdf],
         allowsMultipleSelection: false
@@ -49,7 +49,7 @@ struct DocumentPickerConfig {
         navTitle: "Reorder pages",
         icon: "icon_doc_reorder",
         heading: "Select a PDF to reorder pages",
-        subtitle: "",
+        subtitle: nil,
         buttonTitle: "Choose PDF",
         allowedTypes: [.pdf],
         allowsMultipleSelection: false
@@ -59,7 +59,7 @@ struct DocumentPickerConfig {
         navTitle: "Protect PDF",
         icon: "icon_doc_protect",
         heading: "Select a PDF to protect",
-        subtitle: "",
+        subtitle: nil,
         buttonTitle: "Choose PDF",
         allowedTypes: [.pdf],
         allowsMultipleSelection: false
@@ -160,8 +160,8 @@ struct DocumentPickerView: View {
                         .tracking(-0.408)
                         .multilineTextAlignment(.center)
 
-                    if !config.subtitle.isEmpty {
-                        Text(config.subtitle)
+                    if let subtitle = config.subtitle {
+                        Text(subtitle)
                             .font(.system(size: 14, weight: .semibold))
                             .foregroundColor(AppColors.textSecondary)
                             .tracking(-0.408)

@@ -155,7 +155,7 @@ struct HomeView: View {
 // MARK: - Service Card
 
 private struct ServiceCard: View {
-    let title: String
+    let title: LocalizedStringKey
     let iconName: String
     let arrowName: String
     let backgroundColor: Color

@@ -2,11 +2,20 @@ import SwiftUI
 
 private struct VideoTool: Identifiable, Hashable {
     let id: String
-    let title: String
+    let title: LocalizedStringKey
     let icon: String
     let isAvailable: Bool
 
-    init(id: String, title: String, icon: String, isAvailable: Bool = true) {
+    // Hashable conformance for LocalizedStringKey via its string representation
+    func hash(into hasher: inout Hasher) {
+        hasher.combine(id)
+    }
+
+    static func == (lhs: VideoTool, rhs: VideoTool) -> Bool {
+        lhs.id == rhs.id
+    }
+
+    init(id: String, title: LocalizedStringKey, icon: String, isAvailable: Bool = true) {
         self.id = id
         self.title = title
         self.icon = icon

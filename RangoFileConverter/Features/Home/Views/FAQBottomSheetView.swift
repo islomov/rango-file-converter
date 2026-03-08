@@ -4,7 +4,7 @@ struct FAQBottomSheetView: View {
     @Environment(\.dismiss) private var dismiss
     @State private var expandedIndex: Int? = nil
 
-    private let faqs: [(question: String, answer: String)] = [
+    private let faqs: [(question: LocalizedStringKey, answer: LocalizedStringKey)] = [
         (
             "How do I convert a file?",
             "Tap the category you need (Image, Video, Audio, or Documents) on the Home screen, select your file, choose the output format, and tap Convert. The converted file will be saved to your device."
@@ -133,8 +133,8 @@ struct FAQBottomSheetView: View {
 // MARK: - FAQ Item
 
 private struct FAQItemView: View {
-    let question: String
-    let answer: String
+    let question: LocalizedStringKey
+    let answer: LocalizedStringKey
     let isExpanded: Bool
     let onTap: () -> Void
 

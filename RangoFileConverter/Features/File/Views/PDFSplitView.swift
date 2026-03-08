@@ -185,7 +185,13 @@ struct PDFSplitView: View {
 
             Spacer()
 
-            Text(allSelected ? "Deselect all" : "Select all")
+            Group {
+                if allSelected {
+                    Text("Deselect all")
+                } else {
+                    Text("Select all")
+                }
+            }
                 .font(.system(size: 12, weight: .semibold))
                 .foregroundColor(AppColors.accent)
                 .tracking(-0.408)
@@ -266,7 +272,13 @@ struct PDFSplitView: View {
             Button {
                 performSplit()
             } label: {
-                Text(selectedCount == 0 ? "Split PDF" : "Split \(selectedCount) pages")
+                Group {
+                    if selectedCount == 0 {
+                        Text("Split PDF")
+                    } else {
+                        Text("Split \(selectedCount) pages")
+                    }
+                }
                     .font(.system(size: 16, weight: .semibold))
                     .foregroundColor(.white)
                     .tracking(-0.408)

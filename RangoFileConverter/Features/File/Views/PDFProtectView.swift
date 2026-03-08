@@ -156,7 +156,7 @@ struct PDFProtectView: View {
                 .padding(.top, 24)
 
                 if let errorMessage {
-                    Text(errorMessage)
+                    Text(LocalizedStringKey(errorMessage))
                         .font(.system(size: 12, weight: .semibold))
                         .foregroundColor(AppColors.destructive)
                         .tracking(-0.408)

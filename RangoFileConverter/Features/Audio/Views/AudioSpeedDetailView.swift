@@ -239,7 +239,7 @@ struct AudioSpeedDetailView: View {
                     Button {
                         selectedSpeed = preset
                     } label: {
-                        Text(preset.label)
+                        Text(LocalizedStringKey(preset.label))
                             .font(.system(size: 14, weight: .semibold))
                             .tracking(-0.408)
                             .foregroundColor(

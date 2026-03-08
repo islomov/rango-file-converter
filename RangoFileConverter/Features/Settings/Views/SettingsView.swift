@@ -210,7 +210,7 @@ struct SettingsView: View {
 
     // MARK: - Storage Section
 
-    private let storageCategories: [(title: String, icon: String, category: String)] = [
+    private let storageCategories: [(title: LocalizedStringKey, icon: String, category: String)] = [
         ("Images", "photo.fill", "image"),
         ("Videos", "video.fill", "video"),
         ("Audio", "waveform", "audio"),
@@ -248,7 +248,7 @@ struct SettingsView: View {
         }
     }
 
-    private func storageRow(icon: String, title: String, category: String, isLast: Bool) -> some View {
+    private func storageRow(icon: String, title: LocalizedStringKey, category: String, isLast: Bool) -> some View {
         Button {
             clearStorageCategory = category
             showClearStorageAlert = true
@@ -328,7 +328,7 @@ struct SettingsView: View {
         .cornerRadius(16)
     }
 
-    private func linkRow(title: String, isFirst: Bool, isLast: Bool, action: @escaping () -> Void) -> some View {
+    private func linkRow(title: LocalizedStringKey, isFirst: Bool, isLast: Bool, action: @escaping () -> Void) -> some View {
         Button {
             action()
         } label: {
@@ -383,7 +383,7 @@ struct SettingsView: View {
 
     private func settingsRow<Trailing: View>(
         icon: String,
-        title: String,
+        title: LocalizedStringKey,
         showDivider: Bool,
         @ViewBuilder trailing: () -> Trailing
     ) -> some View {

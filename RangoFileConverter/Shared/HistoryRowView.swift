@@ -109,7 +109,7 @@ struct HistoryRowView: View {
             .clipShape(Capsule())
     }
 
-    private var toolLabel: String {
+    private var toolLabel: LocalizedStringKey {
         switch record.tool {
         case .convert: return "Convert:"
         case .compress: return "Compress:"

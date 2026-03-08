@@ -7,9 +7,18 @@ private enum DocumentTab: String, CaseIterable {
 
 private struct DocumentTool: Identifiable, Hashable {
     let id: String
-    let title: String
+    let title: LocalizedStringKey
     let icon: String
     let isAvailable: Bool
+
+    // Hashable conformance for LocalizedStringKey
+    static func == (lhs: DocumentTool, rhs: DocumentTool) -> Bool {
+        lhs.id == rhs.id
+    }
+
+    func hash(into hasher: inout Hasher) {
+        hasher.combine(id)
+    }
 }
 
 private let documentTools: [DocumentTool] = [

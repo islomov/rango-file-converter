@@ -479,7 +479,7 @@ struct VideoRatioView: View {
                         Button {
                             fitMode = mode
                         } label: {
-                            Text(mode.rawValue)
+                            Text(LocalizedStringKey(mode.rawValue))
                                 .font(.system(size: 14, weight: .semibold))
                                 .tracking(-0.408)
                                 .foregroundColor(

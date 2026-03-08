@@ -193,49 +193,12 @@ struct VideoPickerView: View {
     }
 
     private func thumbnailCell(for asset: PHAsset) -> some View {
-        Button {
+        VideoThumbnailCell(
+            asset: asset,
+            isDisabled: isLoading
+        ) {
             selectAsset(asset)
-        } label: {
-            GeometryReader { geo in
-                ZStack(alignment: .bottomLeading) {
-                    if let thumbnail = videoVM.thumbnails[asset.localIdentifier] {
-                        Image(uiImage: thumbnail)
-                            .resizable()
-                            .aspectRatio(contentMode: .fill)
-                            .frame(width: geo.size.width, height: geo.size.width)
-                            .clipped()
-                    } else {
-                        Rectangle()
-                            .fill(AppColors.placeholder)
-                            .frame(width: geo.size.width, height: geo.size.width)
-                    }
-
-                    HStack(spacing: 4) {
-                        Image(systemName: "play.fill")
-                            .font(.system(size: 8))
-                        Text(formattedDuration(asset.duration))
-                            .font(.caption2.weight(.medium))
-                    }
-                    .foregroundStyle(.white)
-                    .padding(.horizontal, 5)
-                    .padding(.vertical, 2)
-                    .background(.black.opacity(0.6), in: Capsule())
-                    .padding(4)
-                }
-            }
-            .aspectRatio(1, contentMode: .fit)
-            .clipShape(RoundedRectangle(cornerRadius: 8))
-            .onAppear {
-                videoVM.loadThumbnail(for: asset)
-            }
         }
-        .disabled(isLoading)
-    }
-
-    private func formattedDuration(_ duration: TimeInterval) -> String {
-        let minutes = Int(duration) / 60
-        let seconds = Int(duration) % 60
-        return String(format: "%d:%02d", minutes, seconds)
     }
 
     // MARK: - Files Placeholder

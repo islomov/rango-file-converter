@@ -244,54 +244,19 @@ struct AssetPickerView: View {
     }
 
     private func thumbnailCell(for asset: PHAsset) -> some View {
-        Button {
+        AssetThumbnailCell(
+            asset: asset,
+            isMultiSelect: isMultiSelect,
+            isSelected: selectedAssetIDs.contains(asset.localIdentifier),
+            selectionIndex: selectionOrder(for: asset),
+            isDisabled: isLoadingFullImage
+        ) {
             if isMultiSelect {
                 toggleSelection(asset)
             } else {
                 selectAsset(asset)
             }
-        } label: {
-            GeometryReader { geo in
-                ZStack(alignment: .topTrailing) {
-                    if let thumbnail = photoVM.thumbnails[asset.localIdentifier] {
-                        Image(uiImage: thumbnail)
-                            .resizable()
-                            .aspectRatio(contentMode: .fill)
-                            .frame(width: geo.size.width, height: geo.size.width)
-                            .clipped()
-                    } else {
-                        Rectangle()
-                            .fill(AppColors.placeholder)
-                            .frame(width: geo.size.width, height: geo.size.width)
-                    }
-
-                    if isMultiSelect {
-                        let isSelected = selectedAssetIDs.contains(asset.localIdentifier)
-                        let idx = selectionOrder(for: asset)
-                        ZStack {
-                            Circle()
-                                .fill(isSelected ? AppColors.accent : Color.black.opacity(0.3))
-                                .frame(width: 26, height: 26)
-                            Circle()
-                                .stroke(Color.white, lineWidth: 2)
-                                .frame(width: 26, height: 26)
-                            if isSelected, let idx {
-                                Text("\(idx)")
-                                    .font(.caption2.weight(.bold))
-                                    .foregroundStyle(.white)
-                            }
-                        }
-                        .padding(6)
-                    }
-                }
-            }
-            .aspectRatio(1, contentMode: .fit)
-            .clipShape(RoundedRectangle(cornerRadius: 8))
-            .onAppear {
-                photoVM.loadThumbnail(for: asset)
-            }
         }
-        .disabled(isLoadingFullImage)
     }
 
     // MARK: - Multi-select

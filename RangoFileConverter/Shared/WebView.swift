@@ -44,19 +44,14 @@ struct WebView: UIViewRepresentable {
 struct WebViewSheet: View {
     let title: String
     let url: URL
+    var colorScheme: ColorScheme? = nil
     @Environment(\.dismiss) private var dismiss
     @State private var isLoading = true
     @State private var startLoad = false
 
     var body: some View {
         VStack(spacing: 0) {
-            // Drag indicator
-            RoundedRectangle(cornerRadius: 2.5)
-                .fill(AppColors.textSecondary.opacity(0.3))
-                .frame(width: 36, height: 5)
-                .padding(.top, 8)
-
-            // Header
+            // Header pinned at top
             HStack {
                 Text(title)
                     .font(.system(size: 20, weight: .bold))
@@ -68,18 +63,19 @@ struct WebViewSheet: View {
                     dismiss()
                 } label: {
                     Image(systemName: "xmark.circle.fill")
-                        .font(.system(size: 24))
-                        .foregroundColor(AppColors.textSecondary.opacity(0.5))
+                        .font(.system(size: 28))
+                        .symbolRenderingMode(.hierarchical)
+                        .foregroundColor(AppColors.textSecondary)
                 }
             }
             .padding(.horizontal, 16)
-            .padding(.top, 16)
+            .padding(.top, 20)
             .padding(.bottom, 12)
 
-            // Content
+            // Content fills remaining space
             ZStack {
                 if startLoad {
-                    WebViewLoader(url: url, isLoading: $isLoading)
+                    WebViewLoader(url: url, isLoading: $isLoading, colorScheme: colorScheme)
                         .opacity(isLoading ? 0 : 1)
                 }
 
@@ -94,10 +90,10 @@ struct WebViewSheet: View {
                     }
                 }
             }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
         .background(AppColors.background)
         .onAppear {
-            // Defer loading so the sheet animation completes first
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
                 startLoad = true
             }
@@ -109,6 +105,7 @@ struct WebViewSheet: View {
 struct WebViewLoader: UIViewRepresentable {
     let url: URL
     @Binding var isLoading: Bool
+    var colorScheme: ColorScheme? = nil
 
     func makeCoordinator() -> Coordinator {
         Coordinator(isLoading: $isLoading)
@@ -120,11 +117,20 @@ struct WebViewLoader: UIViewRepresentable {
         webView.isOpaque = false
         webView.backgroundColor = .clear
         webView.scrollView.backgroundColor = .clear
+
+        if let colorScheme = colorScheme {
+            webView.overrideUserInterfaceStyle = colorScheme == .dark ? .dark : .light
+        }
+
         webView.load(URLRequest(url: url))
         return webView
     }
 
-    func updateUIView(_ uiView: WKWebView, context: Context) {}
+    func updateUIView(_ uiView: WKWebView, context: Context) {
+        if let colorScheme = colorScheme {
+            uiView.overrideUserInterfaceStyle = colorScheme == .dark ? .dark : .light
+        }
+    }
 
     class Coordinator: NSObject, WKNavigationDelegate {
         @Binding var isLoading: Bool

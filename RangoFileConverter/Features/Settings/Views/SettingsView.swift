@@ -4,7 +4,8 @@ struct SettingsView: View {
     @EnvironmentObject private var historyStore: HistoryStore
     @EnvironmentObject private var themeManager: ThemeManager
     @StateObject private var reminderManager = DailyReminderManager.shared
-    @State private var showClearHistoryAlert = false
+    @State private var showClearStorageAlert = false
+    @State private var clearStorageCategory: String?
     @State private var showLanguagePicker = false
     @State private var showPrivacyPolicy = false
     @State private var showTermsOfUse = false
@@ -27,7 +28,7 @@ struct SettingsView: View {
                         .offset(y: sectionsAppeared ? 0 : 20)
                         .animation(.spring(response: 0.45, dampingFraction: 0.85).delay(0.12), value: sectionsAppeared)
 
-                    clearHistoryButton
+                    storageSection
                         .opacity(sectionsAppeared ? 1 : 0)
                         .offset(y: sectionsAppeared ? 0 : 20)
                         .animation(.spring(response: 0.45, dampingFraction: 0.85).delay(0.19), value: sectionsAppeared)
@@ -49,19 +50,23 @@ struct SettingsView: View {
         .sheet(isPresented: $showPrivacyPolicy) {
             WebViewSheet(
                 title: "Privacy policy",
-                url: URL(string: "https://viralapps.studio/rangosimpleconverter/privacy-policy")!
+                url: URL(string: "https://viralapps.studio/rangosimpleconverter/privacy-policy")!,
+                colorScheme: themeManager.colorScheme
             )
             .presentationDetents([.large])
             .presentationDragIndicator(.hidden)
+            .interactiveDismissDisabled()
             .preferredColorScheme(themeManager.colorScheme)
         }
         .sheet(isPresented: $showTermsOfUse) {
             WebViewSheet(
                 title: "Terms of use",
-                url: URL(string: "https://viralapps.studio/rangosimpleconverter/terms-of-use")!
+                url: URL(string: "https://viralapps.studio/rangosimpleconverter/terms-of-use")!,
+                colorScheme: themeManager.colorScheme
             )
             .presentationDetents([.large])
             .presentationDragIndicator(.hidden)
+            .interactiveDismissDisabled()
             .preferredColorScheme(themeManager.colorScheme)
         }
         .onAppear {
@@ -69,13 +74,13 @@ struct SettingsView: View {
                 sectionsAppeared = true
             }
         }
-        .alert("Clear History", isPresented: $showClearHistoryAlert) {
-            Button("Clear", role: .destructive) {
-                historyStore.removeAll()
+        .alert("Clear \(clearStorageCategory?.capitalized ?? "") Storage", isPresented: $showClearStorageAlert) {
+            Button("Delete", role: .destructive) {
+                historyStore.removeAll(for: clearStorageCategory)
             }
             Button("Cancel", role: .cancel) { }
         } message: {
-            Text("This will permanently delete all converted files and history. This action cannot be undone.")
+            Text("This will permanently delete all converted \(clearStorageCategory ?? "") files. This action cannot be undone.")
         }
     }
 
@@ -202,23 +207,100 @@ struct SettingsView: View {
         .buttonStyle(.plain)
     }
 
-    // MARK: - Clear History
+    // MARK: - Storage Section
 
-    private var clearHistoryButton: some View {
-        Button {
-            showClearHistoryAlert = true
-        } label: {
+    private let storageCategories: [(title: String, icon: String, category: String)] = [
+        ("Images", "photo.fill", "image"),
+        ("Videos", "video.fill", "video"),
+        ("Audio", "waveform", "audio"),
+        ("Documents", "doc.fill", "document")
+    ]
+
+    private var storageSection: some View {
+        VStack(alignment: .leading, spacing: 0) {
             HStack {
-                Text("Clear history")
-                    .font(.system(size: 16, weight: .semibold))
-                    .foregroundColor(AppColors.destructive)
+                Text("Storage")
+                    .font(.system(size: 14, weight: .semibold))
+                    .foregroundColor(AppColors.textSecondary)
+
                 Spacer()
+
+                Text(formattedSize(historyStore.totalStorageBytes()))
+                    .font(.system(size: 12, weight: .semibold))
+                    .foregroundColor(AppColors.textSecondary)
             }
-            .padding(16)
+            .padding(.horizontal, 16)
+            .padding(.bottom, 8)
+
+            VStack(spacing: 0) {
+                ForEach(Array(storageCategories.enumerated()), id: \.element.category) { index, item in
+                    storageRow(
+                        icon: item.icon,
+                        title: item.title,
+                        category: item.category,
+                        isLast: index == storageCategories.count - 1
+                    )
+                }
+            }
             .background(AppColors.surface)
             .cornerRadius(16)
         }
+    }
+
+    private func storageRow(icon: String, title: String, category: String, isLast: Bool) -> some View {
+        Button {
+            clearStorageCategory = category
+            showClearStorageAlert = true
+        } label: {
+            HStack(spacing: 8) {
+                ZStack {
+                    RoundedRectangle(cornerRadius: 20)
+                        .fill(Color.clear)
+                        .frame(width: 36, height: 36)
+
+                    Image(systemName: icon)
+                        .resizable()
+                        .aspectRatio(contentMode: .fit)
+                        .frame(width: 24, height: 24)
+                        .foregroundColor(AppColors.textPrimary)
+                }
+
+                Text(title)
+                    .font(.system(size: 14, weight: .semibold))
+                    .foregroundColor(AppColors.textPrimary)
+
+                Spacer()
+
+                Text(formattedSize(historyStore.storageBytes(for: category)))
+                    .font(.system(size: 12, weight: .semibold))
+                    .foregroundColor(AppColors.textSecondary)
+
+                Image(systemName: "chevron.right")
+                    .font(.system(size: 14, weight: .medium))
+                    .foregroundColor(AppColors.textSecondary)
+            }
+            .padding(.horizontal, 16)
+            .padding(.vertical, 12)
+            .overlay(alignment: .bottom) {
+                if !isLast {
+                    Rectangle()
+                        .fill(AppColors.textSecondary.opacity(0.12))
+                        .frame(height: 1)
+                }
+            }
+        }
         .buttonStyle(.plain)
+    }
+
+    private func formattedSize(_ bytes: Int64) -> String {
+        let mb = Double(bytes) / (1024.0 * 1024.0)
+        if mb < 0.1 {
+            return "0 MB"
+        } else if mb < 100 {
+            return String(format: "%.1f MB", mb)
+        } else {
+            return String(format: "%.0f MB", mb)
+        }
     }
 
     // MARK: - Links Section
@@ -226,7 +308,9 @@ struct SettingsView: View {
     private var linksSection: some View {
         VStack(spacing: 0) {
             linkRow(title: "Rate app", isFirst: true, isLast: false) {
-                // Handle rate app
+                if let url = URL(string: "https://apps.apple.com/app/id6759793517?action=write-review") {
+                    UIApplication.shared.open(url)
+                }
             }
 
             linkRow(title: "Privacy policy", isFirst: false, isLast: false) {

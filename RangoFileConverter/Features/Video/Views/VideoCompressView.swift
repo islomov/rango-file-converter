@@ -205,7 +205,7 @@ struct VideoCompressView: View {
                     Button {
                         onSelect(item)
                     } label: {
-                        Text(item[keyPath: label])
+                        Text(LocalizedStringKey(item[keyPath: label]))
                             .font(.system(size: 14, weight: .semibold))
                             .tracking(-0.408)
                             .padding(.horizontal, 12)

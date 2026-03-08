@@ -25,14 +25,14 @@ struct HistoryFilterSheet: View {
     @State private var selectedToolTypes: Set<ToolType>
     @State private var selectedStatuses: Set<String>
 
-    private let mediaCategories: [(id: String, label: String, icon: String)] = [
+    private let mediaCategories: [(id: String, label: LocalizedStringKey, icon: String)] = [
         ("image", "Image", "photo.fill"),
         ("video", "Video", "video.fill"),
         ("audio", "Audio", "music.note"),
         ("document", "Documents", "doc.fill"),
     ]
 
-    private let statuses: [(id: String, label: String)] = [
+    private let statuses: [(id: String, label: LocalizedStringKey)] = [
         ("converted", "Done"),
         ("failed", "Failed"),
         ("converting", "Loading"),
@@ -158,7 +158,7 @@ struct HistoryFilterSheet: View {
                 ForEach(ToolType.allCases, id: \.self) { tool in
                     let isSelected = selectedToolTypes.contains(tool)
                     filterChip(
-                        label: tool.rawValue,
+                        label: LocalizedStringKey(tool.rawValue),
                         isSelected: isSelected
                     ) {
                         if isSelected {
@@ -202,7 +202,7 @@ struct HistoryFilterSheet: View {
 
     @ViewBuilder
     private func filterChip(
-        label: String,
+        label: LocalizedStringKey,
         icon: String? = nil,
         isSelected: Bool,
         action: @escaping () -> Void

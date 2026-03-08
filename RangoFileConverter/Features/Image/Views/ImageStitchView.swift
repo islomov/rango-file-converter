@@ -142,7 +142,7 @@ struct ImageStitchView: View {
                 HStack(spacing: 8) {
                     ForEach(StitchLayout.allCases, id: \.self) { option in
                         chipButton(
-                            title: option.rawValue,
+                            title: LocalizedStringKey(option.rawValue),
                             icon: layoutIcon(for: option),
                             isSelected: layout == option
                         ) {
@@ -161,7 +161,7 @@ struct ImageStitchView: View {
                 HStack(spacing: 8) {
                     ForEach(StitchBackground.allCases, id: \.self) { option in
                         chipButton(
-                            title: option.rawValue,
+                            title: LocalizedStringKey(option.rawValue),
                             icon: nil,
                             isSelected: background == option
                         ) {
@@ -174,7 +174,7 @@ struct ImageStitchView: View {
         .padding(16)
     }
 
-    private func chipButton(title: String, icon: String?, isSelected: Bool, action: @escaping () -> Void) -> some View {
+    private func chipButton(title: LocalizedStringKey, icon: String?, isSelected: Bool, action: @escaping () -> Void) -> some View {
         Button(action: action) {
             HStack(spacing: 6) {
                 if let icon {

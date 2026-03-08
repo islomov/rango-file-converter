@@ -104,7 +104,7 @@ struct AudioPickerView: View {
                         selectedSource = source
                     }
                 } label: {
-                    Text(source.rawValue)
+                    Text(LocalizedStringKey(source.rawValue))
                         .font(.system(size: 14, weight: .semibold))
                         .foregroundColor(AppColors.textPrimary)
                         .frame(maxWidth: .infinity)

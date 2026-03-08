@@ -2,12 +2,16 @@ import SwiftUI
 
 private struct ImageTool: Identifiable, Hashable {
     let id: String
-    let title: String
+    let title: LocalizedStringKey
     let icon: String
     let isAvailable: Bool
     let isFullWidth: Bool
 
-    init(id: String, title: String, icon: String, isAvailable: Bool = true, isFullWidth: Bool = false) {
+    // Hashable/Equatable based on id only (LocalizedStringKey isn't Hashable by default)
+    static func == (lhs: ImageTool, rhs: ImageTool) -> Bool { lhs.id == rhs.id }
+    func hash(into hasher: inout Hasher) { hasher.combine(id) }
+
+    init(id: String, title: LocalizedStringKey, icon: String, isAvailable: Bool = true, isFullWidth: Bool = false) {
         self.id = id
         self.title = title
         self.icon = icon

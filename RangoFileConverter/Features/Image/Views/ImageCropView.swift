@@ -438,7 +438,7 @@ struct ImageCropView: View {
                         Button {
                             fitMode = mode
                         } label: {
-                            Text(mode.rawValue)
+                            Text(LocalizedStringKey(mode.rawValue))
                                 .font(.system(size: 14, weight: .semibold))
                                 .tracking(-0.408)
                                 .foregroundColor(fitMode == mode ? .white : AppColors.textPrimary)
@@ -472,7 +472,7 @@ struct ImageCropView: View {
                 } label: {
                     VStack(spacing: 4) {
                         RatioIconView(ratio: ratio)
-                        Text(ratio.rawValue)
+                        Text(LocalizedStringKey(ratio.rawValue))
                             .font(.system(size: 9, weight: .semibold))
                             .tracking(-0.37)
                             .foregroundColor(AppColors.textPrimary)

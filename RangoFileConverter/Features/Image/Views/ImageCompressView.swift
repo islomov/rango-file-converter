@@ -235,7 +235,7 @@ struct ImageCompressView: View {
         Button {
             selectedFormat = format
         } label: {
-            Text(format.rawValue)
+            Text(LocalizedStringKey(format.rawValue))
                 .font(.system(size: 16, weight: .semibold))
                 .foregroundColor(
                     selectedFormat == format

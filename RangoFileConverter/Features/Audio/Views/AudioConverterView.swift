@@ -2,15 +2,25 @@ import SwiftUI
 
 private struct AudioTool: Identifiable, Hashable {
     let id: String
-    let title: String
+    let title: LocalizedStringKey
     let icon: String
     let isAvailable: Bool
 
-    init(id: String, title: String, icon: String, isAvailable: Bool = true) {
+    init(id: String, title: LocalizedStringKey, icon: String, isAvailable: Bool = true) {
         self.id = id
         self.title = title
         self.icon = icon
         self.isAvailable = isAvailable
+    }
+
+    static func == (lhs: AudioTool, rhs: AudioTool) -> Bool {
+        lhs.id == rhs.id && lhs.icon == rhs.icon && lhs.isAvailable == rhs.isAvailable
+    }
+
+    func hash(into hasher: inout Hasher) {
+        hasher.combine(id)
+        hasher.combine(icon)
+        hasher.combine(isAvailable)
     }
 }
 

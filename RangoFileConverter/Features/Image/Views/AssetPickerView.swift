@@ -94,7 +94,13 @@ struct AssetPickerView: View {
                 Color.black.opacity(0.3)
                     .ignoresSafeArea()
                     .overlay {
-                        ProgressView(isMultiSelect ? "Loading \(selectedAssetIDs.count) images..." : "Loading...")
+                        ProgressView {
+                            if isMultiSelect {
+                                Text("Loading \(selectedAssetIDs.count) images...")
+                            } else {
+                                Text("Loading...")
+                            }
+                        }
                             .padding(20)
                             .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 12))
                     }
@@ -106,7 +112,13 @@ struct AssetPickerView: View {
 
     private var navBar: some View {
         ZStack {
-            Text(isMultiSelect ? "Select images" : "Choose image")
+            Group {
+                if isMultiSelect {
+                    Text("Select images")
+                } else {
+                    Text("Choose image")
+                }
+            }
                 .font(.system(size: 20, weight: .semibold))
                 .foregroundColor(AppColors.textPrimary)
                 .tracking(-0.408)
@@ -138,7 +150,7 @@ struct AssetPickerView: View {
                         selectedSource = source
                     }
                 } label: {
-                    Text(source.rawValue)
+                    Text(LocalizedStringKey(source.rawValue))
                         .font(.system(size: 14, weight: .semibold))
                         .foregroundColor(AppColors.textPrimary)
                         .frame(maxWidth: .infinity)

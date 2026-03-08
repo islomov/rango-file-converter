@@ -274,7 +274,7 @@ struct ImageResizeView: View {
                     Button {
                         applyPreset(preset)
                     } label: {
-                        Text(preset.rawValue)
+                        Text(LocalizedStringKey(preset.rawValue))
                             .font(.subheadline.weight(.medium))
                             .padding(.horizontal, 14)
                             .padding(.vertical, 8)

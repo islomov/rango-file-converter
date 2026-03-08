@@ -42,7 +42,7 @@ struct WebView: UIViewRepresentable {
 }
 
 struct WebViewSheet: View {
-    let title: String
+    let title: LocalizedStringKey
     let url: URL
     var colorScheme: ColorScheme? = nil
     @Environment(\.dismiss) private var dismiss

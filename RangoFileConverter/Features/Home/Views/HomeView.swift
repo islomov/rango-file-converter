@@ -45,9 +45,8 @@ struct HomeView: View {
 
             // Stacked cards — responsive with capped max size
             GeometryReader { geo in
-                let tabBarSpace: CGFloat = 112
                 // Visible gap between cards, capped so cards don't get too big
-                let gap = min((geo.size.height - tabBarSpace) / 4.8, 118.0)
+                let gap = min(geo.size.height / 4.8, 118.0)
                 let lastCardHeight = gap * 1.2
                 // Each overlapping card extends one gap behind the next card
                 let cardHeight = gap * 2
@@ -118,7 +117,6 @@ struct HomeView: View {
                     .frame(height: totalHeight, alignment: .top)
                     .padding(.horizontal, 16)
                     .padding(.top, 16)
-                    .padding(.bottom, tabBarSpace)
                 }
             }
         }

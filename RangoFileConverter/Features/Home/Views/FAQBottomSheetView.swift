@@ -140,7 +140,10 @@ private struct FAQItemView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
-            Button(action: onTap) {
+            Button(action: {
+                UIImpactFeedbackGenerator(style: .light).impactOccurred()
+                onTap()
+            }) {
                 HStack(spacing: 8) {
                     Text(question)
                         .font(.system(size: 14, weight: .semibold))

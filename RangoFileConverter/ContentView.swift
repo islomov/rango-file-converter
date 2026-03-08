@@ -131,6 +131,7 @@ struct FloatingTabBar: View {
             HStack(spacing: 16) {
                 ForEach(AppTab.allCases, id: \.rawValue) { tab in
                     Button {
+                        UIImpactFeedbackGenerator(style: .light).impactOccurred()
                         if tab == .home && selectedTab == .home {
                             onHomeTap()
                         }

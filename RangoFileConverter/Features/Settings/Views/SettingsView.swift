@@ -89,7 +89,7 @@ struct SettingsView: View {
 
             // Default save location
             settingsRow(
-                icon: "mappin.circle.fill",
+                icon: "mappin.and.ellipse",
                 title: "Default save location",
                 showDivider: false
             ) {
@@ -152,9 +152,9 @@ struct SettingsView: View {
             .padding(.vertical, 12)
             .overlay(alignment: .bottom) {
                 if !isLast {
-                    Divider()
-                        .background(AppColors.textSecondary.opacity(0.12))
-                        .padding(.horizontal, 16)
+                    Rectangle()
+                        .fill(AppColors.textSecondary.opacity(0.12))
+                        .frame(height: 1)
                 }
             }
         }
@@ -215,8 +215,9 @@ struct SettingsView: View {
             .padding(.horizontal, 16)
             .overlay(alignment: .bottom) {
                 if !isLast {
-                    Divider()
-                        .background(AppColors.textSecondary.opacity(0.12))
+                    Rectangle()
+                        .fill(AppColors.textSecondary.opacity(0.12))
+                        .frame(height: 1)
                 }
             }
         }
@@ -258,7 +259,7 @@ struct SettingsView: View {
                 Image(systemName: icon)
                     .resizable()
                     .aspectRatio(contentMode: .fit)
-                    .frame(width: 22, height: 22)
+                    .frame(width: 24, height: 24)
                     .foregroundColor(AppColors.textPrimary)
 
                 Text(title)
@@ -274,9 +275,9 @@ struct SettingsView: View {
         .padding(.vertical, 16)
         .overlay(alignment: .bottom) {
             if showDivider {
-                Divider()
-                    .background(AppColors.textSecondary.opacity(0.12))
-                    .padding(.horizontal, 16)
+                Rectangle()
+                    .fill(AppColors.textSecondary.opacity(0.12))
+                    .frame(height: 1)
             }
         }
     }

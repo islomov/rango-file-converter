@@ -6,6 +6,7 @@ struct SettingsView: View {
     @State private var dailyReminders = true
     @State private var showClearHistoryAlert = false
     @State private var showLanguagePicker = false
+    @State private var sectionsAppeared = false
 
     var body: some View {
         ZStack {
@@ -15,9 +16,24 @@ struct SettingsView: View {
             ScrollView {
                 VStack(spacing: 12) {
                     generalSection
+                        .opacity(sectionsAppeared ? 1 : 0)
+                        .offset(y: sectionsAppeared ? 0 : 20)
+                        .animation(.spring(response: 0.45, dampingFraction: 0.85).delay(0.05), value: sectionsAppeared)
+
                     themeSection
+                        .opacity(sectionsAppeared ? 1 : 0)
+                        .offset(y: sectionsAppeared ? 0 : 20)
+                        .animation(.spring(response: 0.45, dampingFraction: 0.85).delay(0.12), value: sectionsAppeared)
+
                     clearHistoryButton
+                        .opacity(sectionsAppeared ? 1 : 0)
+                        .offset(y: sectionsAppeared ? 0 : 20)
+                        .animation(.spring(response: 0.45, dampingFraction: 0.85).delay(0.19), value: sectionsAppeared)
+
                     linksSection
+                        .opacity(sectionsAppeared ? 1 : 0)
+                        .offset(y: sectionsAppeared ? 0 : 20)
+                        .animation(.spring(response: 0.45, dampingFraction: 0.85).delay(0.26), value: sectionsAppeared)
                 }
                 .padding(.horizontal, 16)
                 .padding(.top, 16)
@@ -28,6 +44,11 @@ struct SettingsView: View {
             headerView
         }
         .navigationBarHidden(true)
+        .onAppear {
+            if !sectionsAppeared {
+                sectionsAppeared = true
+            }
+        }
         .alert("Clear History", isPresented: $showClearHistoryAlert) {
             Button("Clear", role: .destructive) {
                 historyStore.removeAll()

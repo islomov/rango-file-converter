@@ -35,17 +35,28 @@ struct ContentView: View {
             case .home:
                 if let category = selectedCategory {
                     categoryView(for: category)
+                        .transition(.asymmetric(
+                            insertion: .move(edge: .trailing).combined(with: .opacity),
+                            removal: .move(edge: .trailing).combined(with: .opacity)
+                        ))
                 } else {
                     HomeView { category in
-                        selectedCategory = category
+                        withAnimation(.spring(response: 0.35, dampingFraction: 0.9)) {
+                            selectedCategory = category
+                        }
                     }
+                    .transition(.opacity)
                 }
             case .history:
                 HistoryView()
+                    .transition(.opacity)
             case .settings:
                 SettingsView()
+                    .transition(.opacity)
             }
         }
+        .animation(.easeInOut(duration: 0.25), value: selectedTab)
+        .animation(.spring(response: 0.35, dampingFraction: 0.9), value: selectedCategory == nil)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .safeAreaInset(edge: .bottom, spacing: 0) {
             if !hideTabBar {
@@ -119,7 +130,9 @@ struct FloatingTabBar: View {
                         if tab == .home && selectedTab == .home {
                             onHomeTap()
                         }
-                        selectedTab = tab
+                        withAnimation(.easeInOut(duration: 0.25)) {
+                            selectedTab = tab
+                        }
                     } label: {
                         tabIcon(for: tab)
                             .frame(width: 52, height: 52)

@@ -6,7 +6,6 @@ struct HistoryView: View {
     @State private var searchText: String = ""
     @State private var showFilterSheet = false
     @State private var filterState = HistoryFilterState()
-
     private let categories = ["image", "video", "audio", "document"]
 
     private var filteredRecords: [ConversionRecord] {
@@ -71,6 +70,7 @@ struct HistoryView: View {
 
             // Search bar + filter
             HStack(spacing: 12) {
+
                 HStack(spacing: 8) {
                     Image("icon_search")
                         .resizable()
@@ -134,13 +134,14 @@ struct HistoryView: View {
                     LazyVStack(alignment: .leading, spacing: 12, pinnedViews: [.sectionHeaders]) {
                         ForEach(groupedRecords, id: \.category) { group in
                             Section {
-                                ForEach(group.records) { record in
+                                ForEach(Array(group.records.enumerated()), id: \.element.id) { index, record in
                                     Button {
                                         selectedRecord = record
                                     } label: {
                                         HistoryRowView(record: record)
                                     }
                                     .buttonStyle(.plain)
+                                    .modifier(AppearAnimationModifier(delay: Double(index) * 0.06))
                                 }
                             } header: {
                                 Text(group.category.capitalized)
@@ -149,6 +150,7 @@ struct HistoryView: View {
                                     .frame(maxWidth: .infinity, alignment: .leading)
                                     .padding(.vertical, 8)
                                     .background(AppColors.background)
+                                    .modifier(AppearAnimationModifier(delay: 0))
                             }
                         }
 
@@ -171,5 +173,22 @@ struct HistoryView: View {
             .presentationDetents([.large])
         }
     }
+}
 
+// MARK: - Appear Animation
+
+private struct AppearAnimationModifier: ViewModifier {
+    let delay: Double
+    @State private var appeared = false
+
+    func body(content: Content) -> some View {
+        content
+            .opacity(appeared ? 1 : 0)
+            .offset(y: appeared ? 0 : 16)
+            .onAppear {
+                withAnimation(.spring(response: 0.4, dampingFraction: 0.85).delay(delay)) {
+                    appeared = true
+                }
+            }
+    }
 }

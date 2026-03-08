@@ -3,6 +3,7 @@ import SwiftUI
 struct HomeView: View {
     var onCategorySelected: ((MediaCategory) -> Void)?
     @State private var showFAQ = false
+    @State private var cardsAppeared = false
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
@@ -42,6 +43,8 @@ struct HomeView: View {
                 .foregroundColor(AppColors.textSecondary)
                 .padding(.horizontal, 16)
                 .padding(.bottom, 12)
+                .opacity(cardsAppeared ? 1 : 0)
+                .animation(.easeOut(duration: 0.3), value: cardsAppeared)
 
             // Stacked cards — responsive with capped max size
             GeometryReader { geo in
@@ -70,6 +73,9 @@ struct HomeView: View {
                             onCategorySelected?(.image)
                         }
                         .zIndex(1)
+                        .opacity(cardsAppeared ? 1 : 0)
+                        .offset(y: cardsAppeared ? 0 : 30)
+                        .animation(.spring(response: 0.5, dampingFraction: 0.8).delay(0.05), value: cardsAppeared)
 
                         ServiceCard(
                             title: "Video",
@@ -84,6 +90,9 @@ struct HomeView: View {
                         }
                         .offset(y: offset2)
                         .zIndex(2)
+                        .opacity(cardsAppeared ? 1 : 0)
+                        .offset(y: cardsAppeared ? 0 : 30)
+                        .animation(.spring(response: 0.5, dampingFraction: 0.8).delay(0.12), value: cardsAppeared)
 
                         ServiceCard(
                             title: "Audio",
@@ -98,6 +107,9 @@ struct HomeView: View {
                         }
                         .offset(y: offset3)
                         .zIndex(3)
+                        .opacity(cardsAppeared ? 1 : 0)
+                        .offset(y: cardsAppeared ? 0 : 30)
+                        .animation(.spring(response: 0.5, dampingFraction: 0.8).delay(0.19), value: cardsAppeared)
 
                         ServiceCard(
                             title: "Documents",
@@ -113,6 +125,9 @@ struct HomeView: View {
                         }
                         .offset(y: offset4)
                         .zIndex(4)
+                        .opacity(cardsAppeared ? 1 : 0)
+                        .offset(y: cardsAppeared ? 0 : 30)
+                        .animation(.spring(response: 0.5, dampingFraction: 0.8).delay(0.26), value: cardsAppeared)
                     }
                     .frame(height: totalHeight, alignment: .top)
                     .padding(.horizontal, 16)
@@ -121,6 +136,11 @@ struct HomeView: View {
             }
         }
         .background(AppColors.background)
+        .onAppear {
+            if !cardsAppeared {
+                cardsAppeared = true
+            }
+        }
         .sheet(isPresented: $showFAQ) {
             FAQBottomSheetView()
                 .presentationDetents([.large])

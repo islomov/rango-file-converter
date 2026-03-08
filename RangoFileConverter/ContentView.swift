@@ -64,6 +64,10 @@ struct ContentView: View {
             }
         }
         .ignoresSafeArea(.keyboard)
+        .onReceive(NotificationCenter.default.publisher(for: .didTapDailyReminder)) { _ in
+            selectedTab = .home
+            selectedCategory = nil
+        }
     }
 
     @ViewBuilder

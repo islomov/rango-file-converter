@@ -3,7 +3,7 @@ import SwiftUI
 struct SettingsView: View {
     @EnvironmentObject private var historyStore: HistoryStore
     @EnvironmentObject private var themeManager: ThemeManager
-    @State private var dailyReminders = true
+    @StateObject private var reminderManager = DailyReminderManager.shared
     @State private var showClearHistoryAlert = false
     @State private var showLanguagePicker = false
 
@@ -64,7 +64,7 @@ struct SettingsView: View {
                 title: "Daily reminders",
                 showDivider: true
             ) {
-                Toggle("", isOn: $dailyReminders)
+                Toggle("", isOn: $reminderManager.isEnabled)
                     .labelsHidden()
                     .tint(AppColors.accent)
             }

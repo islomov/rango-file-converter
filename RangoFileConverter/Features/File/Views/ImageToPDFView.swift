@@ -1,17 +1,17 @@
 import SwiftUI
-import UniformTypeIdentifiers
 
-private struct MergePDFItem: Identifiable {
+private struct CapturedImageItem: Identifiable {
     let id = UUID()
-    let fileName: String
-    let url: URL
+    let image: UIImage
 }
 
-struct PDFMergeView: View {
-    let onMerge: ([URL], [String]) -> Void
+struct ImageToPDFView: View {
+    let onCreate: ([UIImage]) -> Void
 
-    @State private var items: [MergePDFItem] = []
-    @State private var showFilePicker = false
+    @State private var items: [CapturedImageItem] = []
+    @State private var showCamera = false
+    @State private var showPhotoPicker = false
+    @State private var showAddMoreOptions = false
     @Environment(\.dismiss) private var dismiss
 
     var body: some View {
@@ -21,19 +21,29 @@ struct PDFMergeView: View {
                     .ignoresSafeArea()
                 emptyState
             } else {
-                AppColors.background
+                AppColors.surface
                     .ignoresSafeArea()
-                fileListState
+                listState
             }
         }
         .navigationBarHidden(true)
         .hidesFloatingTabBar()
-        .fileImporter(
-            isPresented: $showFilePicker,
-            allowedContentTypes: [.pdf],
-            allowsMultipleSelection: true
-        ) { result in
-            handleFileImport(result)
+        .sheet(isPresented: $showCamera) {
+            CameraPickerView { image in
+                items.append(CapturedImageItem(image: image))
+            }
+        }
+        .sheet(isPresented: $showPhotoPicker) {
+            PhotoLibraryPickerView { images in
+                for image in images {
+                    items.append(CapturedImageItem(image: image))
+                }
+            }
+        }
+        .confirmationDialog("Add More", isPresented: $showAddMoreOptions, titleVisibility: .hidden) {
+            Button("Take Photo") { showCamera = true }
+            Button("Choose from Library") { showPhotoPicker = true }
+            Button("Cancel", role: .cancel) {}
         }
     }
 
@@ -47,19 +57,18 @@ struct PDFMergeView: View {
 
             VStack(spacing: 24) {
                 VStack(spacing: 12) {
-                    Image("icon_doc_merge")
-                        .resizable()
-                        .renderingMode(.original)
-                        .frame(width: 56, height: 56)
+                    Image(systemName: "doc.richtext")
+                        .font(.system(size: 40))
+                        .foregroundColor(AppColors.textPrimary)
 
                     VStack(spacing: 8) {
-                        Text("Add PDF files to merge")
+                        Text("Capture images for PDF")
                             .font(.system(size: 20, weight: .semibold))
                             .foregroundColor(AppColors.textPrimary)
                             .tracking(-0.408)
                             .multilineTextAlignment(.center)
 
-                        Text("Files will be merged in the order shown")
+                        Text("Photos will become pages in order")
                             .font(.system(size: 14, weight: .semibold))
                             .foregroundColor(AppColors.textSecondary)
                             .tracking(-0.408)
@@ -67,23 +76,38 @@ struct PDFMergeView: View {
                     }
                 }
 
-                Button {
-                    showFilePicker = true
-                } label: {
-                    Text("Add PDFs")
-                        .font(.system(size: 14, weight: .semibold))
-                        .foregroundColor(.white)
-                        .tracking(-0.408)
-                        .padding(16)
-                        .frame(width: 180)
-                        .background(
-                            LinearGradient(
-                                colors: [AppColors.accentLight, AppColors.accent, AppColors.accentLight],
-                                startPoint: .topTrailing,
-                                endPoint: .bottomLeading
+                HStack(spacing: 12) {
+                    Button {
+                        showCamera = true
+                    } label: {
+                        Label("Take Photo", systemImage: "camera")
+                            .font(.system(size: 14, weight: .semibold))
+                            .foregroundColor(.white)
+                            .tracking(-0.408)
+                            .padding(16)
+                            .frame(maxWidth: .infinity)
+                            .background(
+                                LinearGradient(
+                                    colors: [AppColors.accentLight, AppColors.accent, AppColors.accentLight],
+                                    startPoint: .topTrailing,
+                                    endPoint: .bottomLeading
+                                )
                             )
-                        )
-                        .clipShape(RoundedRectangle(cornerRadius: 16))
+                            .clipShape(RoundedRectangle(cornerRadius: 16))
+                    }
+
+                    Button {
+                        showPhotoPicker = true
+                    } label: {
+                        Label("Library", systemImage: "photo.on.rectangle")
+                            .font(.system(size: 14, weight: .semibold))
+                            .foregroundColor(AppColors.textPrimary)
+                            .tracking(-0.408)
+                            .padding(16)
+                            .frame(maxWidth: .infinity)
+                            .background(AppColors.surface)
+                            .clipShape(RoundedRectangle(cornerRadius: 16))
+                    }
                 }
             }
             .padding(.horizontal, 16)
@@ -92,27 +116,22 @@ struct PDFMergeView: View {
         }
     }
 
-    // MARK: - File List State
+    // MARK: - List State
 
-    private var fileListState: some View {
+    private var listState: some View {
         VStack(spacing: 0) {
             header
-
-            // File info row
             fileInfoRow
-
-            // Page list
             pageList
-
             bottomSection
         }
     }
 
-    // MARK: - Empty State Nav Bar
+    // MARK: - Empty Nav Bar
 
     private var emptyNavBar: some View {
         ZStack {
-            Text("Merge PDF")
+            Text("Image to PDF")
                 .font(.system(size: 20, weight: .semibold))
                 .foregroundColor(AppColors.textPrimary)
                 .tracking(-0.408)
@@ -135,11 +154,11 @@ struct PDFMergeView: View {
         .padding(.horizontal, 8)
     }
 
-    // MARK: - Header (with files)
+    // MARK: - Header (with items)
 
     private var header: some View {
         ZStack {
-            Text("Merge PDF")
+            Text("Image to PDF")
                 .font(.system(size: 20, weight: .semibold))
                 .foregroundColor(AppColors.textPrimary)
                 .tracking(-0.408)
@@ -163,13 +182,12 @@ struct PDFMergeView: View {
 
     private var fileInfoRow: some View {
         HStack(spacing: 12) {
-            Image("icon_doc_merge")
-                .resizable()
-                .renderingMode(.template)
+            Image(systemName: "doc.richtext")
+                .font(.system(size: 20))
                 .foregroundColor(AppColors.textPrimary)
                 .frame(width: 28, height: 28)
 
-            Text(mergedFileName)
+            Text("scanned_\(items.count)_pages.pdf")
                 .font(.system(size: 12, weight: .semibold))
                 .foregroundColor(AppColors.textPrimary)
                 .tracking(-0.408)
@@ -178,9 +196,9 @@ struct PDFMergeView: View {
             Spacer()
 
             Button {
-                showFilePicker = true
+                showAddMoreOptions = true
             } label: {
-                Text("Change")
+                Text("Add More")
                     .font(.system(size: 12, weight: .semibold))
                     .foregroundColor(AppColors.accent)
                     .tracking(-0.408)
@@ -195,25 +213,17 @@ struct PDFMergeView: View {
         }
     }
 
-    private var mergedFileName: String {
-        if items.count == 1 {
-            return items[0].fileName
-        } else if items.count > 1 {
-            let baseName = items[0].fileName.replacingOccurrences(of: ".pdf", with: "", options: .caseInsensitive)
-            return "\(baseName)_merged.pdf"
-        }
-        return "merged.pdf"
-    }
-
     // MARK: - Page List
 
     private var pageList: some View {
         List {
             ForEach(Array(items.enumerated()), id: \.element.id) { index, item in
                 HStack(spacing: 12) {
-                    RoundedRectangle(cornerRadius: 8.32)
-                        .fill(AppColors.placeholder)
+                    Image(uiImage: item.image)
+                        .resizable()
+                        .aspectRatio(contentMode: .fill)
                         .frame(width: 52, height: 56)
+                        .clipShape(RoundedRectangle(cornerRadius: 8.32))
 
                     VStack(alignment: .leading, spacing: 4) {
                         Text("Page \(index + 1)")
@@ -221,11 +231,10 @@ struct PDFMergeView: View {
                             .foregroundColor(AppColors.textPrimary)
                             .tracking(-0.408)
 
-                        Text(item.fileName)
+                        Text("\(Int(item.image.size.width)) × \(Int(item.image.size.height))")
                             .font(.system(size: 12, weight: .semibold))
                             .foregroundColor(AppColors.textSecondary)
                             .tracking(-0.408)
-                            .lineLimit(1)
                     }
 
                     Spacer()
@@ -233,6 +242,7 @@ struct PDFMergeView: View {
                 .padding(.vertical, 12)
                 .listRowInsets(EdgeInsets(top: 0, leading: 16, bottom: 0, trailing: 16))
                 .listRowSeparator(.hidden)
+                .listRowBackground(AppColors.surface)
                 .overlay(alignment: .bottom) {
                     Rectangle()
                         .fill(AppColors.textSecondary.opacity(0.12))
@@ -247,7 +257,6 @@ struct PDFMergeView: View {
             }
         }
         .listStyle(.plain)
-        .scrollContentBackground(.hidden)
         .environment(\.editMode, .constant(.active))
         .overlay(alignment: .top) {
             Rectangle()
@@ -266,9 +275,9 @@ struct PDFMergeView: View {
 
             VStack(spacing: 0) {
                 Button {
-                    onMerge(items.map(\.url), items.map(\.fileName))
+                    onCreate(items.map(\.image))
                 } label: {
-                    Text("Merge \(items.count) PDFs")
+                    Text("Create PDF (\(items.count) pages)")
                         .font(.system(size: 16, weight: .semibold))
                         .foregroundColor(.white)
                         .tracking(-0.408)
@@ -276,52 +285,20 @@ struct PDFMergeView: View {
                         .frame(height: 60)
                         .background(
                             RoundedRectangle(cornerRadius: 16)
-                                .fill(mergeButtonGradient)
+                                .fill(createButtonGradient)
                         )
                 }
-                .disabled(items.count < 2)
             }
             .padding(.horizontal, 16)
             .padding(.vertical, 24)
         }
     }
 
-    private var mergeButtonGradient: LinearGradient {
-        if items.count < 2 {
-            return LinearGradient(
-                colors: [AppColors.buttonDisabledStart, AppColors.buttonDisabledMid, AppColors.buttonDisabledStart],
-                startPoint: .topTrailing,
-                endPoint: .bottomLeading
-            )
-        } else {
-            return LinearGradient(
-                colors: [AppColors.accentLight, AppColors.accent, AppColors.accentLight],
-                startPoint: .topTrailing,
-                endPoint: .bottomLeading
-            )
-        }
-    }
-
-    // MARK: - File Import
-
-    private func handleFileImport(_ result: Result<[URL], Error>) {
-        guard case .success(let urls) = result else { return }
-        for sourceURL in urls {
-            guard sourceURL.startAccessingSecurityScopedResource() else { continue }
-            defer { sourceURL.stopAccessingSecurityScopedResource() }
-
-            let fileName = sourceURL.lastPathComponent
-            let tempDir = FileManager.default.temporaryDirectory
-                .appendingPathComponent("rango_pdf_merge", isDirectory: true)
-            try? FileManager.default.createDirectory(at: tempDir, withIntermediateDirectories: true)
-
-            let shortID = UUID().uuidString.prefix(8)
-            let destURL = tempDir.appendingPathComponent("\(shortID)_\(fileName)")
-            try? FileManager.default.removeItem(at: destURL)
-
-            if let _ = try? FileManager.default.copyItem(at: sourceURL, to: destURL) {
-                items.append(MergePDFItem(fileName: fileName, url: destURL))
-            }
-        }
+    private var createButtonGradient: LinearGradient {
+        LinearGradient(
+            colors: [AppColors.accentLight, AppColors.accent, AppColors.accentLight],
+            startPoint: .topTrailing,
+            endPoint: .bottomLeading
+        )
     }
 }

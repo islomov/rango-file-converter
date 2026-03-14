@@ -10,6 +10,7 @@ struct HistoryView: View {
     @State private var now = Date()
     @State private var showLatestInfo = false
     @State private var isSearchBarVisible = true
+    @FocusState private var isSearchFocused: Bool
     private let categories = ["image", "video", "audio", "document"]
     private let latestDuration: TimeInterval = 5 * 60 // 5 minutes
     private let refreshTimer = Timer.publish(every: 30, on: .main, in: .common).autoconnect()
@@ -101,16 +102,29 @@ struct HistoryView: View {
                         TextField("Search", text: $searchText)
                             .font(.custom("Sora-Regular", size: 14))
                             .foregroundColor(AppColors.textPrimary)
+                            .focused($isSearchFocused)
                     }
-                    .padding(4)
-                    .padding(.horizontal, 12)
+                    .padding(.horizontal, 16)
                     .frame(height: 48)
                     .background(AppColors.surface)
                     .clipShape(RoundedRectangle(cornerRadius: 16))
                     .overlay(
                         RoundedRectangle(cornerRadius: 16)
-                            .stroke(AppColors.border, lineWidth: 1)
+                            .stroke(
+                                isSearchFocused
+                                    ? AnyShapeStyle(LinearGradient(
+                                        colors: [AppColors.buttonGradientStart, AppColors.buttonGradientEnd],
+                                        startPoint: .leading,
+                                        endPoint: .trailing
+                                      ))
+                                    : AnyShapeStyle(AppColors.border),
+                                lineWidth: isSearchFocused ? 1.5 : 1
+                            )
                     )
+                    .contentShape(RoundedRectangle(cornerRadius: 16))
+                    .onTapGesture {
+                        isSearchFocused = true
+                    }
 
                     Button {
                         showFilterSheet = true

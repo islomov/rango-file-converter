@@ -8,7 +8,8 @@ struct ExtractAudioDetailView: View {
     let fileURL: URL
     let onExtract: (FormatDefinition) -> Void
 
-    private static let supportedAudioFormats = FormatRegistry.audioFormats
+    private static let unsupportedFormats: Set<String> = ["amr", "spx", "gsm"]
+    private static let supportedAudioFormats = FormatRegistry.audioFormats.filter { !unsupportedFormats.contains($0.id) }
 
     @Environment(\.dismiss) private var dismiss
     @State private var targetFormat: FormatDefinition = FormatRegistry.audioFormats[0] // MP3

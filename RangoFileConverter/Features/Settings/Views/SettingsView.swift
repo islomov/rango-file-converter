@@ -377,15 +377,9 @@ struct SettingsView: View {
 
             Spacer()
 
-            HStack(spacing: 4) {
-                Text(appVersion)
-                    .font(.system(size: 12, weight: .semibold))
-                    .foregroundColor(AppColors.textSecondary)
-
-                Image(systemName: "chevron.right")
-                    .font(.system(size: 14, weight: .medium))
-                    .foregroundColor(AppColors.textSecondary)
-            }
+            Text("\(appVersion) (\(appBuildNumber))")
+                .font(.system(size: 12, weight: .semibold))
+                .foregroundColor(AppColors.textSecondary)
         }
         .frame(height: 56)
         .padding(.horizontal, 16)
@@ -429,6 +423,10 @@ struct SettingsView: View {
 
     private var appVersion: String {
         Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.0"
+    }
+
+    private var appBuildNumber: String {
+        Bundle.main.infoDictionary?["CFBundleVersion"] as? String ?? "1"
     }
 }
 

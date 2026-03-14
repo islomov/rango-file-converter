@@ -1,18 +1,59 @@
 import SwiftUI
 
+// Each filter feature has a unique integer ID for language-independent filtering.
+// Categories: 1–4, Tool types: 100–116, Statuses: 200–203.
+struct FilterFeature: Identifiable, Equatable {
+    let id: Int
+    let label: LocalizedStringKey
+    let icon: String?
+    let value: String // raw value for matching against ConversionRecord fields
+}
+
+enum FilterFeatures {
+    static let categories: [FilterFeature] = [
+        FilterFeature(id: 1, label: "Image", icon: "photo.fill", value: "image"),
+        FilterFeature(id: 2, label: "Video", icon: "video.fill", value: "video"),
+        FilterFeature(id: 3, label: "Audio", icon: "music.note", value: "audio"),
+        FilterFeature(id: 4, label: "Documents", icon: "doc.fill", value: "document"),
+    ]
+
+    static let statuses: [FilterFeature] = [
+        FilterFeature(id: 200, label: "Done", icon: nil, value: "converted"),
+        FilterFeature(id: 201, label: "Failed", icon: nil, value: "failed"),
+        FilterFeature(id: 202, label: "Loading", icon: nil, value: "converting"),
+        FilterFeature(id: 203, label: "Pending", icon: nil, value: "pending"),
+    ]
+
+    static let toolTypes: [FilterFeature] = ToolType.allCases.map { tool in
+        FilterFeature(id: tool.filterID, label: LocalizedStringKey(tool.rawValue), icon: nil, value: tool.rawValue)
+    }
+
+    static func categoryValues(for ids: Set<Int>) -> Set<String> {
+        Set(categories.filter { ids.contains($0.id) }.map(\.value))
+    }
+
+    static func statusValues(for ids: Set<Int>) -> Set<String> {
+        Set(statuses.filter { ids.contains($0.id) }.map(\.value))
+    }
+
+    static func toolTypeValues(for ids: Set<Int>) -> Set<ToolType> {
+        Set(ids.compactMap { ToolType.fromFilterID($0) })
+    }
+}
+
 struct HistoryFilterState: Equatable {
-    var selectedCategories: Set<String> = []
-    var selectedToolTypes: Set<ToolType> = []
-    var selectedStatuses: Set<String> = []
+    var selectedCategoryIDs: Set<Int> = []
+    var selectedToolTypeIDs: Set<Int> = []
+    var selectedStatusIDs: Set<Int> = []
 
     var isActive: Bool {
-        !selectedCategories.isEmpty || !selectedToolTypes.isEmpty || !selectedStatuses.isEmpty
+        !selectedCategoryIDs.isEmpty || !selectedToolTypeIDs.isEmpty || !selectedStatusIDs.isEmpty
     }
 
     mutating func clearAll() {
-        selectedCategories.removeAll()
-        selectedToolTypes.removeAll()
-        selectedStatuses.removeAll()
+        selectedCategoryIDs.removeAll()
+        selectedToolTypeIDs.removeAll()
+        selectedStatusIDs.removeAll()
     }
 }
 
@@ -21,29 +62,15 @@ struct HistoryFilterSheet: View {
 
     var onApply: (HistoryFilterState) -> Void
 
-    @State private var selectedCategories: Set<String>
-    @State private var selectedToolTypes: Set<ToolType>
-    @State private var selectedStatuses: Set<String>
-
-    private let mediaCategories: [(id: String, label: LocalizedStringKey, icon: String)] = [
-        ("image", "Image", "photo.fill"),
-        ("video", "Video", "video.fill"),
-        ("audio", "Audio", "music.note"),
-        ("document", "Documents", "doc.fill"),
-    ]
-
-    private let statuses: [(id: String, label: LocalizedStringKey)] = [
-        ("converted", "Done"),
-        ("failed", "Failed"),
-        ("converting", "Loading"),
-        ("pending", "Pending"),
-    ]
+    @State private var selectedCategoryIDs: Set<Int>
+    @State private var selectedToolTypeIDs: Set<Int>
+    @State private var selectedStatusIDs: Set<Int>
 
     init(initialState: HistoryFilterState, onApply: @escaping (HistoryFilterState) -> Void) {
         self.onApply = onApply
-        self._selectedCategories = State(initialValue: initialState.selectedCategories)
-        self._selectedToolTypes = State(initialValue: initialState.selectedToolTypes)
-        self._selectedStatuses = State(initialValue: initialState.selectedStatuses)
+        self._selectedCategoryIDs = State(initialValue: initialState.selectedCategoryIDs)
+        self._selectedToolTypeIDs = State(initialValue: initialState.selectedToolTypeIDs)
+        self._selectedStatusIDs = State(initialValue: initialState.selectedStatusIDs)
     }
 
     var body: some View {
@@ -123,22 +150,22 @@ struct HistoryFilterSheet: View {
                 filterChip(
                     label: "All",
                     icon: "square.grid.2x2",
-                    isSelected: selectedCategories.isEmpty
+                    isSelected: selectedCategoryIDs.isEmpty
                 ) {
-                    selectedCategories.removeAll()
+                    selectedCategoryIDs.removeAll()
                 }
 
-                ForEach(mediaCategories, id: \.id) { category in
-                    let isSelected = selectedCategories.contains(category.id)
+                ForEach(FilterFeatures.categories) { category in
+                    let isSelected = selectedCategoryIDs.contains(category.id)
                     filterChip(
                         label: category.label,
                         icon: category.icon,
                         isSelected: isSelected
                     ) {
                         if isSelected {
-                            selectedCategories.remove(category.id)
+                            selectedCategoryIDs.remove(category.id)
                         } else {
-                            selectedCategories.insert(category.id)
+                            selectedCategoryIDs.insert(category.id)
                         }
                     }
                 }
@@ -155,16 +182,16 @@ struct HistoryFilterSheet: View {
                 .foregroundColor(AppColors.textSecondary)
 
             FlowLayout(spacing: 8) {
-                ForEach(ToolType.allCases, id: \.self) { tool in
-                    let isSelected = selectedToolTypes.contains(tool)
+                ForEach(FilterFeatures.toolTypes) { tool in
+                    let isSelected = selectedToolTypeIDs.contains(tool.id)
                     filterChip(
-                        label: LocalizedStringKey(tool.rawValue),
+                        label: tool.label,
                         isSelected: isSelected
                     ) {
                         if isSelected {
-                            selectedToolTypes.remove(tool)
+                            selectedToolTypeIDs.remove(tool.id)
                         } else {
-                            selectedToolTypes.insert(tool)
+                            selectedToolTypeIDs.insert(tool.id)
                         }
                     }
                 }
@@ -181,16 +208,16 @@ struct HistoryFilterSheet: View {
                 .foregroundColor(AppColors.textSecondary)
 
             FlowLayout(spacing: 8) {
-                ForEach(statuses, id: \.id) { status in
-                    let isSelected = selectedStatuses.contains(status.id)
+                ForEach(FilterFeatures.statuses) { status in
+                    let isSelected = selectedStatusIDs.contains(status.id)
                     filterChip(
                         label: status.label,
                         isSelected: isSelected
                     ) {
                         if isSelected {
-                            selectedStatuses.remove(status.id)
+                            selectedStatusIDs.remove(status.id)
                         } else {
-                            selectedStatuses.insert(status.id)
+                            selectedStatusIDs.insert(status.id)
                         }
                     }
                 }
@@ -244,9 +271,9 @@ struct HistoryFilterSheet: View {
         VStack(spacing: 0) {
             HStack(spacing: 12) {
                 Button {
-                    selectedCategories.removeAll()
-                    selectedToolTypes.removeAll()
-                    selectedStatuses.removeAll()
+                    selectedCategoryIDs.removeAll()
+                    selectedToolTypeIDs.removeAll()
+                    selectedStatusIDs.removeAll()
                 } label: {
                     Text("Clear all")
                         .font(.custom("Montserrat-SemiBold", size: 16))
@@ -260,9 +287,9 @@ struct HistoryFilterSheet: View {
 
                 Button {
                     let result = HistoryFilterState(
-                        selectedCategories: selectedCategories,
-                        selectedToolTypes: selectedToolTypes,
-                        selectedStatuses: selectedStatuses
+                        selectedCategoryIDs: selectedCategoryIDs,
+                        selectedToolTypeIDs: selectedToolTypeIDs,
+                        selectedStatusIDs: selectedStatusIDs
                     )
                     onApply(result)
                     dismiss()

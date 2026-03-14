@@ -9,6 +9,7 @@ struct HistoryView: View {
     @State private var filterState = HistoryFilterState()
     @State private var now = Date()
     @State private var showLatestInfo = false
+    @State private var isSearchBarVisible = true
     private let categories = ["image", "video", "audio", "document"]
     private let latestDuration: TimeInterval = 5 * 60 // 5 minutes
     private let refreshTimer = Timer.publish(every: 30, on: .main, in: .common).autoconnect()
@@ -87,49 +88,52 @@ struct HistoryView: View {
             .padding(.bottom, 24)
 
             // Search bar + filter
-            HStack(spacing: 12) {
+            if isSearchBarVisible {
+                HStack(spacing: 12) {
 
-                HStack(spacing: 8) {
-                    Image("icon_search")
-                        .resizable()
-                        .renderingMode(.template)
-                        .foregroundColor(AppColors.textPrimary)
-                        .frame(width: 24, height: 24)
+                    HStack(spacing: 8) {
+                        Image("icon_search")
+                            .resizable()
+                            .renderingMode(.template)
+                            .foregroundColor(AppColors.textPrimary)
+                            .frame(width: 24, height: 24)
 
-                    TextField("Search", text: $searchText)
-                        .font(.custom("Sora-Regular", size: 14))
-                        .foregroundColor(AppColors.textPrimary)
+                        TextField("Search", text: $searchText)
+                            .font(.custom("Sora-Regular", size: 14))
+                            .foregroundColor(AppColors.textPrimary)
+                    }
+                    .padding(4)
+                    .padding(.horizontal, 12)
+                    .frame(height: 48)
+                    .background(AppColors.surface)
+                    .clipShape(RoundedRectangle(cornerRadius: 16))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 16)
+                            .stroke(AppColors.border, lineWidth: 1)
+                    )
+
+                    Button {
+                        showFilterSheet = true
+                    } label: {
+                        Image("icon_filter")
+                            .resizable()
+                            .renderingMode(.template)
+                            .foregroundColor(AppColors.textPrimary)
+                            .frame(width: 24, height: 24)
+                            .frame(width: 48, height: 48)
+                            .background(filterState.isActive ? AppColors.accent.opacity(0.12) : AppColors.surface)
+                            .clipShape(RoundedRectangle(cornerRadius: 16))
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 16)
+                                    .stroke(filterState.isActive ? AppColors.accent : AppColors.border, lineWidth: 1)
+                            )
+                    }
+                    .buttonStyle(.plain)
                 }
-                .padding(4)
-                .padding(.horizontal, 12)
-                .frame(height: 48)
-                .background(AppColors.surface)
-                .clipShape(RoundedRectangle(cornerRadius: 16))
-                .overlay(
-                    RoundedRectangle(cornerRadius: 16)
-                        .stroke(AppColors.border, lineWidth: 1)
-                )
-
-                Button {
-                    showFilterSheet = true
-                } label: {
-                    Image("icon_filter")
-                        .resizable()
-                        .renderingMode(.template)
-                        .foregroundColor(AppColors.textPrimary)
-                        .frame(width: 24, height: 24)
-                        .frame(width: 48, height: 48)
-                        .background(filterState.isActive ? AppColors.accent.opacity(0.12) : AppColors.surface)
-                        .clipShape(RoundedRectangle(cornerRadius: 16))
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 16)
-                                .stroke(filterState.isActive ? AppColors.accent : AppColors.border, lineWidth: 1)
-                        )
-                }
-                .buttonStyle(.plain)
+                .padding(.horizontal, 16)
+                .padding(.bottom, 24)
+                .transition(.move(edge: .top).combined(with: .opacity))
             }
-            .padding(.horizontal, 16)
-            .padding(.bottom, 24)
 
             // Content
             if latestRecords.isEmpty && groupedRecords.isEmpty {
@@ -237,6 +241,21 @@ struct HistoryView: View {
                     }
                     .padding(.horizontal, 16)
                 }
+                .simultaneousGesture(
+                    DragGesture(minimumDistance: 10)
+                        .onChanged { value in
+                            let vertical = value.translation.height
+                            if vertical < -20 && isSearchBarVisible {
+                                withAnimation(.easeInOut(duration: 0.3)) {
+                                    isSearchBarVisible = false
+                                }
+                            } else if vertical > 20 && !isSearchBarVisible {
+                                withAnimation(.easeInOut(duration: 0.3)) {
+                                    isSearchBarVisible = true
+                                }
+                            }
+                        }
+                )
             }
         }
         .background(AppColors.background)
@@ -254,5 +273,3 @@ struct HistoryView: View {
         }
     }
 }
-
-

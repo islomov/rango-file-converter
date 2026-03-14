@@ -68,6 +68,9 @@ final class ConversionRecord: Identifiable, Codable, ObservableObject {
             if newStatus == .converted || newStatus == .failed {
                 completedDate = Date()
             }
+            if newStatus == .converted {
+                AppReviewManager.shared.recordSuccess()
+            }
         }
     }
     var date: Date

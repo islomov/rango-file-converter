@@ -10,6 +10,7 @@ private struct DocumentTool: Identifiable, Hashable {
     let title: LocalizedStringKey
     let icon: String
     let isAvailable: Bool
+    var isSystemImage: Bool = false
 
     // Hashable conformance for LocalizedStringKey
     static func == (lhs: DocumentTool, rhs: DocumentTool) -> Bool {
@@ -27,6 +28,7 @@ private let documentTools: [DocumentTool] = [
     DocumentTool(id: "split", title: "Split PDF", icon: "icon_doc_split", isAvailable: true),
     DocumentTool(id: "reorder", title: "Reorder pages", icon: "icon_doc_reorder", isAvailable: true),
     DocumentTool(id: "protect", title: "Protect PDF", icon: "icon_doc_protect", isAvailable: true),
+    DocumentTool(id: "imageToPDF", title: "Image to PDF", icon: "doc.richtext", isAvailable: true, isSystemImage: true),
 ]
 
 struct DocumentConverterView: View {
@@ -41,6 +43,7 @@ struct DocumentConverterView: View {
     @State private var showSplitView = false
     @State private var showReorderView = false
     @State private var showProtectView = false
+    @State private var showImageToPDFView = false
     @State private var showSettings = false
     @State private var selectedRecord: ConversionRecord?
 
@@ -126,6 +129,15 @@ struct DocumentConverterView: View {
                     onNavigateToHistory?()
                 }
             }
+            // Image to PDF
+            .navigationDestination(isPresented: $showImageToPDFView) {
+                ImageToPDFView { images in
+                    viewModel.createPDFFromImages(images: images)
+                    showImageToPDFView = false
+                    selectedTab = .history
+                    onNavigateToHistory?()
+                }
+            }
         }
     }
 
@@ -174,10 +186,18 @@ struct DocumentConverterView: View {
 
     private func toolCard(_ tool: DocumentTool) -> some View {
         VStack(spacing: 8) {
-            Image(tool.icon)
-                .resizable()
-                .aspectRatio(contentMode: .fit)
-                .frame(width: 28, height: 28)
+            Group {
+                if tool.isSystemImage {
+                    Image(systemName: tool.icon)
+                        .font(.system(size: 24))
+                        .foregroundColor(AppColors.accent)
+                } else {
+                    Image(tool.icon)
+                        .resizable()
+                        .aspectRatio(contentMode: .fit)
+                }
+            }
+            .frame(width: 28, height: 28)
 
             Text(tool.title)
                 .font(.system(size: 16, weight: .semibold))
@@ -202,6 +222,8 @@ struct DocumentConverterView: View {
             showReorderView = true
         case "protect":
             showProtectView = true
+        case "imageToPDF":
+            showImageToPDFView = true
         default:
             break
         }

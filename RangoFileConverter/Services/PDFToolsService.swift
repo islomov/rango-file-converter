@@ -1,5 +1,6 @@
 import Foundation
 import PDFKit
+import UIKit
 
 enum PDFToolsError: LocalizedError {
     case fileNotFound
@@ -135,6 +136,25 @@ struct PDFToolsService {
         }
 
         context.closePDF()
+        return outputURL
+    }
+
+    // MARK: - Create from Images
+
+    /// Creates a multi-page PDF from an array of images.
+    static func createFromImages(_ images: [UIImage]) throws -> URL {
+        guard !images.isEmpty else { throw PDFToolsError.noPages }
+
+        let pdfDocument = PDFDocument()
+        for (index, image) in images.enumerated() {
+            guard let page = PDFPage(image: image) else { continue }
+            pdfDocument.insert(page, at: index)
+        }
+
+        guard pdfDocument.pageCount > 0 else { throw PDFToolsError.noPages }
+
+        let outputURL = makeOutputURL(suffix: "img2pdf")
+        guard pdfDocument.write(to: outputURL) else { throw PDFToolsError.writeFailed }
         return outputURL
     }
 

@@ -3,11 +3,13 @@ import Combine
 import ImageIO
 import UniformTypeIdentifiers
 import webp
+import AppTrackingTransparency
 
 final class ImageConverterViewModel: ObservableObject {
     @Published var selectedFileName: String = ""
     @Published var selectedFileURL: URL?
     @Published var showConversionDetail = false
+    @Published var navigateToHistoryTrigger = 0
 
     private let coordinator = ConversionCoordinator()
     private let store = HistoryStore.shared
@@ -32,12 +34,16 @@ final class ImageConverterViewModel: ObservableObject {
             status: .converting
         )
 
-        store.add(record)
-
         let coordinator = self.coordinator
         let task = Task.detached { [weak self] in
             guard let self else { return }
             defer { self.taskManager.remove(id: record.id) }
+
+            await AdTrackingManager.shared.ensureTrackingRequested()
+            await MainActor.run {
+                self.store.add(record)
+                self.navigateToHistoryTrigger += 1
+            }
 
             do {
                 guard !Task.isCancelled else {
@@ -142,11 +148,16 @@ final class ImageConverterViewModel: ObservableObject {
 
     func processRotation(fileURL: URL, fileName: String, rotation: Double, flipH: Bool, flipV: Bool) {
         let record = makeRecord(fileName: fileName, fileURL: fileURL, toolType: ToolType.rotate.rawValue)
-        store.add(record)
 
         let task = Task.detached { [weak self] in
             guard let self else { return }
             defer { self.taskManager.remove(id: record.id) }
+
+            await AdTrackingManager.shared.ensureTrackingRequested()
+            await MainActor.run {
+                self.store.add(record)
+                self.navigateToHistoryTrigger += 1
+            }
 
             guard !Task.isCancelled else {
                 await MainActor.run { self.failRecord(record, error: "Cancelled") }
@@ -228,11 +239,16 @@ final class ImageConverterViewModel: ObservableObject {
 
     func processCrop(fileURL: URL, fileName: String, cropRect: CGRect) {
         let record = makeRecord(fileName: fileName, fileURL: fileURL, toolType: ToolType.crop.rawValue)
-        store.add(record)
 
         let task = Task.detached { [weak self] in
             guard let self else { return }
             defer { self.taskManager.remove(id: record.id) }
+
+            await AdTrackingManager.shared.ensureTrackingRequested()
+            await MainActor.run {
+                self.store.add(record)
+                self.navigateToHistoryTrigger += 1
+            }
 
             guard !Task.isCancelled else {
                 await MainActor.run { self.failRecord(record, error: "Cancelled") }
@@ -300,11 +316,16 @@ final class ImageConverterViewModel: ObservableObject {
 
     func processResize(fileURL: URL, fileName: String, width: Int, height: Int) {
         let record = makeRecord(fileName: fileName, fileURL: fileURL, toolType: ToolType.resize.rawValue)
-        store.add(record)
 
         let task = Task.detached { [weak self] in
             guard let self else { return }
             defer { self.taskManager.remove(id: record.id) }
+
+            await AdTrackingManager.shared.ensureTrackingRequested()
+            await MainActor.run {
+                self.store.add(record)
+                self.navigateToHistoryTrigger += 1
+            }
 
             guard !Task.isCancelled else {
                 await MainActor.run { self.failRecord(record, error: "Cancelled") }
@@ -363,12 +384,17 @@ final class ImageConverterViewModel: ObservableObject {
     func processCompress(fileURL: URL, fileName: String, formatExtension: String, quality: Double) {
         let outputFileName = "compressed_\(UUID().uuidString.prefix(8)).\(formatExtension)"
         let record = makeRecord(fileName: outputFileName, fileURL: fileURL, toolType: ToolType.compress.rawValue)
-        store.add(record)
 
         let coordinator = self.coordinator
         let task = Task.detached { [weak self] in
             guard let self else { return }
             defer { self.taskManager.remove(id: record.id) }
+
+            await AdTrackingManager.shared.ensureTrackingRequested()
+            await MainActor.run {
+                self.store.add(record)
+                self.navigateToHistoryTrigger += 1
+            }
 
             guard !Task.isCancelled else {
                 await MainActor.run { self.failRecord(record, error: "Cancelled") }
@@ -484,11 +510,15 @@ final class ImageConverterViewModel: ObservableObject {
             status: .converting,
             toolType: ToolType.gif.rawValue
         )
-        store.add(record)
-
         let task = Task.detached { [weak self] in
             guard let self else { return }
             defer { self.taskManager.remove(id: record.id) }
+
+            await AdTrackingManager.shared.ensureTrackingRequested()
+            await MainActor.run {
+                self.store.add(record)
+                self.navigateToHistoryTrigger += 1
+            }
 
             guard !Task.isCancelled else {
                 await MainActor.run { self.failRecord(record, error: "Cancelled") }
@@ -568,11 +598,15 @@ final class ImageConverterViewModel: ObservableObject {
             status: .converting,
             toolType: ToolType.stitch.rawValue
         )
-        store.add(record)
-
         let task = Task.detached { [weak self] in
             guard let self else { return }
             defer { self.taskManager.remove(id: record.id) }
+
+            await AdTrackingManager.shared.ensureTrackingRequested()
+            await MainActor.run {
+                self.store.add(record)
+                self.navigateToHistoryTrigger += 1
+            }
 
             guard !Task.isCancelled else {
                 await MainActor.run { self.failRecord(record, error: "Cancelled") }

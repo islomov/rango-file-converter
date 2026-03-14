@@ -1,11 +1,13 @@
 import SwiftUI
 import Combine
+import AppTrackingTransparency
 
 final class DocumentConverterViewModel: ObservableObject {
     // Format conversion state
     @Published var selectedFileName: String = ""
     @Published var selectedFileURL: URL?
     @Published var showConversionDetail = false
+    @Published var navigateToHistoryTrigger = 0
 
     // PDF Merge state
     @Published var showMergeView = false
@@ -52,12 +54,16 @@ final class DocumentConverterViewModel: ObservableObject {
             mediaCategory: "document"
         )
 
-        store.add(record)
-
         let coordinator = self.coordinator
         let task = Task.detached { [weak self] in
             guard let self else { return }
             defer { self.taskManager.remove(id: record.id) }
+
+            await AdTrackingManager.shared.ensureTrackingRequested()
+            await MainActor.run {
+                self.store.add(record)
+                self.navigateToHistoryTrigger += 1
+            }
 
             do {
                 guard !Task.isCancelled else {
@@ -106,11 +112,15 @@ final class DocumentConverterViewModel: ObservableObject {
             mediaCategory: "document"
         )
 
-        store.add(record)
-
         let task = Task.detached { [weak self] in
             guard let self else { return }
             defer { self.taskManager.remove(id: record.id) }
+
+            await AdTrackingManager.shared.ensureTrackingRequested()
+            await MainActor.run {
+                self.store.add(record)
+                self.navigateToHistoryTrigger += 1
+            }
 
             do {
                 let outputURL = try PDFToolsService.merge(pdfURLs: fileURLs)
@@ -146,11 +156,15 @@ final class DocumentConverterViewModel: ObservableObject {
             mediaCategory: "document"
         )
 
-        store.add(record)
-
         let task = Task.detached { [weak self] in
             guard let self else { return }
             defer { self.taskManager.remove(id: record.id) }
+
+            await AdTrackingManager.shared.ensureTrackingRequested()
+            await MainActor.run {
+                self.store.add(record)
+                self.navigateToHistoryTrigger += 1
+            }
 
             do {
                 let outputURL = try PDFToolsService.split(pdfURL: inputURL, pages: pages)
@@ -186,11 +200,15 @@ final class DocumentConverterViewModel: ObservableObject {
             mediaCategory: "document"
         )
 
-        store.add(record)
-
         let task = Task.detached { [weak self] in
             guard let self else { return }
             defer { self.taskManager.remove(id: record.id) }
+
+            await AdTrackingManager.shared.ensureTrackingRequested()
+            await MainActor.run {
+                self.store.add(record)
+                self.navigateToHistoryTrigger += 1
+            }
 
             do {
                 let outputURL = try PDFToolsService.reorder(pdfURL: inputURL, pageOrder: pageOrder)
@@ -226,11 +244,15 @@ final class DocumentConverterViewModel: ObservableObject {
             mediaCategory: "document"
         )
 
-        store.add(record)
-
         let task = Task.detached { [weak self] in
             guard let self else { return }
             defer { self.taskManager.remove(id: record.id) }
+
+            await AdTrackingManager.shared.ensureTrackingRequested()
+            await MainActor.run {
+                self.store.add(record)
+                self.navigateToHistoryTrigger += 1
+            }
 
             do {
                 let outputURL = try PDFToolsService.protect(pdfURL: inputURL, password: password)

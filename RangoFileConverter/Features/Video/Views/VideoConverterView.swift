@@ -95,9 +95,6 @@ struct VideoConverterView: View {
                             thumbnail: thumbnail,
                             speed: speed
                         )
-                        showSpeedView = false
-                        showVideoPicker = false
-                        onNavigateToHistory?()
                     }
                     .hidesFloatingTabBar()
                 }
@@ -117,9 +114,6 @@ struct VideoConverterView: View {
                             fps: fps,
                             width: width
                         )
-                        viewModel.showGifDetail = false
-                        showVideoPicker = false
-                        onNavigateToHistory?()
                     }
                     .hidesFloatingTabBar()
                 }
@@ -138,9 +132,6 @@ struct VideoConverterView: View {
                             thumbnail: thumbnail,
                             to: format
                         )
-                        viewModel.showConversionDetail = false
-                        showVideoPicker = false
-                        onNavigateToHistory?()
                     }
                     .hidesFloatingTabBar()
                 }
@@ -159,9 +150,6 @@ struct VideoConverterView: View {
                             startTime: startTime,
                             endTime: endTime
                         )
-                        showTimeClipView = false
-                        showVideoPicker = false
-                        onNavigateToHistory?()
                     }
                     .hidesFloatingTabBar()
                 }
@@ -182,9 +170,6 @@ struct VideoConverterView: View {
                             preset: preset,
                             outputFormat: format
                         )
-                        showCompressView = false
-                        showVideoPicker = false
-                        onNavigateToHistory?()
                     }
                     .hidesFloatingTabBar()
                 }
@@ -203,9 +188,6 @@ struct VideoConverterView: View {
                             thumbnail: thumbnail,
                             to: format
                         )
-                        viewModel.showExtractAudioDetail = false
-                        showVideoPicker = false
-                        onNavigateToHistory?()
                     }
                     .hidesFloatingTabBar()
                 }
@@ -227,9 +209,6 @@ struct VideoConverterView: View {
                             cropPosition: cropPosition,
                             cropScale: cropScale
                         )
-                        viewModel.showVideoRatio = false
-                        showVideoPicker = false
-                        onNavigateToHistory?()
                     }
                     .hidesFloatingTabBar()
                 }
@@ -249,12 +228,22 @@ struct VideoConverterView: View {
                             outputExtension: outputExtension,
                             thumbnail: thumbnail
                         )
-                        showMergeView = false
-                        showMergePicker = false
-                        onNavigateToHistory?()
                     }
                     .hidesFloatingTabBar()
                 }
+            }
+            .onChange(of: viewModel.navigateToHistoryTrigger) { _ in
+                showVideoPicker = false
+                showSpeedView = false
+                showTimeClipView = false
+                showCompressView = false
+                showMergeView = false
+                showMergePicker = false
+                viewModel.showConversionDetail = false
+                viewModel.showGifDetail = false
+                viewModel.showExtractAudioDetail = false
+                viewModel.showVideoRatio = false
+                onNavigateToHistory?()
             }
         }
     }

@@ -1,11 +1,13 @@
 import SwiftUI
 import AVFoundation
 import Combine
+import AppTrackingTransparency
 
 final class AudioConverterViewModel: ObservableObject {
     @Published var selectedFileName: String = ""
     @Published var selectedFileURL: URL?
     @Published var showConversionDetail = false
+    @Published var navigateToHistoryTrigger = 0
     @Published var isExtracting = false
 
     // Speed tool state
@@ -100,12 +102,16 @@ final class AudioConverterViewModel: ObservableObject {
             mediaCategory: "audio"
         )
 
-        store.add(record)
-
         let coordinator = self.coordinator
         let task = Task.detached { [weak self] in
             guard let self else { return }
             defer { self.taskManager.remove(id: record.id) }
+
+            await AdTrackingManager.shared.ensureTrackingRequested()
+            await MainActor.run {
+                self.store.add(record)
+                self.navigateToHistoryTrigger += 1
+            }
 
             let totalDurationUs = await self.probeDurationUs(url: inputURL)
 
@@ -215,12 +221,16 @@ final class AudioConverterViewModel: ObservableObject {
             mediaCategory: "audio"
         )
 
-        store.add(record)
-
         let coordinator = self.coordinator
         let task = Task.detached { [weak self] in
             guard let self else { return }
             defer { self.taskManager.remove(id: record.id) }
+
+            await AdTrackingManager.shared.ensureTrackingRequested()
+            await MainActor.run {
+                self.store.add(record)
+                self.navigateToHistoryTrigger += 1
+            }
 
             let totalDurationUs = await self.probeDurationUs(url: inputURL)
             // Output duration changes inversely with speed
@@ -301,12 +311,16 @@ final class AudioConverterViewModel: ObservableObject {
             mediaCategory: "audio"
         )
 
-        store.add(record)
-
         let coordinator = self.coordinator
         let task = Task.detached { [weak self] in
             guard let self else { return }
             defer { self.taskManager.remove(id: record.id) }
+
+            await AdTrackingManager.shared.ensureTrackingRequested()
+            await MainActor.run {
+                self.store.add(record)
+                self.navigateToHistoryTrigger += 1
+            }
 
             let totalDurationUs = await self.probeDurationUs(url: inputURL)
 
@@ -424,11 +438,15 @@ final class AudioConverterViewModel: ObservableObject {
             mediaCategory: "audio"
         )
 
-        store.add(record)
-
         let task = Task.detached { [weak self] in
             guard let self else { return }
             defer { self.taskManager.remove(id: record.id) }
+
+            await AdTrackingManager.shared.ensureTrackingRequested()
+            await MainActor.run {
+                self.store.add(record)
+                self.navigateToHistoryTrigger += 1
+            }
 
             let totalDurationUs = await self.probeDurationUs(url: inputURL)
 
@@ -535,11 +553,15 @@ final class AudioConverterViewModel: ObservableObject {
             mediaCategory: "audio"
         )
 
-        store.add(record)
-
         let task = Task.detached { [weak self] in
             guard let self else { return }
             defer { self.taskManager.remove(id: record.id) }
+
+            await AdTrackingManager.shared.ensureTrackingRequested()
+            await MainActor.run {
+                self.store.add(record)
+                self.navigateToHistoryTrigger += 1
+            }
 
             do {
                 guard !Task.isCancelled else {
@@ -596,11 +618,15 @@ final class AudioConverterViewModel: ObservableObject {
             mediaCategory: "audio"
         )
 
-        store.add(record)
-
         let task = Task.detached { [weak self] in
             guard let self else { return }
             defer { self.taskManager.remove(id: record.id) }
+
+            await AdTrackingManager.shared.ensureTrackingRequested()
+            await MainActor.run {
+                self.store.add(record)
+                self.navigateToHistoryTrigger += 1
+            }
 
             var totalDurationUs: Double = 0
             for url in inputs {

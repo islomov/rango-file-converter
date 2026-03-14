@@ -86,10 +86,6 @@ struct DocumentConverterView: View {
                             fileName: viewModel.selectedFileName,
                             to: format
                         )
-                        viewModel.showConversionDetail = false
-                        showDocumentPicker = false
-                        selectedTab = .history
-                        onNavigateToHistory?()
                     }
                 }
             }
@@ -97,46 +93,42 @@ struct DocumentConverterView: View {
             .navigationDestination(isPresented: $showMergeView) {
                 PDFMergeView { urls, names in
                     viewModel.mergePDFs(fileURLs: urls, fileNames: names)
-                    showMergeView = false
-                    selectedTab = .history
-                    onNavigateToHistory?()
                 }
             }
             // PDF Split
             .navigationDestination(isPresented: $showSplitView) {
                 PDFSplitView { url, name, pages in
                     viewModel.splitPDF(inputURL: url, fileName: name, pages: pages)
-                    showSplitView = false
-                    selectedTab = .history
-                    onNavigateToHistory?()
                 }
             }
             // PDF Reorder
             .navigationDestination(isPresented: $showReorderView) {
                 PDFReorderView { url, name, order in
                     viewModel.reorderPDF(inputURL: url, fileName: name, pageOrder: order)
-                    showReorderView = false
-                    selectedTab = .history
-                    onNavigateToHistory?()
                 }
             }
             // PDF Protect
             .navigationDestination(isPresented: $showProtectView) {
                 PDFProtectView { url, name, password in
                     viewModel.protectPDF(inputURL: url, fileName: name, password: password)
-                    showProtectView = false
-                    selectedTab = .history
-                    onNavigateToHistory?()
                 }
             }
             // Image to PDF
             .navigationDestination(isPresented: $showImageToPDFView) {
                 ImageToPDFView { images in
                     viewModel.createPDFFromImages(images: images)
-                    showImageToPDFView = false
-                    selectedTab = .history
-                    onNavigateToHistory?()
                 }
+            }
+            .onChange(of: viewModel.navigateToHistoryTrigger) { _ in
+                viewModel.showConversionDetail = false
+                showDocumentPicker = false
+                showMergeView = false
+                showSplitView = false
+                showReorderView = false
+                showProtectView = false
+                showImageToPDFView = false
+                selectedTab = .history
+                onNavigateToHistory?()
             }
         }
     }

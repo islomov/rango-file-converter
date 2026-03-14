@@ -1,12 +1,14 @@
 import SwiftUI
 import AVFoundation
 import Combine
+import AppTrackingTransparency
 
 final class VideoConverterViewModel: ObservableObject {
     @Published var selectedThumbnail: UIImage?
     @Published var selectedFileName: String = ""
     @Published var selectedVideoURL: URL?
     @Published var showConversionDetail = false
+    @Published var navigateToHistoryTrigger = 0
     @Published var showGifDetail = false
     @Published var showExtractAudioDetail = false
     @Published var showVideoRatio = false
@@ -91,11 +93,15 @@ final class VideoConverterViewModel: ObservableObject {
             mediaCategory: "video"
         )
 
-        store.add(record)
-
         let task = Task.detached { [weak self] in
             guard let self else { return }
             defer { self.taskManager.remove(id: record.id) }
+
+            await AdTrackingManager.shared.ensureTrackingRequested()
+            await MainActor.run {
+                self.store.add(record)
+                self.navigateToHistoryTrigger += 1
+            }
 
             let totalDurationUs: Double = await {
                 let asset = AVAsset(url: inputURL)
@@ -191,12 +197,16 @@ final class VideoConverterViewModel: ObservableObject {
             mediaCategory: "video"
         )
 
-        store.add(record)
-
         let coordinator = self.coordinator
         let task = Task.detached { [weak self] in
             guard let self else { return }
             defer { self.taskManager.remove(id: record.id) }
+
+            await AdTrackingManager.shared.ensureTrackingRequested()
+            await MainActor.run {
+                self.store.add(record)
+                self.navigateToHistoryTrigger += 1
+            }
 
             let totalDurationUs = await self.probeDurationUs(url: inputURL)
 
@@ -265,12 +275,16 @@ final class VideoConverterViewModel: ObservableObject {
             mediaCategory: "video"
         )
 
-        store.add(record)
-
         let coordinator = self.coordinator
         let task = Task.detached { [weak self] in
             guard let self else { return }
             defer { self.taskManager.remove(id: record.id) }
+
+            await AdTrackingManager.shared.ensureTrackingRequested()
+            await MainActor.run {
+                self.store.add(record)
+                self.navigateToHistoryTrigger += 1
+            }
 
             let totalDurationUs = await self.probeDurationUs(url: inputURL)
 
@@ -347,11 +361,15 @@ final class VideoConverterViewModel: ObservableObject {
             mediaCategory: "video"
         )
 
-        store.add(record)
-
         let task = Task.detached { [weak self] in
             guard let self else { return }
             defer { self.taskManager.remove(id: record.id) }
+
+            await AdTrackingManager.shared.ensureTrackingRequested()
+            await MainActor.run {
+                self.store.add(record)
+                self.navigateToHistoryTrigger += 1
+            }
 
             let totalDurationUs = await self.probeDurationUs(url: inputURL)
             let outputDurationUs = totalDurationUs / speed
@@ -436,11 +454,15 @@ final class VideoConverterViewModel: ObservableObject {
             mediaCategory: "video"
         )
 
-        store.add(record)
-
         let task = Task.detached { [weak self] in
             guard let self else { return }
             defer { self.taskManager.remove(id: record.id) }
+
+            await AdTrackingManager.shared.ensureTrackingRequested()
+            await MainActor.run {
+                self.store.add(record)
+                self.navigateToHistoryTrigger += 1
+            }
 
             do {
                 guard !Task.isCancelled else {
@@ -502,12 +524,16 @@ final class VideoConverterViewModel: ObservableObject {
             mediaCategory: "video"
         )
 
-        store.add(record)
-
         let coordinator = self.coordinator
         let task = Task.detached { [weak self] in
             guard let self else { return }
             defer { self.taskManager.remove(id: record.id) }
+
+            await AdTrackingManager.shared.ensureTrackingRequested()
+            await MainActor.run {
+                self.store.add(record)
+                self.navigateToHistoryTrigger += 1
+            }
 
             let totalDurationUs = await self.probeDurationUs(url: inputURL)
 
@@ -583,11 +609,15 @@ final class VideoConverterViewModel: ObservableObject {
             mediaCategory: "video"
         )
 
-        store.add(record)
-
         let task = Task.detached { [weak self] in
             guard let self else { return }
             defer { self.taskManager.remove(id: record.id) }
+
+            await AdTrackingManager.shared.ensureTrackingRequested()
+            await MainActor.run {
+                self.store.add(record)
+                self.navigateToHistoryTrigger += 1
+            }
 
             // Sum durations across all inputs for progress tracking
             var totalDurationUs: Double = 0
@@ -674,12 +704,16 @@ final class VideoConverterViewModel: ObservableObject {
             mediaCategory: "video"
         )
 
-        store.add(record)
-
         let coordinator = self.coordinator
         let task = Task.detached { [weak self] in
             guard let self else { return }
             defer { self.taskManager.remove(id: record.id) }
+
+            await AdTrackingManager.shared.ensureTrackingRequested()
+            await MainActor.run {
+                self.store.add(record)
+                self.navigateToHistoryTrigger += 1
+            }
 
             let totalDurationUs = await self.probeDurationUs(url: inputURL)
 

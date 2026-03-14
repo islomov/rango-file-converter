@@ -97,10 +97,6 @@ struct ImageConverterView: View {
                 ) { format in
                     guard let url = viewModel.selectedFileURL else { return }
                     viewModel.convert(inputURL: url, fileName: viewModel.selectedFileName, to: format)
-                    viewModel.showConversionDetail = false
-                    showAssetPicker = false
-                    toolFileURL = nil
-                    onNavigateToHistory?()
                 }
                 .hidesFloatingTabBar()
             }
@@ -117,11 +113,7 @@ struct ImageConverterView: View {
                             flipH: flipH,
                             flipV: flipV
                         )
-                        showRotateView = false
-                        showAssetPicker = false
-                        toolFileURL = nil
-                        onNavigateToHistory?()
-                    }
+                        }
                     .hidesFloatingTabBar()
                 }
             }
@@ -136,11 +128,7 @@ struct ImageConverterView: View {
                             fileName: toolFileName,
                             cropRect: cropRect
                         )
-                        showCropView = false
-                        showAssetPicker = false
-                        toolFileURL = nil
-                        onNavigateToHistory?()
-                    }
+                        }
                     .hidesFloatingTabBar()
                 }
             }
@@ -156,11 +144,7 @@ struct ImageConverterView: View {
                             width: width,
                             height: height
                         )
-                        showResizeView = false
-                        showAssetPicker = false
-                        toolFileURL = nil
-                        onNavigateToHistory?()
-                    }
+                        }
                     .hidesFloatingTabBar()
                 }
             }
@@ -176,11 +160,7 @@ struct ImageConverterView: View {
                             formatExtension: formatExt,
                             quality: quality
                         )
-                        showCompressView = false
-                        showAssetPicker = false
-                        toolFileURL = nil
-                        onNavigateToHistory?()
-                    }
+                        }
                     .hidesFloatingTabBar()
                 }
             }
@@ -196,12 +176,7 @@ struct ImageConverterView: View {
                             frameDelay: frameDelay,
                             loopForever: loopForever
                         )
-                        showGifView = false
-                        showGifPicker = false
-                        gifFileURLs = []
-                        gifFileNames = []
-                        onNavigateToHistory?()
-                    }
+                        }
                     .hidesFloatingTabBar()
                 }
             }
@@ -217,12 +192,7 @@ struct ImageConverterView: View {
                             background: background,
                             gap: 16
                         )
-                        showStitchView = false
-                        showStitchPicker = false
-                        stitchFileURLs = []
-                        stitchFileNames = []
-                        onNavigateToHistory?()
-                    }
+                        }
                     .hidesFloatingTabBar()
                 }
             }
@@ -230,6 +200,24 @@ struct ImageConverterView: View {
                 Button("OK", role: .cancel) { }
             } message: {
                 Text("This tool is not available yet. Stay tuned!")
+            }
+            .onChange(of: viewModel.navigateToHistoryTrigger) { _ in
+                viewModel.showConversionDetail = false
+                showAssetPicker = false
+                showRotateView = false
+                showCropView = false
+                showResizeView = false
+                showCompressView = false
+                showGifView = false
+                showGifPicker = false
+                showStitchView = false
+                showStitchPicker = false
+                toolFileURL = nil
+                gifFileURLs = []
+                gifFileNames = []
+                stitchFileURLs = []
+                stitchFileNames = []
+                onNavigateToHistory?()
             }
         }
     }

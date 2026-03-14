@@ -99,9 +99,6 @@ struct AudioConverterView: View {
                             fileName: viewModel.selectedFileName,
                             to: format
                         )
-                        viewModel.showConversionDetail = false
-                        showAudioPicker = false
-                        onNavigateToHistory?()
                     }
                     .hidesFloatingTabBar()
                 }
@@ -147,9 +144,6 @@ struct AudioConverterView: View {
                             sampleRate: sampleRate,
                             outputFormat: format
                         )
-                        viewModel.showCompressDetail = false
-                        showCompressPicker = false
-                        onNavigateToHistory?()
                     }
                     .hidesFloatingTabBar()
                 }
@@ -168,9 +162,6 @@ struct AudioConverterView: View {
                             thumbnail: thumbnail,
                             to: format
                         )
-                        viewModel.showExtractAudioDetail = false
-                        showExtractVideoPicker = false
-                        onNavigateToHistory?()
                     }
                     .hidesFloatingTabBar()
                 }
@@ -209,9 +200,6 @@ struct AudioConverterView: View {
                             speed: speed,
                             to: format
                         )
-                        viewModel.showSpeedDetail = false
-                        showSpeedAudioPicker = false
-                        onNavigateToHistory?()
                     }
                     .hidesFloatingTabBar()
                 }
@@ -236,9 +224,6 @@ struct AudioConverterView: View {
                             startTime: startTime,
                             endTime: endTime
                         )
-                        showCropView = false
-                        showCropPicker = false
-                        onNavigateToHistory?()
                     }
                     .hidesFloatingTabBar()
                 }
@@ -257,9 +242,6 @@ struct AudioConverterView: View {
                             inputs: mergeAudios.map(\.url),
                             outputExtension: outputExtension
                         )
-                        showMergeView = false
-                        showMergePicker = false
-                        onNavigateToHistory?()
                     }
                     .hidesFloatingTabBar()
                 }
@@ -268,6 +250,21 @@ struct AudioConverterView: View {
                 Button("OK", role: .cancel) { }
             } message: {
                 Text("This tool is not available yet. Stay tuned!")
+            }
+            .onChange(of: viewModel.navigateToHistoryTrigger) { _ in
+                showAudioPicker = false
+                showSpeedAudioPicker = false
+                showExtractVideoPicker = false
+                showCompressPicker = false
+                showCropPicker = false
+                showCropView = false
+                showMergePicker = false
+                showMergeView = false
+                viewModel.showConversionDetail = false
+                viewModel.showCompressDetail = false
+                viewModel.showExtractAudioDetail = false
+                viewModel.showSpeedDetail = false
+                onNavigateToHistory?()
             }
         }
     }

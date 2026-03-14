@@ -10,7 +10,8 @@ final class FFmpegConversionEngine: ConversionEngine {
     private static let nativeOnlyFormats: Set<String> = ["webp", "heic", "mp3"]
 
     /// Formats that require external libraries not included in this FFmpeg build.
-    private static let unsupportedFormats: Set<String> = ["webm", "ogv", "swf", "amv"]
+    /// AMR needs libopencore_amrnb, SPX needs libspeex, GSM needs libgsm.
+    private static let unsupportedFormats: Set<String> = ["webm", "ogv", "swf", "amv", "amr", "spx", "gsm"]
 
     private let wrapper = FFmpegWrapper.shared
 
@@ -217,6 +218,17 @@ final class FFmpegConversionEngine: ConversionEngine {
             return ["-f", "flv", "-c:v", "flv1", "-c:a", "aac", "-ar", "44100"]
         case "3g2":
             return ["-f", "3g2", "-c:v", "mpeg4", "-c:a", "aac", "-ar", "44100"]
+
+        // MARK: Audio formats
+        case "opus":
+            // Native opus encoder (experimental) in OGG container, requires 48 kHz
+            return ["-strict", "-2", "-c:a", "opus", "-ar", "48000"]
+        case "dts":
+            // DCA encoder is experimental — must enable with -strict -2
+            return ["-strict", "-2", "-f", "dts", "-c:a", "dca"]
+        case "snd":
+            // SND is AU format — FFmpeg doesn't recognize .snd extension
+            return ["-f", "au"]
         default:
             return []
         }

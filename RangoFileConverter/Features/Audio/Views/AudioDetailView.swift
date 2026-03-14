@@ -7,7 +7,8 @@ struct AudioDetailView: View {
     let fileURL: URL
     let onConvert: (FormatDefinition) -> Void
 
-    private static let supportedAudioFormats = FormatRegistry.audioFormats
+    private static let unsupportedFormats: Set<String> = ["amr", "spx", "gsm"]
+    private static let supportedAudioFormats = FormatRegistry.audioFormats.filter { !unsupportedFormats.contains($0.id) }
     private static let playableExtensions: Set<String> = [
         "mp3", "wav", "m4a", "aac", "aiff", "flac", "caf", "au", "mp2"
     ]

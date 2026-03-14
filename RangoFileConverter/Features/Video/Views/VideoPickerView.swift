@@ -104,6 +104,7 @@ struct VideoPickerView: View {
                         .foregroundColor(AppColors.textPrimary)
                         .frame(maxWidth: .infinity)
                         .frame(height: 36)
+                        .contentShape(Rectangle())
                         .background(
                             Group {
                                 if selectedSource == source {

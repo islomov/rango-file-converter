@@ -64,6 +64,9 @@ final class RemoteConfigManager: ObservableObject {
     private func applyValues() {
         guard let remoteConfig else { return }
         cloudConvertAPIKey = remoteConfig.configValue(forKey: "cloud_convert_api_key").stringValue ?? ""
+        if !cloudConvertAPIKey.isEmpty {
+            CloudConvertAPIKey.setAPIKey(cloudConvertAPIKey)
+        }
         let appStoreVersion = remoteConfig.configValue(forKey: "appstore_version").stringValue ?? ""
         requiresForceUpdate = Self.isVersion(appStoreVersion, greaterThan: Self.currentAppVersion)
 

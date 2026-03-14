@@ -190,7 +190,6 @@ struct HistoryView: View {
                                 .padding(.vertical, 8)
                                 .background(AppColors.background)
                             }
-                            .modifier(AppearAnimationModifier(delay: 0))
                         }
 
                         ForEach(Array(groupedRecords.enumerated()), id: \.element.category) { sectionIndex, group in
@@ -211,7 +210,6 @@ struct HistoryView: View {
                                     .padding(.vertical, 8)
                                     .background(AppColors.background)
                             }
-                            .modifier(AppearAnimationModifier(delay: Double(sectionIndex) * 0.1))
                         }
 
                         // Small bottom padding for visual breathing room
@@ -238,21 +236,4 @@ struct HistoryView: View {
     }
 }
 
-// MARK: - Appear Animation
-
-private struct AppearAnimationModifier: ViewModifier {
-    let delay: Double
-    @State private var appeared = false
-
-    func body(content: Content) -> some View {
-        content
-            .opacity(appeared ? 1 : 0)
-            .offset(y: appeared ? 0 : 16)
-            .onAppear {
-                withAnimation(.spring(response: 0.4, dampingFraction: 0.85).delay(delay)) {
-                    appeared = true
-                }
-            }
-    }
-}
 

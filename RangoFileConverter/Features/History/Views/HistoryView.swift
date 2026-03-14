@@ -8,6 +8,7 @@ struct HistoryView: View {
     @State private var showFilterSheet = false
     @State private var filterState = HistoryFilterState()
     @State private var now = Date()
+    @State private var showLatestInfo = false
     private let categories = ["image", "video", "audio", "document"]
     private let latestDuration: TimeInterval = 5 * 60 // 5 minutes
     private let refreshTimer = Timer.publish(every: 30, on: .main, in: .common).autoconnect()
@@ -185,6 +186,24 @@ struct HistoryView: View {
                                         .padding(.vertical, 2)
                                         .background(AppColors.accent.opacity(0.12))
                                         .clipShape(Capsule())
+
+                                    Spacer()
+
+                                    Button {
+                                        showLatestInfo.toggle()
+                                    } label: {
+                                        Image(systemName: "info.circle")
+                                            .font(.system(size: 16))
+                                            .foregroundColor(AppColors.textSecondary)
+                                    }
+                                    .popover(isPresented: $showLatestInfo) {
+                                        Text("Latest section shows conversions from the last 5 minutes, including any currently in progress.")
+                                            .font(.custom("Sora-Regular", size: 14))
+                                            .foregroundColor(AppColors.textPrimary)
+                                            .padding(16)
+                                            .frame(width: 260)
+                                            .presentationCompactAdaptation(.popover)
+                                    }
                                 }
                                 .frame(maxWidth: .infinity, alignment: .leading)
                                 .padding(.vertical, 8)

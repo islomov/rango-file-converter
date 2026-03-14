@@ -25,24 +25,27 @@ struct HistoryView: View {
             }
         }
 
-        // Category filter
-        if !filterState.selectedCategories.isEmpty {
+        // Category filter (by ID)
+        if !filterState.selectedCategoryIDs.isEmpty {
+            let categoryValues = FilterFeatures.categoryValues(for: filterState.selectedCategoryIDs)
             records = records.filter {
-                filterState.selectedCategories.contains($0.mediaCategory)
+                categoryValues.contains($0.mediaCategory)
             }
         }
 
-        // Tool type filter
-        if !filterState.selectedToolTypes.isEmpty {
+        // Tool type filter (by ID)
+        if !filterState.selectedToolTypeIDs.isEmpty {
+            let toolValues = FilterFeatures.toolTypeValues(for: filterState.selectedToolTypeIDs)
             records = records.filter {
-                filterState.selectedToolTypes.contains($0.tool)
+                toolValues.contains($0.tool)
             }
         }
 
-        // Status filter
-        if !filterState.selectedStatuses.isEmpty {
+        // Status filter (by ID)
+        if !filterState.selectedStatusIDs.isEmpty {
+            let statusValues = FilterFeatures.statusValues(for: filterState.selectedStatusIDs)
             records = records.filter {
-                filterState.selectedStatuses.contains($0.statusRaw)
+                statusValues.contains($0.statusRaw)
             }
         }
 

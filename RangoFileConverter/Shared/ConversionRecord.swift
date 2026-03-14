@@ -27,6 +27,32 @@ enum ToolType: String, Codable, CaseIterable {
     case reorderPDF = "Reorder PDF"
     case protectPDF = "Protect PDF"
     case imageToPDF = "Image to PDF"
+
+    var filterID: Int {
+        switch self {
+        case .convert:      return 100
+        case .compress:     return 101
+        case .rotate:       return 102
+        case .resize:       return 103
+        case .crop:         return 104
+        case .stitch:       return 105
+        case .gif:          return 106
+        case .merge:        return 107
+        case .speed:        return 108
+        case .timeClip:     return 109
+        case .extractAudio: return 110
+        case .ratio:        return 111
+        case .mergePDF:     return 112
+        case .splitPDF:     return 113
+        case .reorderPDF:   return 114
+        case .protectPDF:   return 115
+        case .imageToPDF:   return 116
+        }
+    }
+
+    static func fromFilterID(_ id: Int) -> ToolType? {
+        allCases.first { $0.filterID == id }
+    }
 }
 
 final class ConversionRecord: Identifiable, Codable, ObservableObject {

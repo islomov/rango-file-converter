@@ -8,14 +8,18 @@ actor FFmpegWrapper {
     static let shared = FFmpegWrapper()
 
     enum FFmpegError: Error, LocalizedError {
-        case executionFailed(code: Int)
+        case executionFailed(code: Int, command: String, stderr: String)
         case inputFileNotFound(String)
         case outputDirectoryNotWritable(String)
 
         var errorDescription: String? {
             switch self {
-            case .executionFailed(let code):
-                return "FFmpeg exited with code \(code)"
+            case .executionFailed(let code, let command, let stderr):
+                var msg = "FFmpeg exited with code \(code)\nCommand: \(command)"
+                if !stderr.isEmpty {
+                    msg += "\nOutput: \(stderr.suffix(500))"
+                }
+                return msg
             case .inputFileNotFound(let path):
                 return "Input file not found: \(path)"
             case .outputDirectoryNotWritable(let path):
@@ -29,15 +33,48 @@ actor FFmpegWrapper {
         _ = ffmpeg(["ffmpeg", "-encoders"])
     }
 
+    /// List available muxers. Useful for debugging which output formats are supported.
+    func listMuxers() {
+        _ = ffmpeg(["ffmpeg", "-muxers"])
+    }
+
     /// Execute an FFmpeg command with CLI-style arguments.
     /// The first element should be "ffmpeg".
     @discardableResult
     func execute(_ arguments: [String]) throws -> Int {
-        print("[FFmpeg] Executing: \(arguments.joined(separator: " "))")
+        let commandStr = arguments.joined(separator: " ")
+        print("[FFmpeg] Executing: \(commandStr)")
+
+        // Redirect stderr to a temp file to capture FFmpeg's error output
+        let stderrFile = FileManager.default.temporaryDirectory
+            .appendingPathComponent("ffmpeg_stderr_\(UUID().uuidString.prefix(8)).txt")
+        let stderrPath = stderrFile.path
+
+        // Save original stderr, redirect to file
+        let origStderr = dup(STDERR_FILENO)
+        if let fp = fopen(stderrPath, "w") {
+            let fd = fileno(fp)
+            dup2(fd, STDERR_FILENO)
+            fclose(fp)
+        }
+
         let code = ffmpeg(arguments)
+
+        // Restore original stderr
+        dup2(origStderr, STDERR_FILENO)
+        close(origStderr)
+
+        // Read captured stderr
+        let stderrOutput = (try? String(contentsOfFile: stderrPath, encoding: .utf8)) ?? ""
+        try? FileManager.default.removeItem(atPath: stderrPath)
+
         print("[FFmpeg] Exit code: \(code)")
+        if !stderrOutput.isEmpty {
+            print("[FFmpeg] stderr: \(stderrOutput.suffix(1000))")
+        }
+
         guard code == 0 else {
-            throw FFmpegError.executionFailed(code: code)
+            throw FFmpegError.executionFailed(code: code, command: commandStr, stderr: stderrOutput)
         }
         return code
     }

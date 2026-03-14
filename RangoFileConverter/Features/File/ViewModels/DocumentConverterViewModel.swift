@@ -1,4 +1,5 @@
 import SwiftUI
+import UIKit
 import Combine
 
 final class DocumentConverterViewModel: ObservableObject {
@@ -234,6 +235,46 @@ final class DocumentConverterViewModel: ObservableObject {
 
             do {
                 let outputURL = try PDFToolsService.protect(pdfURL: inputURL, password: password)
+                let outputPath = ConversionRecord.persistOutput(from: outputURL)
+                await MainActor.run {
+                    record.progress = 1.0
+                    record.status = .converted
+                    record.outputPath = outputPath
+                    self.store.save()
+                }
+            } catch {
+                await MainActor.run {
+                    record.status = .failed
+                    record.errorMessage = error.localizedDescription
+                    self.store.save()
+                }
+            }
+        }
+
+        taskManager.register(id: record.id, task: task)
+    }
+
+    // MARK: - Image to PDF
+
+    func createPDFFromImages(images: [UIImage]) {
+        let record = ConversionRecord(
+            sourceFileName: "Scanned_\(images.count)_pages.pdf",
+            sourceFormat: "IMG",
+            targetFormatID: "pdf",
+            thumbnailData: nil,
+            status: .converting,
+            toolType: ToolType.imageToPDF.rawValue,
+            mediaCategory: "document"
+        )
+
+        store.add(record)
+
+        let task = Task.detached { [weak self] in
+            guard let self else { return }
+            defer { self.taskManager.remove(id: record.id) }
+
+            do {
+                let outputURL = try PDFToolsService.createFromImages(images)
                 let outputPath = ConversionRecord.persistOutput(from: outputURL)
                 await MainActor.run {
                     record.progress = 1.0

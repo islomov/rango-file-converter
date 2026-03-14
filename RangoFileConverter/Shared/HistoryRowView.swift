@@ -128,6 +128,7 @@ struct HistoryRowView: View {
         case .splitPDF: return "Split PDF:"
         case .reorderPDF: return "Reorder PDF:"
         case .protectPDF: return "Protect PDF:"
+        case .imageToPDF: return "Image to PDF:"
         }
     }
 
@@ -176,6 +177,8 @@ struct HistoryRowView: View {
             Color(hex: "27AE60")
         case .protectPDF:
             Color(hex: "C0392B")
+        case .imageToPDF:
+            Color(hex: "3498DB")
         }
     }
 

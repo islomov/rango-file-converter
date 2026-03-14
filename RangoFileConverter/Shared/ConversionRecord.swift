@@ -26,6 +26,7 @@ enum ToolType: String, Codable, CaseIterable {
     case splitPDF = "Split PDF"
     case reorderPDF = "Reorder PDF"
     case protectPDF = "Protect PDF"
+    case imageToPDF = "Image to PDF"
 }
 
 final class ConversionRecord: Identifiable, Codable, ObservableObject {

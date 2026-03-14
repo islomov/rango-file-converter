@@ -21,7 +21,7 @@ struct PDFMergeView: View {
                     .ignoresSafeArea()
                 emptyState
             } else {
-                Color.white
+                AppColors.background
                     .ignoresSafeArea()
                 fileListState
             }
@@ -247,6 +247,7 @@ struct PDFMergeView: View {
             }
         }
         .listStyle(.plain)
+        .scrollContentBackground(.hidden)
         .environment(\.editMode, .constant(.active))
         .overlay(alignment: .top) {
             Rectangle()

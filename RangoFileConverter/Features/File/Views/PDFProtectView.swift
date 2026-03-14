@@ -14,7 +14,7 @@ struct PDFProtectView: View {
 
     var body: some View {
         ZStack {
-            Color.white
+            AppColors.background
                 .ignoresSafeArea()
 
             if fileURL == nil {

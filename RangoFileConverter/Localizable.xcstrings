@@ -35001,6 +35001,16 @@
           }
         }
       }
+    },
+    "Latest section shows conversions from the last 5 minutes, including any currently in progress.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Latest section shows conversions from the last 5 minutes, including any currently in progress."
+          }
+        }
+      }
     }
   },
   "version": "1.1"

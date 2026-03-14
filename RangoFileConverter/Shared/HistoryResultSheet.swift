@@ -22,7 +22,6 @@ struct HistoryResultSheet: View {
     @State private var imageLoadTask: Task<Void, Never>?
     @State private var quickLookURL: URL?
     @State private var videoReady = false
-
     var body: some View {
         VStack(spacing: 0) {
             Capsule()
@@ -437,18 +436,7 @@ struct HistoryResultSheet: View {
                 )
             }
 
-            if isDocumentOutput(url: url) {
-                Button {
-                    openWithSystemApp(url: url)
-                } label: {
-                    actionButton(
-                        title: "Open",
-                        icon: "arrow.up.forward.app",
-                        foregroundColor: AppColors.accent,
-                        backgroundColor: AppColors.accent.opacity(0.08)
-                    )
-                }
-            } else {
+            if canSaveToPhotos(url: url) {
                 Button {
                     saveToPhotos(url: url)
                 } label: {
@@ -459,6 +447,17 @@ struct HistoryResultSheet: View {
                         backgroundColor: AppColors.accent.opacity(0.08)
                     )
                 }
+            }
+
+            Button {
+                saveToFiles(url: url)
+            } label: {
+                actionButton(
+                    title: "Save to Files",
+                    icon: "folder",
+                    foregroundColor: AppColors.accent,
+                    backgroundColor: AppColors.accent.opacity(0.08)
+                )
             }
 
             Button(role: .destructive) {
@@ -832,42 +831,84 @@ struct HistoryResultSheet: View {
 
     // MARK: - Helpers
 
-    private func isDocumentOutput(url: URL) -> Bool {
-        outputMediaType(for: url) == .document
-    }
-
     private func openWithSystemApp(url: URL) {
         quickLookURL = url
     }
 
+    // Formats that PHAssetChangeRequest actually supports
+    private static let gallerySaveableVideoExtensions = Set(["mp4", "mov", "m4v", "3gp"])
+    private static let gallerySaveableImageExtensions = Set(["heic", "jpeg", "jpg", "png", "gif", "tiff", "bmp", "webp"])
+
+    private func canSaveToPhotos(url: URL) -> Bool {
+        let ext = url.pathExtension.lowercased()
+        let mediaType = outputMediaType(for: url)
+        switch mediaType {
+        case .video:
+            return Self.gallerySaveableVideoExtensions.contains(ext)
+        case .image:
+            // Native formats or formats UIImage can load (will be saved as PNG)
+            if Self.gallerySaveableImageExtensions.contains(ext) { return true }
+            return UIImage(contentsOfFile: url.path) != nil
+        case .audio, .document:
+            return false
+        }
+    }
+
     private func saveToPhotos(url: URL) {
         let ext = url.pathExtension.lowercased()
-        let videoExtensions = ["mp4", "mov", "m4v", "avi", "mkv", "wmv", "flv", "mpg", "mpeg", "3gp", "webm", "ts", "vob", "ogv"]
-        let imageExtensions = ["heic", "jpeg", "jpg", "png", "webp", "bmp", "tiff", "gif"]
+        let isVideo = Self.gallerySaveableVideoExtensions.contains(ext)
+
+        // For image formats not natively supported by Photos, convert via UIImage
+        var pngData: Data?
+        if !isVideo && !Self.gallerySaveableImageExtensions.contains(ext) {
+            if let image = UIImage(contentsOfFile: url.path) {
+                pngData = image.pngData()
+            }
+            if pngData == nil {
+                saveError = "This image format is not supported for saving to the photo library."
+                return
+            }
+        }
 
         PHPhotoLibrary.requestAuthorization(for: .addOnly) { status in
             guard status == .authorized else {
                 DispatchQueue.main.async {
-                    saveError = "Photo library access denied. Please allow access in Settings."
+                    self.saveError = "Photo library access denied. Please allow access in Settings."
                 }
                 return
             }
 
             PHPhotoLibrary.shared().performChanges({
-                if videoExtensions.contains(ext) {
+                if isVideo {
                     PHAssetChangeRequest.creationRequestForAssetFromVideo(atFileURL: url)
-                } else if imageExtensions.contains(ext) {
+                } else if let data = pngData {
+                    let tempURL = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString + ".png")
+                    try? data.write(to: tempURL)
+                    PHAssetChangeRequest.creationRequestForAssetFromImage(atFileURL: tempURL)
+                } else {
                     PHAssetChangeRequest.creationRequestForAssetFromImage(atFileURL: url)
                 }
             }) { success, error in
                 DispatchQueue.main.async {
                     if success {
-                        showSaveSuccess = true
+                        self.showSaveSuccess = true
                     } else {
-                        saveError = error?.localizedDescription ?? "Failed to save"
+                        self.saveError = error?.localizedDescription ?? "Failed to save"
                     }
                 }
             }
+        }
+    }
+
+    private func saveToFiles(url: URL) {
+        let picker = UIDocumentPickerViewController(forExporting: [url], asCopy: true)
+        if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+           let rootVC = windowScene.windows.first?.rootViewController {
+            var topVC = rootVC
+            while let presented = topVC.presentedViewController {
+                topVC = presented
+            }
+            topVC.present(picker, animated: true)
         }
     }
 }
@@ -972,3 +1013,4 @@ private struct AnimatedGIFView: UIViewRepresentable {
         coordinator.imageView?.animationImages = nil
     }
 }
+

@@ -73,6 +73,15 @@ struct ContentView: View {
                 hideTabBar = shouldHide
             }
         }
+        .onChange(of: selectedTab) { _ in
+            // When switching to History or Settings, always show the tab bar.
+            // Fixes stale preference when leaving a converter sub-view mid-conversion.
+            if selectedTab != .home || selectedCategory == nil {
+                withAnimation(.easeInOut(duration: 0.25)) {
+                    hideTabBar = false
+                }
+            }
+        }
         .ignoresSafeArea(.keyboard)
         .onReceive(NotificationCenter.default.publisher(for: .didTapDailyReminder)) { _ in
             selectedTab = .home

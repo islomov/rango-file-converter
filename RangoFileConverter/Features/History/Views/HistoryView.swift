@@ -252,6 +252,7 @@ struct HistoryView: View {
             }
             .presentationDetents([.large])
         }
+        .preference(key: TabBarVisibilityPreferenceKey.self, value: false)
     }
 }
 

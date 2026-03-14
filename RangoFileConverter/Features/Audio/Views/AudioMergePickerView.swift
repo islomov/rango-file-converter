@@ -113,7 +113,7 @@ struct AudioMergePickerView: View {
                 } label: {
                     Text(LocalizedStringKey(source.rawValue))
                         .font(.system(size: 14, weight: .semibold))
-                        .foregroundColor(AppColors.textPrimary)
+                        .foregroundColor(selectedSource == source ? .white : AppColors.textPrimary)
                         .frame(maxWidth: .infinity)
                         .frame(height: 36)
                         .contentShape(Rectangle())
@@ -121,8 +121,7 @@ struct AudioMergePickerView: View {
                             Group {
                                 if selectedSource == source {
                                     RoundedRectangle(cornerRadius: 10)
-                                        .fill(AppColors.surface)
-                                        .shadow(color: AppColors.textPrimary.opacity(0.12), radius: 4, x: 0, y: 0)
+                                        .fill(AppColors.accent)
                                 }
                             }
                         )
@@ -299,23 +298,54 @@ struct AudioMergePickerView: View {
     // MARK: - Files
 
     private var filesPlaceholder: some View {
-        VStack(spacing: 16) {
+        VStack(spacing: 24) {
             Spacer()
-            Image(systemName: "waveform.circle")
-                .font(.system(size: 48))
-                .foregroundStyle(.secondary)
-            Text("Browse audio or video files to merge")
-                .font(.subheadline)
-                .foregroundStyle(.secondary)
-            Text("Video files will have their audio extracted automatically")
-                .font(.caption)
-                .foregroundStyle(.tertiary)
-                .multilineTextAlignment(.center)
-                .padding(.horizontal, 32)
-            Button("Open File Browser") {
-                showFilePicker = true
+
+            VStack(spacing: 12) {
+                ZStack {
+                    Circle()
+                        .fill(AppColors.accent.opacity(0.10))
+                        .frame(width: 80, height: 80)
+                    Image(systemName: "waveform.circle")
+                        .font(.system(size: 32, weight: .medium))
+                        .foregroundColor(AppColors.accent)
+                }
+
+                VStack(spacing: 8) {
+                    Text("Browse audio or video files to merge")
+                        .font(.system(size: 16, weight: .semibold))
+                        .foregroundColor(AppColors.textPrimary)
+                        .tracking(-0.408)
+                        .multilineTextAlignment(.center)
+
+                    Text("Video files will have their audio extracted automatically")
+                        .font(.system(size: 14))
+                        .foregroundColor(AppColors.textSecondary)
+                        .tracking(-0.408)
+                        .multilineTextAlignment(.center)
+                        .padding(.horizontal, 32)
+                }
             }
-            .buttonStyle(.borderedProminent)
+
+            Button {
+                showFilePicker = true
+            } label: {
+                Text("Open File Browser")
+                    .font(.system(size: 14, weight: .semibold))
+                    .foregroundColor(.white)
+                    .tracking(-0.408)
+                    .padding(16)
+                    .frame(width: 200)
+                    .background(
+                        LinearGradient(
+                            colors: [AppColors.accentLight, AppColors.accent, AppColors.accentLight],
+                            startPoint: .topTrailing,
+                            endPoint: .bottomLeading
+                        )
+                    )
+                    .clipShape(RoundedRectangle(cornerRadius: 16))
+            }
+
             Spacer()
         }
     }

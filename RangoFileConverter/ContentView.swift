@@ -56,7 +56,6 @@ struct ContentView: View {
             }
         }
         .animation(.easeInOut(duration: 0.25), value: selectedTab)
-        .animation(.spring(response: 0.35, dampingFraction: 0.9), value: selectedCategory == nil)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .safeAreaInset(edge: .bottom, spacing: 0) {
             if !hideTabBar {
@@ -86,7 +85,11 @@ struct ContentView: View {
         switch category {
         case .image:
             ImageConverterView(
-                onBack: { selectedCategory = nil },
+                onBack: {
+                    withAnimation(.spring(response: 0.35, dampingFraction: 0.9)) {
+                        selectedCategory = nil
+                    }
+                },
                 onNavigateToHistory: {
                     selectedCategory = nil
                     selectedTab = .history
@@ -94,7 +97,11 @@ struct ContentView: View {
             )
         case .video:
             VideoConverterView(
-                onBack: { selectedCategory = nil },
+                onBack: {
+                    withAnimation(.spring(response: 0.35, dampingFraction: 0.9)) {
+                        selectedCategory = nil
+                    }
+                },
                 onNavigateToHistory: {
                     selectedCategory = nil
                     selectedTab = .history
@@ -102,7 +109,11 @@ struct ContentView: View {
             )
         case .audio:
             AudioConverterView(
-                onBack: { selectedCategory = nil },
+                onBack: {
+                    withAnimation(.spring(response: 0.35, dampingFraction: 0.9)) {
+                        selectedCategory = nil
+                    }
+                },
                 onNavigateToHistory: {
                     selectedCategory = nil
                     selectedTab = .history
@@ -110,7 +121,11 @@ struct ContentView: View {
             )
         case .document:
             DocumentConverterView(
-                onBack: { selectedCategory = nil },
+                onBack: {
+                    withAnimation(.spring(response: 0.35, dampingFraction: 0.9)) {
+                        selectedCategory = nil
+                    }
+                },
                 onNavigateToHistory: {
                     selectedCategory = nil
                     selectedTab = .history

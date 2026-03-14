@@ -10,6 +10,8 @@ struct SettingsView: View {
     @State private var showLanguagePicker = false
     @State private var showPrivacyPolicy = false
     @State private var showTermsOfUse = false
+    @State private var showRateAppAlert = false
+    @State private var rateAppPrompt: RateAppPrompt = .random()
     @State private var sectionsAppeared = false
 
     var body: some View {
@@ -89,6 +91,16 @@ struct SettingsView: View {
             Button("Cancel", role: .cancel) { }
         } message: {
             Text("This will permanently delete all converted \(clearStorageCategory ?? "") files. This action cannot be undone.")
+        }
+        .alert(rateAppPrompt.title, isPresented: $showRateAppAlert) {
+            Button("Rate Now") {
+                if let url = URL(string: "https://apps.apple.com/app/id6759793517?action=write-review") {
+                    UIApplication.shared.open(url)
+                }
+            }
+            Button("Maybe Later", role: .cancel) { }
+        } message: {
+            Text(rateAppPrompt.message)
         }
     }
 
@@ -321,9 +333,8 @@ struct SettingsView: View {
     private var linksSection: some View {
         VStack(spacing: 0) {
             linkRow(title: "Rate app", isFirst: true, isLast: false) {
-                if let url = URL(string: "https://apps.apple.com/app/id6759793517?action=write-review") {
-                    UIApplication.shared.open(url)
-                }
+                rateAppPrompt = .random()
+                showRateAppAlert = true
             }
 
             linkRow(title: "Privacy policy", isFirst: false, isLast: false) {

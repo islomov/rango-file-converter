@@ -197,11 +197,26 @@ final class FFmpegConversionEngine: ConversionEngine {
         case "flv":
             return ["-c:v", "flv1", "-c:a", "aac", "-ar", "44100"]
         case "rm":
-            return ["-f", "rm", "-c:v", "rv20", "-c:a", "real_144"]
+            // RM muxer has 64KB packet limit — must constrain resolution and bitrate
+            return ["-f", "rm", "-c:v", "rv20", "-c:a", "ac3",
+                    "-s", "352x288", "-b:v", "400k", "-g", "15"]
+        case "vob":
+            return ["-f", "vob", "-c:v", "mpeg2video", "-c:a", "ac3"]
+        case "ts":
+            return ["-f", "mpegts", "-c:v", "mpeg2video", "-c:a", "mp2"]
+        case "asf":
+            return ["-f", "asf", "-c:v", "wmv2", "-c:a", "wmav2"]
         case "3gp":
-            return ["-f", "3gp", "-c:v", "mpeg4", "-c:a", "aac"]
+            return ["-f", "3gp", "-c:v", "mpeg4", "-c:a", "aac", "-ar", "44100"]
+        case "mxf":
+            // MXF requires 48kHz audio
+            return ["-f", "mxf", "-c:v", "mpeg2video", "-c:a", "pcm_s16le",
+                    "-pix_fmt", "yuv422p", "-ar", "48000"]
+        case "f4v":
+            // F4V container requires flv1 video (no libx264 for H.264)
+            return ["-f", "flv", "-c:v", "flv1", "-c:a", "aac", "-ar", "44100"]
         case "3g2":
-            return ["-f", "3g2", "-c:v", "mpeg4", "-c:a", "aac"]
+            return ["-f", "3g2", "-c:v", "mpeg4", "-c:a", "aac", "-ar", "44100"]
         default:
             return []
         }

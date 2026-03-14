@@ -22,8 +22,14 @@ Not included: `libvpx`, `libtheora`, `libvorbis`, `libmp3lame`, `libx264`, `libx
 | JP2 | `-c:v jpeg2000` |
 | SGI/RGB | `-c:v sgi` |
 | FLV | `-c:v flv1 -c:a aac -ar 44100` |
-| RM | `-f rm -c:v rv20 -c:a real_144` |
-| 3GP/3G2 | `-f 3gp -c:v mpeg4 -c:a aac` |
+| RM | `-f rm -c:v rv20 -c:a ac3` (real_144 encoder not available) |
+| VOB | `-f vob -c:v mpeg2video -c:a ac3` |
+| TS | `-f mpegts -c:v mpeg2video -c:a mp2` |
+| ASF | `-f asf -c:v wmv2 -c:a wmav2` |
+| 3GP | `-f 3gp -c:v mpeg4 -c:a aac -ar 44100` |
+| MXF | `-f mxf -c:v mpeg2video -c:a pcm_s16le` |
+| F4V | `-f f4v -c:v mpeg4 -c:a aac` |
+| 3G2 | `-f 3g2 -c:v mpeg4 -c:a aac -ar 44100` |
 | Multi-frame→still | `-frames:v 1 -update 1` (except GIF output) |
 
 ## Native Engines (bypass FFmpeg)

@@ -12,6 +12,7 @@
 		157079C32F4AEC5C00B64C40 /* webp in Frameworks */ = {isa = PBXBuildFile; productRef = 157079C22F4AEC5C00B64C40 /* webp */; };
 		15707A032F5B000100B64C40 /* FirebaseRemoteConfig in Frameworks */ = {isa = PBXBuildFile; productRef = 15707A012F5B000100B64C40 /* FirebaseRemoteConfig */; };
 		15707A042F5B000100B64C40 /* FirebaseAnalytics in Frameworks */ = {isa = PBXBuildFile; productRef = 15707A022F5B000100B64C40 /* FirebaseAnalytics */; };
+		15707A062F5B000100B64C40 /* FirebaseCrashlytics in Frameworks */ = {isa = PBXBuildFile; productRef = 15707A052F5B000100B64C40 /* FirebaseCrashlytics */; };
 		15A0B0032F6C800000B64C40 /* lame in Frameworks */ = {isa = PBXBuildFile; productRef = 15A0B0022F6C800000B64C40 /* lame */; };
 /* End PBXBuildFile section */
 
@@ -37,6 +38,7 @@
 				157079BC2F4ADBFB00B64C40 /* FFmpeg-iOS in Frameworks */,
 				15707A032F5B000100B64C40 /* FirebaseRemoteConfig in Frameworks */,
 				15707A042F5B000100B64C40 /* FirebaseAnalytics in Frameworks */,
+				15707A062F5B000100B64C40 /* FirebaseCrashlytics in Frameworks */,
 				15A0B0032F6C800000B64C40 /* lame in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -85,6 +87,7 @@
 				157079C22F4AEC5C00B64C40 /* webp */,
 				15707A012F5B000100B64C40 /* FirebaseRemoteConfig */,
 				15707A022F5B000100B64C40 /* FirebaseAnalytics */,
+				15707A052F5B000100B64C40 /* FirebaseCrashlytics */,
 				15A0B0022F6C800000B64C40 /* lame */,
 			);
 			productName = RangoFileConverter;
@@ -470,6 +473,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 15707A002F5B000100B64C40 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
 			productName = FirebaseAnalytics;
+		};
+		15707A052F5B000100B64C40 /* FirebaseCrashlytics */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 15707A002F5B000100B64C40 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseCrashlytics;
 		};
 		15A0B0022F6C800000B64C40 /* lame */ = {
 			isa = XCSwiftPackageProductDependency;

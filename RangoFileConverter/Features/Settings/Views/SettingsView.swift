@@ -333,6 +333,7 @@ struct SettingsView: View {
     private var linksSection: some View {
         VStack(spacing: 0) {
             linkRow(title: "Rate app", isFirst: true, isLast: false) {
+                AnalyticsService.log(AnalyticsService.Event.rateAppTapped)
                 rateAppPrompt = .random()
                 showRateAppAlert = true
             }

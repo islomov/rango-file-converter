@@ -855,6 +855,10 @@ struct HistoryResultSheet: View {
     }
 
     private func saveToPhotos(url: URL) {
+        AnalyticsService.log(AnalyticsService.Event.saveToPhotosTapped, parameters: [
+            AnalyticsService.Param.mediaCategory: record.mediaCategory,
+            AnalyticsService.Param.targetFormat: record.targetFormatID
+        ])
         let ext = url.pathExtension.lowercased()
         let isVideo = Self.gallerySaveableVideoExtensions.contains(ext)
 
@@ -901,6 +905,10 @@ struct HistoryResultSheet: View {
     }
 
     private func saveToFiles(url: URL) {
+        AnalyticsService.log(AnalyticsService.Event.saveToFilesTapped, parameters: [
+            AnalyticsService.Param.mediaCategory: record.mediaCategory,
+            AnalyticsService.Param.targetFormat: record.targetFormatID
+        ])
         let picker = UIDocumentPickerViewController(forExporting: [url], asCopy: true)
         if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
            let rootVC = windowScene.windows.first?.rootViewController {

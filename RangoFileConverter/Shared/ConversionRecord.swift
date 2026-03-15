@@ -69,7 +69,21 @@ final class ConversionRecord: Identifiable, Codable, ObservableObject {
                 completedDate = Date()
             }
             if newStatus == .converted {
+                AnalyticsService.log(AnalyticsService.Event.conversionCompleted, parameters: [
+                    AnalyticsService.Param.toolType: toolType,
+                    AnalyticsService.Param.mediaCategory: mediaCategory,
+                    AnalyticsService.Param.sourceFormat: sourceFormat,
+                    AnalyticsService.Param.targetFormat: targetFormatID
+                ])
                 AppReviewManager.shared.recordSuccess()
+            } else if newStatus == .failed {
+                AnalyticsService.log(AnalyticsService.Event.conversionFailed, parameters: [
+                    AnalyticsService.Param.toolType: toolType,
+                    AnalyticsService.Param.mediaCategory: mediaCategory,
+                    AnalyticsService.Param.sourceFormat: sourceFormat,
+                    AnalyticsService.Param.targetFormat: targetFormatID,
+                    AnalyticsService.Param.errorMessage: errorMessage ?? "unknown"
+                ])
             }
         }
     }

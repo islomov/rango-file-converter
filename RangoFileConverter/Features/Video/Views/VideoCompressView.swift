@@ -144,8 +144,19 @@ struct VideoCompressView: View {
                         .tracking(-0.408)
                 }
 
-                Slider(value: $quality, in: 1...31, step: 1)
-                    .tint(AppColors.accent)
+                VStack(spacing: 4) {
+                    HStack {
+                        Text("High")
+                            .font(.system(size: 12, weight: .medium))
+                            .foregroundColor(AppColors.textSecondary)
+                        Spacer()
+                        Text("Low")
+                            .font(.system(size: 12, weight: .medium))
+                            .foregroundColor(AppColors.textSecondary)
+                    }
+                    Slider(value: $quality, in: 1...31, step: 1)
+                        .tint(AppColors.accent)
+                }
             }
 
             // Resolution

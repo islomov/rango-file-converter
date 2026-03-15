@@ -57,7 +57,7 @@ enum ToolType: String, Codable, CaseIterable {
 
 final class ConversionRecord: Identifiable, Codable, ObservableObject {
     let id: UUID
-    var sourceFileName: String
+    var sourceFileName: String { willSet { objectWillChange.send() } }
     var sourceFormat: String
     var targetFormatID: String
     var thumbnailData: Data?

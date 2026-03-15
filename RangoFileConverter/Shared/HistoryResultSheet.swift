@@ -22,6 +22,8 @@ struct HistoryResultSheet: View {
     @State private var imageLoadTask: Task<Void, Never>?
     @State private var quickLookURL: URL?
     @State private var videoReady = false
+    @State private var showRenameAlert = false
+    @State private var renameText = ""
     var body: some View {
         VStack(spacing: 0) {
             Capsule()
@@ -66,6 +68,13 @@ struct HistoryResultSheet: View {
             Button("OK", role: .cancel) { }
         } message: {
             Text(LocalizedStringKey(saveError ?? "Unknown error"))
+        }
+        .alert("Rename File", isPresented: $showRenameAlert) {
+            TextField("File name", text: $renameText)
+            Button("Cancel", role: .cancel) { }
+            Button("Rename") { renameFile() }
+        } message: {
+            Text("Enter a new name for this file.")
         }
     }
 
@@ -458,6 +467,20 @@ struct HistoryResultSheet: View {
                         icon: "folder",
                         foregroundColor: AppColors.accent,
                         backgroundColor: AppColors.accent.opacity(0.08)
+                    )
+                }
+
+                Button {
+                    if let outputURL = record.outputURL {
+                        renameText = outputURL.deletingPathExtension().lastPathComponent
+                        showRenameAlert = true
+                    }
+                } label: {
+                    actionButton(
+                        title: "Rename",
+                        icon: "pencil",
+                        foregroundColor: AppColors.textPrimary,
+                        backgroundColor: AppColors.textPrimary.opacity(0.08)
                     )
                 }
 
@@ -905,6 +928,34 @@ struct HistoryResultSheet: View {
                     }
                 }
             }
+        }
+    }
+
+    private func renameFile() {
+        let trimmed = renameText.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty, let outputURL = record.outputURL else { return }
+
+        let ext = outputURL.pathExtension
+        let newFileName = trimmed + "." + ext
+        let newURL = outputURL.deletingLastPathComponent().appendingPathComponent(newFileName)
+
+        // Don't rename if the name hasn't changed
+        guard newURL != outputURL else { return }
+
+        do {
+            // If a file with the new name already exists, bail out
+            if FileManager.default.fileExists(atPath: newURL.path) {
+                saveError = String(localized: "A file with this name already exists.")
+                return
+            }
+            try FileManager.default.moveItem(at: outputURL, to: newURL)
+            // Update relative path stored in record
+            let parentDir = outputURL.deletingLastPathComponent().lastPathComponent
+            record.outputPath = parentDir + "/" + newFileName
+            record.sourceFileName = trimmed
+            historyStore.save()
+        } catch {
+            saveError = String(localized: "Failed to rename file.")
         }
     }
 

@@ -238,6 +238,7 @@ struct ImageConverterView: View {
                         .resizable()
                         .renderingMode(.template)
                         .frame(width: 24, height: 24)
+                        .flipsForRightToLeftLayoutDirection(true)
                         .foregroundColor(AppColors.textPrimary)
                         .frame(width: 40, height: 40)
                 }

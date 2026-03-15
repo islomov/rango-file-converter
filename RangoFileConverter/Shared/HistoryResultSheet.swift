@@ -108,7 +108,7 @@ struct HistoryResultSheet: View {
                             .font(.custom("Montserrat-SemiBold", size: 12))
                             .foregroundColor(AppColors.textPrimary)
 
-                        Image(systemName: "arrow.right")
+                        Image(systemName: "arrow.forward")
                             .font(.system(size: 10, weight: .semibold))
                             .foregroundColor(AppColors.textPrimary)
 

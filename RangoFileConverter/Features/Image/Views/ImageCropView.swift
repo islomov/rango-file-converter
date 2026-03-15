@@ -202,7 +202,7 @@ struct ImageCropView: View {
                 .tracking(-0.408)
 
             if hasChanges {
-                Image(systemName: "arrow.right")
+                Image(systemName: "arrow.forward")
                     .font(.system(size: 10))
                     .foregroundColor(AppColors.textPrimary)
 

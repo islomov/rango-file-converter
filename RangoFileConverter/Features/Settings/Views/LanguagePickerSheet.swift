@@ -54,6 +54,7 @@ struct LanguagePickerSheet: View {
                 TextField("Search", text: $searchText)
                     .font(.system(size: 15))
                     .foregroundColor(AppColors.textPrimary)
+                    .multilineTextAlignment(.leading)
                     .autocorrectionDisabled()
 
                 if !searchText.isEmpty {

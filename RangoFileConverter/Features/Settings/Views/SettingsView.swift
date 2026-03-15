@@ -13,6 +13,7 @@ struct SettingsView: View {
     @State private var showRateAppAlert = false
     @State private var rateAppPrompt: RateAppPrompt = .random()
     @State private var sectionsAppeared = false
+    @State private var featureRequestTitle = ""
 
     var body: some View {
         ZStack {
@@ -36,10 +37,15 @@ struct SettingsView: View {
                         .offset(y: sectionsAppeared ? 0 : 20)
                         .animation(.spring(response: 0.45, dampingFraction: 0.85).delay(0.19), value: sectionsAppeared)
 
-                    linksSection
+                    featureRequestSection
                         .opacity(sectionsAppeared ? 1 : 0)
                         .offset(y: sectionsAppeared ? 0 : 20)
                         .animation(.spring(response: 0.45, dampingFraction: 0.85).delay(0.26), value: sectionsAppeared)
+
+                    linksSection
+                        .opacity(sectionsAppeared ? 1 : 0)
+                        .offset(y: sectionsAppeared ? 0 : 20)
+                        .animation(.spring(response: 0.45, dampingFraction: 0.85).delay(0.33), value: sectionsAppeared)
                 }
                 .padding(.horizontal, 16)
                 .padding(.top, 16)
@@ -325,6 +331,61 @@ struct SettingsView: View {
             return String(format: "%.1f MB", mb)
         } else {
             return String(format: "%.0f MB", mb)
+        }
+    }
+
+    // MARK: - Feature Request Section
+
+    private var featureRequestSection: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            Text("Feature request")
+                .font(.system(size: 14, weight: .semibold))
+                .foregroundColor(AppColors.textSecondary)
+                .padding(.horizontal, 16)
+                .padding(.bottom, 8)
+
+            VStack(spacing: 0) {
+                TextField("Enter your feature request title", text: $featureRequestTitle)
+                    .font(.system(size: 14, weight: .regular))
+                    .foregroundColor(AppColors.textPrimary)
+                    .padding(.horizontal, 16)
+                    .padding(.vertical, 14)
+                    .overlay(alignment: .bottom) {
+                        Rectangle()
+                            .fill(AppColors.textSecondary.opacity(0.12))
+                            .frame(height: 1)
+                    }
+
+                Button {
+                    sendFeatureRequest()
+                } label: {
+                    HStack {
+                        Image(systemName: "envelope.fill")
+                            .font(.system(size: 14, weight: .medium))
+
+                        Text("Send feature request")
+                            .font(.system(size: 14, weight: .semibold))
+                    }
+                    .foregroundColor(featureRequestTitle.trimmingCharacters(in: .whitespaces).isEmpty ? AppColors.textSecondary : AppColors.accent)
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 14)
+                }
+                .disabled(featureRequestTitle.trimmingCharacters(in: .whitespaces).isEmpty)
+                .buttonStyle(.plain)
+            }
+            .background(AppColors.surface)
+            .cornerRadius(16)
+        }
+    }
+
+    private func sendFeatureRequest() {
+        let subject = featureRequestTitle.trimmingCharacters(in: .whitespaces)
+        guard !subject.isEmpty else { return }
+
+        let encodedSubject = subject.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? subject
+        if let url = URL(string: "mailto:support@viralapps.studio?subject=Feature%20Request:%20\(encodedSubject)") {
+            UIApplication.shared.open(url)
+            featureRequestTitle = ""
         }
     }
 

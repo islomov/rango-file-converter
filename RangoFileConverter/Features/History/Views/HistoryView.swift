@@ -107,6 +107,10 @@ struct HistoryView: View {
                             .foregroundColor(AppColors.textPrimary)
                             .multilineTextAlignment(.leading)
                             .focused($isSearchFocused)
+                            .submitLabel(.done)
+                            .onSubmit {
+                                isSearchFocused = false
+                            }
                     }
                     .padding(.horizontal, 16)
                     .frame(height: 48)

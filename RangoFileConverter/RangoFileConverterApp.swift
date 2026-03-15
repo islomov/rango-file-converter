@@ -8,6 +8,7 @@
 import SwiftUI
 import UserNotifications
 import FirebaseCore
+import FirebaseCrashlytics
 
 // MARK: - App Delegate
 
@@ -18,6 +19,9 @@ final class AppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCent
         didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]? = nil
     ) -> Bool {
         FirebaseApp.configure()
+        AnalyticsService.log(AnalyticsService.Event.appLaunched, parameters: [
+            AnalyticsService.Param.appVersion: Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "unknown"
+        ])
         RemoteConfigManager.shared.configure()
         RemoteConfigManager.shared.fetchAndActivate()
         UNUserNotificationCenter.current().delegate = self

@@ -68,6 +68,22 @@ final class ConversionRecord: Identifiable, Codable, ObservableObject {
             if newStatus == .converted || newStatus == .failed {
                 completedDate = Date()
             }
+            if newStatus == .converted {
+                AnalyticsService.log(AnalyticsService.Event.conversionCompleted, parameters: [
+                    AnalyticsService.Param.toolType: toolType,
+                    AnalyticsService.Param.mediaCategory: mediaCategory,
+                    AnalyticsService.Param.sourceFormat: sourceFormat,
+                    AnalyticsService.Param.targetFormat: targetFormatID
+                ])
+            } else if newStatus == .failed {
+                AnalyticsService.log(AnalyticsService.Event.conversionFailed, parameters: [
+                    AnalyticsService.Param.toolType: toolType,
+                    AnalyticsService.Param.mediaCategory: mediaCategory,
+                    AnalyticsService.Param.sourceFormat: sourceFormat,
+                    AnalyticsService.Param.targetFormat: targetFormatID,
+                    AnalyticsService.Param.errorMessage: errorMessage ?? "unknown"
+                ])
+            }
         }
     }
     var date: Date

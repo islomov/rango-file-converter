@@ -7,6 +7,9 @@ final class ThemeManager: ObservableObject {
     @Published var selectedTheme: AppTheme {
         didSet {
             UserDefaults.standard.set(selectedTheme.rawValue, forKey: "app_theme")
+            AnalyticsService.log(AnalyticsService.Event.themeChanged, parameters: [
+                AnalyticsService.Param.theme: selectedTheme.rawValue
+            ])
         }
     }
 

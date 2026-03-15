@@ -66,6 +66,9 @@ final class LanguageManager: ObservableObject {
     func setLanguage(_ code: String) {
         guard code != currentLanguageCode else { return }
         currentLanguageCode = code
+        AnalyticsService.log(AnalyticsService.Event.languageChanged, parameters: [
+            AnalyticsService.Param.language: code
+        ])
     }
 }
 

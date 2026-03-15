@@ -285,8 +285,16 @@ struct HistoryView: View {
         .sheet(isPresented: $showFilterSheet) {
             HistoryFilterSheet(initialState: filterState) { applied in
                 filterState = applied
+                if applied.isActive {
+                    AnalyticsService.log(AnalyticsService.Event.historyFiltered)
+                }
             }
             .presentationDetents([.large])
+        }
+        .onChange(of: searchText) { newValue in
+            if !newValue.isEmpty {
+                AnalyticsService.log(AnalyticsService.Event.historySearched)
+            }
         }
         .preference(key: TabBarVisibilityPreferenceKey.self, value: false)
     }

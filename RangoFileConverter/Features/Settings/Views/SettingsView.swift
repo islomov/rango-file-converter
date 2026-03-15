@@ -321,6 +321,7 @@ struct SettingsView: View {
     private var linksSection: some View {
         VStack(spacing: 0) {
             linkRow(title: "Rate app", isFirst: true, isLast: false) {
+                AnalyticsService.log(AnalyticsService.Event.rateAppTapped)
                 if let url = URL(string: "https://apps.apple.com/app/id6759793517?action=write-review") {
                     UIApplication.shared.open(url)
                 }

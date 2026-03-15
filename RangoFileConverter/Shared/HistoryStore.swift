@@ -39,6 +39,14 @@ final class HistoryStore: ObservableObject {
         records.insert(record, at: 0)
         pruneIfNeeded()
         save()
+        if record.status == .converting {
+            AnalyticsService.log(AnalyticsService.Event.conversionStarted, parameters: [
+                AnalyticsService.Param.toolType: record.toolType,
+                AnalyticsService.Param.mediaCategory: record.mediaCategory,
+                AnalyticsService.Param.sourceFormat: record.sourceFormat,
+                AnalyticsService.Param.targetFormat: record.targetFormatID
+            ])
+        }
     }
 
     private func pruneIfNeeded() {
@@ -56,6 +64,9 @@ final class HistoryStore: ObservableObject {
     }
 
     func remove(_ record: ConversionRecord) {
+        AnalyticsService.log(AnalyticsService.Event.deleteTapped, parameters: [
+            AnalyticsService.Param.mediaCategory: record.mediaCategory
+        ])
         ConversionTaskManager.shared.cancel(id: record.id)
         let outputURL = record.outputURL
         records.removeAll { $0.id == record.id }
@@ -69,6 +80,11 @@ final class HistoryStore: ObservableObject {
     }
 
     func removeAll(for mediaCategory: String? = nil) {
+        if let category = mediaCategory {
+            AnalyticsService.log(AnalyticsService.Event.storageCleared, parameters: [
+                AnalyticsService.Param.category: category
+            ])
+        }
         let toRemove = mediaCategory.map { records(for: $0) } ?? records
         let urlsToDelete = toRemove.compactMap { record -> URL? in
             ConversionTaskManager.shared.cancel(id: record.id)

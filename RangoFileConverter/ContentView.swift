@@ -41,6 +41,9 @@ struct ContentView: View {
                         ))
                 } else {
                     HomeView { category in
+                        AnalyticsService.log(AnalyticsService.Event.categorySelected, parameters: [
+                            AnalyticsService.Param.category: "\(category)"
+                        ])
                         withAnimation(.spring(response: 0.35, dampingFraction: 0.9)) {
                             selectedCategory = category
                         }
@@ -74,6 +77,9 @@ struct ContentView: View {
             }
         }
         .onChange(of: selectedTab) { _ in
+            AnalyticsService.log(AnalyticsService.Event.tabSelected, parameters: [
+                AnalyticsService.Param.tabName: "\(selectedTab)"
+            ])
             // When switching to History or Settings, always show the tab bar.
             // Fixes stale preference when leaving a converter sub-view mid-conversion.
             if selectedTab != .home || selectedCategory == nil {

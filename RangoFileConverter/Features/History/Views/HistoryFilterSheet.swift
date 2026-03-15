@@ -271,9 +271,8 @@ struct HistoryFilterSheet: View {
         VStack(spacing: 0) {
             HStack(spacing: 12) {
                 Button {
-                    selectedCategoryIDs.removeAll()
-                    selectedToolTypeIDs.removeAll()
-                    selectedStatusIDs.removeAll()
+                    onApply(HistoryFilterState())
+                    dismiss()
                 } label: {
                     Text("Clear all")
                         .font(.custom("Montserrat-SemiBold", size: 16))

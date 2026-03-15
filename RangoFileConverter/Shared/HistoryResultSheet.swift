@@ -426,50 +426,52 @@ struct HistoryResultSheet: View {
     // MARK: - Action Buttons (Figma: Share | Save | Delete)
 
     private func actionButtonsRow(url: URL) -> some View {
-        HStack(spacing: 11) {
-            ShareLink(item: url) {
-                actionButton(
-                    title: "Share",
-                    icon: "square.and.arrow.up",
-                    foregroundColor: AppColors.textPrimary,
-                    backgroundColor: AppColors.textPrimary.opacity(0.08)
-                )
-            }
+        ScrollView(.horizontal, showsIndicators: false) {
+            HStack(spacing: 11) {
+                ShareLink(item: url) {
+                    actionButton(
+                        title: "Share",
+                        icon: "square.and.arrow.up",
+                        foregroundColor: AppColors.textPrimary,
+                        backgroundColor: AppColors.textPrimary.opacity(0.08)
+                    )
+                }
 
-            if canSaveToPhotos(url: url) {
+                if canSaveToPhotos(url: url) {
+                    Button {
+                        saveToPhotos(url: url)
+                    } label: {
+                        actionButton(
+                            title: "Save",
+                            icon: "square.and.arrow.down",
+                            foregroundColor: AppColors.accent,
+                            backgroundColor: AppColors.accent.opacity(0.08)
+                        )
+                    }
+                }
+
                 Button {
-                    saveToPhotos(url: url)
+                    saveToFiles(url: url)
                 } label: {
                     actionButton(
-                        title: "Save",
-                        icon: "square.and.arrow.down",
+                        title: "Save to Files",
+                        icon: "folder",
                         foregroundColor: AppColors.accent,
                         backgroundColor: AppColors.accent.opacity(0.08)
                     )
                 }
-            }
 
-            Button {
-                saveToFiles(url: url)
-            } label: {
-                actionButton(
-                    title: "Save to Files",
-                    icon: "folder",
-                    foregroundColor: AppColors.accent,
-                    backgroundColor: AppColors.accent.opacity(0.08)
-                )
-            }
-
-            Button(role: .destructive) {
-                historyStore.remove(record)
-                dismiss()
-            } label: {
-                actionButton(
-                    title: "Delete",
-                    icon: "trash",
-                    foregroundColor: AppColors.destructive,
-                    backgroundColor: AppColors.destructive.opacity(0.08)
-                )
+                Button(role: .destructive) {
+                    historyStore.remove(record)
+                    dismiss()
+                } label: {
+                    actionButton(
+                        title: "Delete",
+                        icon: "trash",
+                        foregroundColor: AppColors.destructive,
+                        backgroundColor: AppColors.destructive.opacity(0.08)
+                    )
+                }
             }
         }
     }
@@ -480,9 +482,11 @@ struct HistoryResultSheet: View {
                 .font(.system(size: 20))
             Text(title)
                 .font(.custom("Montserrat-SemiBold", size: 14))
+                .multilineTextAlignment(.center)
         }
         .foregroundColor(foregroundColor)
-        .frame(maxWidth: .infinity)
+        .frame(minWidth: 90)
+        .padding(.horizontal, 12)
         .padding(.vertical, 12)
         .background(backgroundColor, in: RoundedRectangle(cornerRadius: 12))
     }

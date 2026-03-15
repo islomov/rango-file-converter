@@ -4,6 +4,7 @@ import AVFoundation
 import AVKit
 import Combine
 import QuickLook
+import PDFKit
 
 struct HistoryResultSheet: View {
     @ObservedObject var record: ConversionRecord
@@ -22,6 +23,7 @@ struct HistoryResultSheet: View {
     @State private var imageLoadTask: Task<Void, Never>?
     @State private var quickLookURL: URL?
     @State private var videoReady = false
+    @State private var pdfThumbnail: UIImage?
     var body: some View {
         VStack(spacing: 0) {
             Capsule()
@@ -437,6 +439,19 @@ struct HistoryResultSheet: View {
                     )
                 }
 
+                if outputMediaType(for: url) == .document {
+                    Button {
+                        quickLookURL = url
+                    } label: {
+                        actionButton(
+                            title: "View",
+                            icon: "eye",
+                            foregroundColor: AppColors.accent,
+                            backgroundColor: AppColors.accent.opacity(0.08)
+                        )
+                    }
+                }
+
                 if canSaveToPhotos(url: url) {
                     Button {
                         saveToPhotos(url: url)
@@ -639,16 +654,60 @@ struct HistoryResultSheet: View {
     }
 
     private func documentPreview(url: URL) -> some View {
-        VStack(spacing: 12) {
-            Image(systemName: documentIcon(for: url.pathExtension))
-                .font(.system(size: 56))
-                .foregroundColor(AppColors.accent)
+        Button {
+            quickLookURL = url
+        } label: {
+            VStack(spacing: 8) {
+                if let thumb = pdfThumbnail {
+                    Image(uiImage: thumb)
+                        .resizable()
+                        .aspectRatio(contentMode: .fit)
+                        .frame(maxHeight: 180)
+                        .clipShape(RoundedRectangle(cornerRadius: 12))
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 12)
+                                .stroke(AppColors.border, lineWidth: 1)
+                        )
+                } else {
+                    Image(systemName: documentIcon(for: url.pathExtension))
+                        .font(.system(size: 56))
+                        .foregroundColor(AppColors.accent)
+                }
 
-            Text(url.pathExtension.uppercased())
-                .font(.custom("Montserrat-SemiBold", size: 12))
-                .foregroundColor(AppColors.textSecondary)
+                HStack(spacing: 4) {
+                    Text(url.pathExtension.uppercased())
+                        .font(.custom("Montserrat-SemiBold", size: 12))
+                        .foregroundColor(AppColors.textSecondary)
+
+                    Text("— Tap to view")
+                        .font(.custom("Montserrat-SemiBold", size: 12))
+                        .foregroundColor(AppColors.accent)
+                }
+            }
+            .padding(.vertical, 8)
         }
-        .padding(.vertical, 8)
+        .onAppear { loadPDFThumbnail(url: url) }
+    }
+
+    private func loadPDFThumbnail(url: URL) {
+        guard url.pathExtension.lowercased() == "pdf" else { return }
+        Task.detached(priority: .userInitiated) {
+            guard let pdfDoc = PDFDocument(url: url),
+                  let page = pdfDoc.page(at: 0) else { return }
+            let pageRect = page.bounds(for: .mediaBox)
+            let thumbWidth: CGFloat = 200
+            let thumbHeight = thumbWidth * pageRect.height / pageRect.width
+            let renderer = UIGraphicsImageRenderer(size: CGSize(width: thumbWidth, height: thumbHeight))
+            let image = renderer.image { ctx in
+                UIColor.white.setFill()
+                ctx.fill(CGRect(origin: .zero, size: renderer.format.bounds.size))
+                ctx.cgContext.translateBy(x: 0, y: thumbHeight)
+                ctx.cgContext.scaleBy(x: thumbWidth / pageRect.width,
+                                      y: -thumbHeight / pageRect.height)
+                page.draw(with: .mediaBox, to: ctx.cgContext)
+            }
+            await MainActor.run { pdfThumbnail = image }
+        }
     }
 
     private func documentIcon(for ext: String) -> String {

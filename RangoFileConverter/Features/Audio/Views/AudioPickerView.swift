@@ -81,7 +81,7 @@ struct AudioPickerView: View {
                 Button {
                     dismiss()
                 } label: {
-                    Image(systemName: "chevron.left")
+                    Image(systemName: "chevron.backward")
                         .font(.system(size: 18, weight: .medium))
                         .foregroundColor(AppColors.textPrimary)
                         .frame(width: 40, height: 40)

@@ -158,7 +158,7 @@ struct ImageResizeView: View {
                 .tracking(-0.408)
 
             if dimensionsChanged {
-                Image(systemName: "arrow.right")
+                Image(systemName: "arrow.forward")
                     .font(.system(size: 10))
                     .foregroundColor(AppColors.textPrimary)
 

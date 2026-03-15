@@ -65,6 +65,7 @@ struct RangoFileConverterApp: App {
             ZStack {
                 ContentView()
                     .environment(\.locale, languageManager.locale)
+                    .environment(\.layoutDirection, languageManager.layoutDirection)
                     .environmentObject(historyStore)
                     .environmentObject(themeManager)
                     .environmentObject(languageManager)

@@ -229,6 +229,7 @@ struct PDFReorderView: View {
                         .resizable()
                         .renderingMode(.template)
                         .frame(width: 24, height: 24)
+                        .flipsForRightToLeftLayoutDirection(true)
                         .foregroundColor(AppColors.textPrimary)
                         .frame(width: 40, height: 40)
                         .background(Circle().fill(AppColors.textSecondary.opacity(0.08)))

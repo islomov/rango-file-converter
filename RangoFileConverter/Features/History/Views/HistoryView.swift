@@ -105,6 +105,7 @@ struct HistoryView: View {
                         TextField("Search", text: $searchText)
                             .font(.custom("Sora-Regular", size: 14))
                             .foregroundColor(AppColors.textPrimary)
+                            .multilineTextAlignment(.leading)
                             .focused($isSearchFocused)
                     }
                     .padding(.horizontal, 16)

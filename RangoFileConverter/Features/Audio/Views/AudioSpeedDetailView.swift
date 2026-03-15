@@ -146,7 +146,7 @@ struct AudioSpeedDetailView: View {
                 .foregroundColor(AppColors.textPrimary)
                 .tracking(-0.408)
 
-            Image(systemName: "arrow.right")
+            Image(systemName: "arrow.forward")
                 .font(.system(size: 10, weight: .semibold))
                 .foregroundColor(AppColors.textPrimary)
 

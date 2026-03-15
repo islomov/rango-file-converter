@@ -149,7 +149,7 @@ struct SettingsView: View {
                             .font(.system(size: 12, weight: .semibold))
                             .foregroundColor(AppColors.textSecondary)
 
-                        Image(systemName: "chevron.right")
+                        Image(systemName: "chevron.forward")
                             .font(.system(size: 14, weight: .medium))
                             .foregroundColor(AppColors.textSecondary)
                             .frame(width: 24, height: 24)
@@ -300,7 +300,7 @@ struct SettingsView: View {
                     .font(.system(size: 12, weight: .semibold))
                     .foregroundColor(AppColors.textSecondary)
 
-                Image(systemName: "chevron.right")
+                Image(systemName: "chevron.forward")
                     .font(.system(size: 14, weight: .medium))
                     .foregroundColor(AppColors.textSecondary)
             }
@@ -362,7 +362,7 @@ struct SettingsView: View {
 
                 Spacer()
 
-                Image(systemName: "chevron.right")
+                Image(systemName: "chevron.forward")
                     .font(.system(size: 14, weight: .medium))
                     .foregroundColor(AppColors.textSecondary)
             }

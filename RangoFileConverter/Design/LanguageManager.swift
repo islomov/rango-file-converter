@@ -18,6 +18,12 @@ final class LanguageManager: ObservableObject {
         Locale(identifier: currentLanguageCode)
     }
 
+    /// Layout direction for the current language (RTL for Arabic, Hebrew).
+    var layoutDirection: LayoutDirection {
+        Locale.characterDirection(forLanguage: currentLanguageCode) == .rightToLeft
+            ? .rightToLeft : .leftToRight
+    }
+
     static let supportedLanguages: [AppLanguage] = [
         AppLanguage(code: "en", nativeName: "English", englishName: "English"),
         AppLanguage(code: "ar", nativeName: "العربية", englishName: "Arabic"),

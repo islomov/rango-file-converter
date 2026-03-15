@@ -180,6 +180,7 @@ private struct ServiceCard: View {
                         .renderingMode(.template)
                         .foregroundColor(foregroundColor)
                         .frame(width: 24, height: 24)
+                        .flipsForRightToLeftLayoutDirection(true)
                 }
                 .padding(.horizontal, 24)
                 .padding(.top, 40)

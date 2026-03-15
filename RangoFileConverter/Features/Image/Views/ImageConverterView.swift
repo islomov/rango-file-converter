@@ -169,12 +169,13 @@ struct ImageConverterView: View {
                     MakeGifView(
                         fileURLs: gifFileURLs,
                         fileNames: gifFileNames
-                    ) { frameDelay, loopForever in
+                    ) { frameDelay, loopForever, maxWidth in
                         viewModel.processGif(
                             fileURLs: gifFileURLs,
                             fileNames: gifFileNames,
                             frameDelay: frameDelay,
-                            loopForever: loopForever
+                            loopForever: loopForever,
+                            maxWidth: maxWidth
                         )
                         }
                     .hidesFloatingTabBar()

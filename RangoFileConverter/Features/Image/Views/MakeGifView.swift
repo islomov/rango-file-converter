@@ -5,10 +5,11 @@ import UniformTypeIdentifiers
 struct MakeGifView: View {
     let fileURLs: [URL]
     let fileNames: [String]
-    let onApply: (Double, Bool) -> Void
+    let onApply: (Double, Bool, CGFloat) -> Void
 
     @State private var frameDelay: Double = 0.50
     @State private var loopForever = true
+    @State private var gifWidth: Double = 800
     @State private var currentFrameIndex = 0
     @State private var timer: Timer?
     @State private var previewFrames: [UIImage] = []
@@ -128,6 +129,24 @@ struct MakeGifView: View {
                     .tint(AppColors.accent)
             }
 
+            // Width slider
+            VStack(spacing: 12) {
+                HStack {
+                    Text("Width")
+                        .font(.system(size: 14, weight: .semibold))
+                        .foregroundColor(AppColors.textSecondary)
+                        .tracking(-0.408)
+                    Spacer()
+                    Text("\(Int(gifWidth))px")
+                        .font(.system(size: 14, weight: .semibold))
+                        .foregroundColor(AppColors.textSecondary)
+                        .tracking(-0.408)
+                }
+
+                Slider(value: $gifWidth, in: 160...800, step: 40)
+                    .tint(AppColors.accent)
+            }
+
             // Loop Forever toggle
             HStack {
                 Text("Loop Forever")
@@ -166,7 +185,7 @@ struct MakeGifView: View {
             // Create GIF button
             Button {
                 stopTimer()
-                onApply(frameDelay, loopForever)
+                onApply(frameDelay, loopForever, CGFloat(gifWidth))
             } label: {
                 Text("Create GIF")
                     .font(.system(size: 16, weight: .semibold))

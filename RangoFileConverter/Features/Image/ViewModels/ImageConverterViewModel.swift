@@ -499,7 +499,7 @@ final class ImageConverterViewModel: ObservableObject {
 
     // MARK: GIF
 
-    func processGif(fileURLs: [URL], fileNames: [String], frameDelay: Double, loopForever: Bool) {
+    func processGif(fileURLs: [URL], fileNames: [String], frameDelay: Double, loopForever: Bool, maxWidth: CGFloat = 800) {
         let thumbnailData = Self.loadThumbnail(from: fileURLs[0])?
             .jpegData(compressionQuality: 0.8)
         let record = ConversionRecord(
@@ -525,7 +525,7 @@ final class ImageConverterViewModel: ObservableObject {
                 return
             }
 
-            if let url = Self.renderGIF(fileURLs: fileURLs, frameDelay: frameDelay, loopForever: loopForever) {
+            if let url = Self.renderGIF(fileURLs: fileURLs, frameDelay: frameDelay, loopForever: loopForever, maxWidth: maxWidth) {
                 await MainActor.run { self.completeRecord(record, outputURL: url) }
             } else {
                 await MainActor.run { self.failRecord(record, error: "Failed to create GIF") }
@@ -535,7 +535,7 @@ final class ImageConverterViewModel: ObservableObject {
         taskManager.register(id: record.id, task: task)
     }
 
-    static func renderGIF(fileURLs: [URL], frameDelay: Double, loopForever: Bool) -> URL? {
+    static func renderGIF(fileURLs: [URL], frameDelay: Double, loopForever: Bool, maxWidth: CGFloat = 800) -> URL? {
         let outputName = "animated_\(UUID().uuidString.prefix(8)).gif"
         let outputURL = FileManager.default.temporaryDirectory
             .appendingPathComponent("rango_conversions", isDirectory: true)
@@ -545,9 +545,6 @@ final class ImageConverterViewModel: ObservableObject {
             at: outputURL.deletingLastPathComponent(),
             withIntermediateDirectories: true
         )
-
-        // Get target size from first image dimensions
-        guard let firstSize = imageDimensions(from: fileURLs[0]) else { return nil }
 
         guard let destination = CGImageDestinationCreateWithURL(
             outputURL as CFURL,
@@ -569,14 +566,17 @@ final class ImageConverterViewModel: ObservableObject {
             ]
         ]
 
+        let downsampleOptions: [CFString: Any] = [
+            kCGImageSourceShouldCache: false,
+            kCGImageSourceCreateThumbnailFromImageAlways: true,
+            kCGImageSourceCreateThumbnailWithTransform: true,
+            kCGImageSourceThumbnailMaxPixelSize: maxWidth
+        ]
+
         for url in fileURLs {
             autoreleasepool {
-                guard let image = loadFullImage(from: url) else { return }
-                let renderer = UIGraphicsImageRenderer(size: firstSize)
-                let normalized = renderer.image { _ in
-                    image.draw(in: CGRect(origin: .zero, size: firstSize))
-                }
-                guard let cgImage = normalized.cgImage else { return }
+                guard let source = CGImageSourceCreateWithURL(url as CFURL, [kCGImageSourceShouldCache: false] as CFDictionary),
+                      let cgImage = CGImageSourceCreateThumbnailAtIndex(source, 0, downsampleOptions as CFDictionary) else { return }
                 CGImageDestinationAddImage(destination, cgImage, frameProperties as CFDictionary)
             }
         }

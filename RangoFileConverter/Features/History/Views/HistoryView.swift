@@ -92,70 +92,70 @@ struct HistoryView: View {
             .padding(.bottom, 24)
 
             // Search bar + filter
-            if isSearchBarVisible {
-                HStack(spacing: 12) {
+            HStack(spacing: 12) {
 
-                    HStack(spacing: 8) {
-                        Image("icon_search")
-                            .resizable()
-                            .renderingMode(.template)
-                            .foregroundColor(AppColors.textPrimary)
-                            .frame(width: 24, height: 24)
+                HStack(spacing: 8) {
+                    Image("icon_search")
+                        .resizable()
+                        .renderingMode(.template)
+                        .foregroundColor(AppColors.textPrimary)
+                        .frame(width: 24, height: 24)
 
-                        TextField("Search", text: $searchText)
-                            .font(.custom("Sora-Regular", size: 14))
-                            .foregroundColor(AppColors.textPrimary)
-                            .multilineTextAlignment(.leading)
-                            .focused($isSearchFocused)
-                            .submitLabel(.done)
-                            .onSubmit {
-                                isSearchFocused = false
-                            }
-                    }
-                    .padding(.horizontal, 16)
-                    .frame(height: 48)
-                    .background(AppColors.surface)
-                    .clipShape(RoundedRectangle(cornerRadius: 16))
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 16)
-                            .stroke(
-                                isSearchFocused
-                                    ? AnyShapeStyle(LinearGradient(
-                                        colors: [AppColors.buttonGradientStart, AppColors.buttonGradientEnd],
-                                        startPoint: .leading,
-                                        endPoint: .trailing
-                                      ))
-                                    : AnyShapeStyle(AppColors.border),
-                                lineWidth: isSearchFocused ? 1.5 : 1
-                            )
-                    )
-                    .contentShape(RoundedRectangle(cornerRadius: 16))
-                    .onTapGesture {
-                        isSearchFocused = true
-                    }
-
-                    Button {
-                        showFilterSheet = true
-                    } label: {
-                        Image("icon_filter")
-                            .resizable()
-                            .renderingMode(.template)
-                            .foregroundColor(AppColors.textPrimary)
-                            .frame(width: 24, height: 24)
-                            .frame(width: 48, height: 48)
-                            .background(filterState.isActive ? AppColors.accent.opacity(0.12) : AppColors.surface)
-                            .clipShape(RoundedRectangle(cornerRadius: 16))
-                            .overlay(
-                                RoundedRectangle(cornerRadius: 16)
-                                    .stroke(filterState.isActive ? AppColors.accent : AppColors.border, lineWidth: 1)
-                            )
-                    }
-                    .buttonStyle(.plain)
+                    TextField("Search", text: $searchText)
+                        .font(.custom("Sora-Regular", size: 14))
+                        .foregroundColor(AppColors.textPrimary)
+                        .multilineTextAlignment(.leading)
+                        .focused($isSearchFocused)
+                        .submitLabel(.done)
+                        .onSubmit {
+                            isSearchFocused = false
+                        }
                 }
                 .padding(.horizontal, 16)
-                .padding(.bottom, 24)
-                .transition(.move(edge: .top).combined(with: .opacity))
+                .frame(height: 48)
+                .background(AppColors.surface)
+                .clipShape(RoundedRectangle(cornerRadius: 16))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 16)
+                        .stroke(
+                            isSearchFocused
+                                ? AnyShapeStyle(LinearGradient(
+                                    colors: [AppColors.buttonGradientStart, AppColors.buttonGradientEnd],
+                                    startPoint: .leading,
+                                    endPoint: .trailing
+                                  ))
+                                : AnyShapeStyle(AppColors.border),
+                            lineWidth: isSearchFocused ? 1.5 : 1
+                        )
+                )
+                .contentShape(RoundedRectangle(cornerRadius: 16))
+                .onTapGesture {
+                    isSearchFocused = true
+                }
+
+                Button {
+                    showFilterSheet = true
+                } label: {
+                    Image("icon_filter")
+                        .resizable()
+                        .renderingMode(.template)
+                        .foregroundColor(AppColors.textPrimary)
+                        .frame(width: 24, height: 24)
+                        .frame(width: 48, height: 48)
+                        .background(filterState.isActive ? AppColors.accent.opacity(0.12) : AppColors.surface)
+                        .clipShape(RoundedRectangle(cornerRadius: 16))
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 16)
+                                .stroke(filterState.isActive ? AppColors.accent : AppColors.border, lineWidth: 1)
+                        )
+                }
+                .buttonStyle(.plain)
             }
+            .padding(.horizontal, 16)
+            .padding(.bottom, isSearchBarVisible ? 24 : 0)
+            .frame(height: isSearchBarVisible ? nil : 0)
+            .clipped()
+            .opacity(isSearchBarVisible ? 1 : 0)
 
             // Content
             if latestRecords.isEmpty && groupedRecords.isEmpty {

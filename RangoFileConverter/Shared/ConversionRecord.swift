@@ -75,6 +75,7 @@ final class ConversionRecord: Identifiable, Codable, ObservableObject {
                     AnalyticsService.Param.sourceFormat: sourceFormat,
                     AnalyticsService.Param.targetFormat: targetFormatID
                 ])
+                AppReviewManager.shared.recordSuccess()
             } else if newStatus == .failed {
                 AnalyticsService.log(AnalyticsService.Event.conversionFailed, parameters: [
                     AnalyticsService.Param.toolType: toolType,

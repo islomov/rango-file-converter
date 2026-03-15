@@ -1,8 +1,8 @@
-import Foundation
+import SwiftUI
 
 struct RateAppPrompt {
-    let title: String
-    let message: String
+    let title: LocalizedStringKey
+    let message: LocalizedStringKey
 
     static let allPrompts: [RateAppPrompt] = [
         RateAppPrompt(

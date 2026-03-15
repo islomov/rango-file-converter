@@ -32,6 +32,14 @@ enum AppTheme: String, CaseIterable {
     case light = "Light"
     case dark = "Dark"
 
+    var localizedName: LocalizedStringKey {
+        switch self {
+        case .system: return "System"
+        case .light: return "Light"
+        case .dark: return "Dark"
+        }
+    }
+
     var iconName: String {
         switch self {
         case .system: return "circle.lefthalf.filled"

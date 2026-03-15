@@ -202,7 +202,7 @@ struct SettingsView: View {
                         .foregroundColor(AppColors.textPrimary)
                 }
 
-                Text(theme.rawValue)
+                Text(theme.localizedName)
                     .font(.system(size: 14, weight: .semibold))
                     .foregroundColor(AppColors.textPrimary)
 

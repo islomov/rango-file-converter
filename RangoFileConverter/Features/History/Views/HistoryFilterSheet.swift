@@ -115,7 +115,7 @@ struct HistoryFilterSheet: View {
 
             Spacer()
 
-            Text("Filtr")
+            Text("Filter")
                 .font(.custom("Montserrat-SemiBold", size: 20))
                 .foregroundColor(AppColors.textPrimary)
 

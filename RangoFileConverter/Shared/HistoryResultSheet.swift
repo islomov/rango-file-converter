@@ -336,7 +336,7 @@ struct HistoryResultSheet: View {
             Button(role: .destructive) {
                 ConversionTaskManager.shared.cancel(id: record.id)
                 record.status = .failed
-                record.errorMessage = "Cancelled by user"
+                record.errorMessage = String(localized: "Cancelled by user")
                 historyStore.save()
                 dismiss()
             } label: {
@@ -869,7 +869,7 @@ struct HistoryResultSheet: View {
                 pngData = image.pngData()
             }
             if pngData == nil {
-                saveError = "This image format is not supported for saving to the photo library."
+                saveError = String(localized: "This image format is not supported for saving to the photo library.")
                 return
             }
         }
@@ -877,7 +877,7 @@ struct HistoryResultSheet: View {
         PHPhotoLibrary.requestAuthorization(for: .addOnly) { status in
             guard status == .authorized else {
                 DispatchQueue.main.async {
-                    self.saveError = "Photo library access denied. Please allow access in Settings."
+                    self.saveError = String(localized: "Photo library access denied. Please allow access in Settings.")
                 }
                 return
             }
@@ -897,7 +897,7 @@ struct HistoryResultSheet: View {
                     if success {
                         self.showSaveSuccess = true
                     } else {
-                        self.saveError = error?.localizedDescription ?? "Failed to save"
+                        self.saveError = error?.localizedDescription ?? String(localized: "Failed to save")
                     }
                 }
             }

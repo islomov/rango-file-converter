@@ -61,23 +61,78 @@ final class FFmpegMergeEngine {
             try? FileManager.default.removeItem(at: outputURL)
         }
 
-        // Attempt 2: re-encode with consistent settings
+        // Attempt 2: re-encode using concat filter (handles different codecs/resolutions)
+        // Try with video + audio first
+        do {
+            try await mergeWithConcatFilter(
+                inputs: inputs,
+                outputURL: outputURL,
+                includeAudio: true,
+                progressFilePath: progressFilePath
+            )
+            return outputURL
+        } catch {
+            try? FileManager.default.removeItem(at: outputURL)
+        }
+
+        // Attempt 3: video-only (some inputs may lack audio streams)
+        try await mergeWithConcatFilter(
+            inputs: inputs,
+            outputURL: outputURL,
+            includeAudio: false,
+            progressFilePath: progressFilePath
+        )
+        return outputURL
+    }
+
+    /// Re-encode and merge using the concat filter, which handles different codecs, resolutions, and stream layouts.
+    private func mergeWithConcatFilter(
+        inputs: [URL],
+        outputURL: URL,
+        includeAudio: Bool,
+        progressFilePath: String?
+    ) async throws {
+        let n = inputs.count
         var args = ["ffmpeg", "-y"]
         if let progressPath = progressFilePath {
             args += ["-progress", progressPath]
         }
-        args += [
-            "-f", "concat",
-            "-safe", "0",
-            "-i", listURL.path,
-            "-c:v", "mpeg4",
-            "-c:a", "aac",
-            "-b:a", "128k",
-            outputURL.path
-        ]
-        try await wrapper.execute(args)
+        for input in inputs {
+            args += ["-i", input.path]
+        }
 
-        return outputURL
+        // Build filter: scale each video to 1280x720, then concat
+        var filters: [String] = []
+        for i in 0..<n {
+            filters.append("[\(i):v]scale=1280:720:force_original_aspect_ratio=decrease,pad=1280:720:(ow-iw)/2:(oh-ih)/2,setsar=1[\(i)v]")
+        }
+        if includeAudio {
+            for i in 0..<n {
+                filters.append("[\(i):a]aresample=44100[\(i)a]")
+            }
+            let concatInputs = (0..<n).map { "[\($0)v][\($0)a]" }.joined()
+            filters.append("\(concatInputs)concat=n=\(n):v=1:a=1[outv][outa]")
+            let filterComplex = filters.joined(separator: ";")
+            args += [
+                "-filter_complex", filterComplex,
+                "-map", "[outv]", "-map", "[outa]",
+                "-c:v", "mpeg4",
+                "-c:a", "aac", "-b:a", "128k",
+                outputURL.path
+            ]
+        } else {
+            let concatInputs = (0..<n).map { "[\($0)v]" }.joined()
+            filters.append("\(concatInputs)concat=n=\(n):v=1:a=0[outv]")
+            let filterComplex = filters.joined(separator: ";")
+            args += [
+                "-filter_complex", filterComplex,
+                "-map", "[outv]",
+                "-c:v", "mpeg4",
+                outputURL.path
+            ]
+        }
+
+        try await wrapper.execute(args)
     }
 
     /// Merge multiple audio files into a single output using FFmpeg concat demuxer.

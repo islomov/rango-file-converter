@@ -178,56 +178,63 @@ private struct ServiceCard: View {
     var hasBottomRadius: Bool = false
     var action: () -> Void
 
-    var body: some View {
-        Button(action: action) {
-            VStack {
-                HStack(alignment: .center) {
-                    VStack(alignment: .leading, spacing: 4) {
-                        if let iconName = iconName {
-                            Image(iconName)
-                                .resizable()
-                                .renderingMode(.template)
-                                .frame(width: 32, height: 32)
-                                .foregroundColor(foregroundColor)
-                        } else if let systemIconName = systemIconName {
-                            Image(systemName: systemIconName)
-                                .font(.system(size: 24, weight: .bold))
-                                .frame(width: 32, height: 32)
-                                .foregroundColor(foregroundColor)
-                        }
+    @State private var isPressed = false
 
-                        Text(title)
-                            .font(.system(size: 16, weight: .semibold))
+    var body: some View {
+        VStack {
+            HStack(alignment: .center) {
+                VStack(alignment: .leading, spacing: 4) {
+                    if let iconName = iconName {
+                        Image(iconName)
+                            .resizable()
+                            .renderingMode(.template)
+                            .frame(width: 32, height: 32)
+                            .foregroundColor(foregroundColor)
+                    } else if let systemIconName = systemIconName {
+                        Image(systemName: systemIconName)
+                            .font(.system(size: 24, weight: .bold))
+                            .frame(width: 32, height: 32)
                             .foregroundColor(foregroundColor)
                     }
 
-                    Spacer()
-
-                    Image(arrowName)
-                        .resizable()
-                        .renderingMode(.template)
+                    Text(title)
+                        .font(.system(size: 16, weight: .semibold))
                         .foregroundColor(foregroundColor)
-                        .frame(width: 24, height: 24)
-                        .flipsForRightToLeftLayoutDirection(true)
                 }
-                .padding(.horizontal, 24)
-                .padding(.top, 40)
 
                 Spacer()
+
+                Image(arrowName)
+                    .resizable()
+                    .renderingMode(.template)
+                    .foregroundColor(foregroundColor)
+                    .frame(width: 24, height: 24)
+                    .flipsForRightToLeftLayoutDirection(true)
             }
-            .frame(maxWidth: .infinity)
-            .frame(height: height)
-            .background {
-                if let backgroundGradient = backgroundGradient {
-                    backgroundGradient
-                } else if let backgroundColor = backgroundColor {
-                    backgroundColor
-                }
-            }
-            .clipShape(CardShape(topRadius: topCornerRadius, bottomRadius: hasBottomRadius ? topCornerRadius : 0))
-            .shadow(color: .black.opacity(0.05), radius: 2, y: 1)
+            .padding(.horizontal, 24)
+            .padding(.top, 40)
+
+            Spacer()
         }
-        .buttonStyle(.plain)
+        .frame(maxWidth: .infinity)
+        .frame(height: height)
+        .background {
+            if let backgroundGradient = backgroundGradient {
+                backgroundGradient
+            } else if let backgroundColor = backgroundColor {
+                backgroundColor
+            }
+        }
+        .clipShape(CardShape(topRadius: topCornerRadius, bottomRadius: hasBottomRadius ? topCornerRadius : 0))
+        .scaleEffect(isPressed ? 0.97 : 1.0)
+        .animation(.spring(response: 0.25, dampingFraction: 0.7), value: isPressed)
+        .onTapGesture {
+            UIImpactFeedbackGenerator(style: .light).impactOccurred()
+            action()
+        }
+        .onLongPressGesture(minimumDuration: .infinity, pressing: { pressing in
+            isPressed = pressing
+        }, perform: {})
     }
 }
 

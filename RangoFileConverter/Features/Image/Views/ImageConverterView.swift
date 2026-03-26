@@ -310,7 +310,13 @@ struct ImageConverterView: View {
             } else if let systemIcon = tool.systemIcon {
                 Image(systemName: systemIcon)
                     .font(.system(size: 24))
-                    .foregroundColor(AppColors.textPrimary)
+                    .foregroundStyle(
+                        LinearGradient(
+                            colors: [AppColors.accentLight, AppColors.accent, AppColors.accentLight],
+                            startPoint: .topTrailing,
+                            endPoint: .bottomLeading
+                        )
+                    )
                     .frame(width: 28, height: 28)
             } else {
                 Image(tool.icon)

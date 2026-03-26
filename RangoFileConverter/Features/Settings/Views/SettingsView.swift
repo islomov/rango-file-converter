@@ -13,7 +13,6 @@ struct SettingsView: View {
     @State private var showRateAppAlert = false
     @State private var rateAppPrompt: RateAppPrompt = .random()
     @State private var sectionsAppeared = false
-    @State private var featureRequestTitle = ""
 
     var body: some View {
         ZStack {
@@ -37,15 +36,10 @@ struct SettingsView: View {
                         .offset(y: sectionsAppeared ? 0 : 20)
                         .animation(.spring(response: 0.45, dampingFraction: 0.85).delay(0.19), value: sectionsAppeared)
 
-                    featureRequestSection
-                        .opacity(sectionsAppeared ? 1 : 0)
-                        .offset(y: sectionsAppeared ? 0 : 20)
-                        .animation(.spring(response: 0.45, dampingFraction: 0.85).delay(0.26), value: sectionsAppeared)
-
                     linksSection
                         .opacity(sectionsAppeared ? 1 : 0)
                         .offset(y: sectionsAppeared ? 0 : 20)
-                        .animation(.spring(response: 0.45, dampingFraction: 0.85).delay(0.33), value: sectionsAppeared)
+                        .animation(.spring(response: 0.45, dampingFraction: 0.85).delay(0.26), value: sectionsAppeared)
                 }
                 .padding(.horizontal, 16)
                 .padding(.top, 16)
@@ -334,66 +328,17 @@ struct SettingsView: View {
         }
     }
 
-    // MARK: - Feature Request Section
-
-    private var featureRequestSection: some View {
-        VStack(alignment: .leading, spacing: 0) {
-            Text("Feature request")
-                .font(.system(size: 14, weight: .semibold))
-                .foregroundColor(AppColors.textSecondary)
-                .padding(.horizontal, 16)
-                .padding(.bottom, 8)
-
-            VStack(spacing: 0) {
-                TextField("Enter your feature request title", text: $featureRequestTitle)
-                    .font(.system(size: 14, weight: .regular))
-                    .foregroundColor(AppColors.textPrimary)
-                    .padding(.horizontal, 16)
-                    .padding(.vertical, 14)
-                    .overlay(alignment: .bottom) {
-                        Rectangle()
-                            .fill(AppColors.textSecondary.opacity(0.12))
-                            .frame(height: 1)
-                    }
-
-                Button {
-                    sendFeatureRequest()
-                } label: {
-                    HStack {
-                        Image(systemName: "envelope.fill")
-                            .font(.system(size: 14, weight: .medium))
-
-                        Text("Send feature request")
-                            .font(.system(size: 14, weight: .semibold))
-                    }
-                    .foregroundColor(featureRequestTitle.trimmingCharacters(in: .whitespaces).isEmpty ? AppColors.textSecondary : AppColors.accent)
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 14)
-                }
-                .disabled(featureRequestTitle.trimmingCharacters(in: .whitespaces).isEmpty)
-                .buttonStyle(.plain)
-            }
-            .background(AppColors.surface)
-            .cornerRadius(16)
-        }
-    }
-
-    private func sendFeatureRequest() {
-        let subject = featureRequestTitle.trimmingCharacters(in: .whitespaces)
-        guard !subject.isEmpty else { return }
-
-        let encodedSubject = subject.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? subject
-        if let url = URL(string: "mailto:support@viralapps.studio?subject=Feature%20Request:%20\(encodedSubject)") {
-            UIApplication.shared.open(url)
-            featureRequestTitle = ""
-        }
-    }
-
     // MARK: - Links Section
 
     private var linksSection: some View {
         VStack(spacing: 0) {
-            linkRow(title: "Rate app", isFirst: true, isLast: false) {
+            linkRow(icon: "lightbulb.fill", title: "Feature request", isFirst: true, isLast: false) {
+                if let url = URL(string: "mailto:support@viralapps.studio?subject=Feature%20Request") {
+                    UIApplication.shared.open(url)
+                }
+            }
+
+            linkRow(title: "Rate app", isFirst: false, isLast: false) {
                 AnalyticsService.log(AnalyticsService.Event.rateAppTapped)
                 rateAppPrompt = .random()
                 showRateAppAlert = true
@@ -411,6 +356,41 @@ struct SettingsView: View {
         }
         .background(AppColors.surface)
         .cornerRadius(16)
+    }
+
+    private func linkRow(icon: String, title: LocalizedStringKey, isFirst: Bool, isLast: Bool, action: @escaping () -> Void) -> some View {
+        Button {
+            action()
+        } label: {
+            HStack(spacing: 8) {
+                Image(systemName: icon)
+                    .resizable()
+                    .aspectRatio(contentMode: .fit)
+                    .frame(width: 20, height: 20)
+                    .foregroundColor(AppColors.textPrimary)
+
+                Text(title)
+                    .font(.system(size: 14, weight: .semibold))
+                    .foregroundColor(AppColors.textPrimary)
+
+                Spacer()
+
+                Image(systemName: "chevron.forward")
+                    .font(.system(size: 14, weight: .medium))
+                    .foregroundColor(AppColors.textSecondary)
+            }
+            .frame(height: 56)
+            .padding(.horizontal, 16)
+            .contentShape(Rectangle())
+            .overlay(alignment: .bottom) {
+                if !isLast {
+                    Rectangle()
+                        .fill(AppColors.textSecondary.opacity(0.12))
+                        .frame(height: 1)
+                }
+            }
+        }
+        .buttonStyle(.plain)
     }
 
     private func linkRow(title: LocalizedStringKey, isFirst: Bool, isLast: Bool, action: @escaping () -> Void) -> some View {

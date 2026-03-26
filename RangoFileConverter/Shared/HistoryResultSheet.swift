@@ -176,6 +176,7 @@ struct HistoryResultSheet: View {
         case .reorderPDF: return "Reorder PDF:"
         case .protectPDF: return "Protect PDF:"
         case .imageToPDF: return "Image to PDF:"
+        case .draw: return "Draw:"
         }
     }
 
@@ -220,6 +221,8 @@ struct HistoryResultSheet: View {
             Color(hex: "C0392B")
         case .imageToPDF:
             Color(hex: "3498DB")
+        case .draw:
+            Color(hex: "FF6B9D")
         }
     }
 

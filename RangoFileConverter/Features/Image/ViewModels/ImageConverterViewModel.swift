@@ -4,6 +4,7 @@ import ImageIO
 import UniformTypeIdentifiers
 import webp
 import AppTrackingTransparency
+import PencilKit
 
 final class ImageConverterViewModel: ObservableObject {
     @Published var selectedFileName: String = ""
@@ -706,6 +707,84 @@ final class ImageConverterViewModel: ObservableObject {
         }
 
         return outputURL
+    }
+
+    // MARK: Draw
+
+    func processDraw(fileURL: URL, fileName: String, drawing: PKDrawing, canvasDisplaySize: CGSize) {
+        let record = makeRecord(fileName: fileName, fileURL: fileURL, toolType: ToolType.draw.rawValue)
+
+        let task = Task.detached { [weak self] in
+            guard let self else { return }
+            defer { self.taskManager.remove(id: record.id) }
+
+            await AdTrackingManager.shared.ensureTrackingRequested()
+            await MainActor.run {
+                self.store.add(record)
+                self.navigateToHistoryTrigger += 1
+            }
+
+            guard !Task.isCancelled else {
+                await MainActor.run { self.failRecord(record, error: "Cancelled") }
+                return
+            }
+
+            guard let image = Self.loadFullImage(from: fileURL) else {
+                await MainActor.run { self.failRecord(record, error: "Failed to load image") }
+                return
+            }
+
+            guard !Task.isCancelled else {
+                await MainActor.run { self.failRecord(record, error: "Cancelled") }
+                return
+            }
+
+            if let url = Self.renderDrawing(image: image, fileName: fileName, drawing: drawing, canvasDisplaySize: canvasDisplaySize) {
+                await MainActor.run { self.completeRecord(record, outputURL: url) }
+            } else {
+                await MainActor.run { self.failRecord(record, error: "Failed to render drawing") }
+            }
+        }
+
+        taskManager.register(id: record.id, task: task)
+    }
+
+    static func renderDrawing(image: UIImage, fileName: String, drawing: PKDrawing, canvasDisplaySize: CGSize) -> URL? {
+        let imageSize = image.size
+        let format = UIGraphicsImageRendererFormat()
+        format.scale = 1
+        format.opaque = true
+
+        // Scale drawing from canvas display coordinates to full image pixel coordinates
+        let scaleX = imageSize.width / canvasDisplaySize.width
+        let scaleY = imageSize.height / canvasDisplaySize.height
+        let scaledDrawing = drawing.transformed(using: CGAffineTransform(scaleX: scaleX, y: scaleY))
+
+        let renderer = UIGraphicsImageRenderer(size: imageSize, format: format)
+        let result = renderer.image { _ in
+            image.draw(in: CGRect(origin: .zero, size: imageSize))
+
+            let drawingImage = scaledDrawing.image(from: CGRect(origin: .zero, size: imageSize), scale: 1.0)
+            drawingImage.draw(in: CGRect(origin: .zero, size: imageSize))
+        }
+
+        let ext = fileName.components(separatedBy: ".").last ?? "png"
+        let outputName = "drawn_\(UUID().uuidString.prefix(8)).\(ext)"
+        let outputURL = FileManager.default.temporaryDirectory
+            .appendingPathComponent("rango_conversions", isDirectory: true)
+            .appendingPathComponent(outputName)
+
+        try? FileManager.default.createDirectory(
+            at: outputURL.deletingLastPathComponent(),
+            withIntermediateDirectories: true
+        )
+
+        if let data = result.pngData() {
+            try? data.write(to: outputURL)
+            return outputURL
+        }
+
+        return nil
     }
 
     // MARK: - Stitch Layout Helpers (size-based, no UIImage needed)

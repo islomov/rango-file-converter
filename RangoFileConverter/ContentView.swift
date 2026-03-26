@@ -1,4 +1,5 @@
 import SwiftUI
+import StoreKit
 
 enum AppTab: Int, CaseIterable {
     case home
@@ -28,6 +29,9 @@ struct ContentView: View {
     @State private var selectedTab: AppTab = .home
     @State private var selectedCategory: MediaCategory?
     @State private var hideTabBar: Bool = false
+    @State private var showWelcome: Bool = false
+
+    private static let hasSeenWelcomeKey = "hasSeenWelcomeSheet"
 
     var body: some View {
         Group {
@@ -92,6 +96,26 @@ struct ContentView: View {
         .onReceive(NotificationCenter.default.publisher(for: .didTapDailyReminder)) { _ in
             selectedTab = .home
             selectedCategory = nil
+        }
+        .onAppear {
+            if !UserDefaults.standard.bool(forKey: Self.hasSeenWelcomeKey) {
+                DispatchQueue.main.asyncAfter(deadline: .now() + 2.5) {
+                    showWelcome = true
+                    UserDefaults.standard.set(true, forKey: Self.hasSeenWelcomeKey)
+                }
+            }
+        }
+        .sheet(isPresented: $showWelcome, onDismiss: {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                guard let scene = UIApplication.shared.connectedScenes
+                    .first(where: { $0.activationState == .foregroundActive }) as? UIWindowScene else { return }
+                SKStoreReviewController.requestReview(in: scene)
+            }
+        }) {
+            WelcomeBottomSheetView()
+                .presentationDetents([.large])
+                .presentationDragIndicator(.hidden)
+                .presentationBackground(AppColors.surface)
         }
     }
 

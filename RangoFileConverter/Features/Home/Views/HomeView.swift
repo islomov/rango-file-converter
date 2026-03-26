@@ -53,7 +53,7 @@ struct HomeView: View {
             // Stacked cards — responsive with capped max size
             GeometryReader { geo in
                 // Visible gap between cards, capped so cards don't get too big
-                let gap = min(geo.size.height / 4.8, 118.0)
+                let gap = min(geo.size.height / 5.8, 118.0)
                 let lastCardHeight = gap * 1.2
                 // Each overlapping card extends one gap behind the next card
                 let cardHeight = gap * 2
@@ -61,7 +61,8 @@ struct HomeView: View {
                 let offset2 = gap
                 let offset3 = gap * 2
                 let offset4 = gap * 3
-                let totalHeight = offset4 + lastCardHeight
+                let offset5 = gap * 4
+                let totalHeight = offset5 + lastCardHeight
 
                 ScrollView(.vertical, showsIndicators: false) {
                     ZStack(alignment: .top) {
@@ -99,8 +100,7 @@ struct HomeView: View {
                             backgroundColor: AppColors.cardAudio,
                             foregroundColor: AppColors.cardDarkText,
                             height: cardHeight,
-                            topCornerRadius: 32,
-                            hasBottomRadius: true
+                            topCornerRadius: 32
                         ) {
                             onCategorySelected?(.audio)
                         }
@@ -113,7 +113,7 @@ struct HomeView: View {
                             arrowName: "icon_arrow_dark",
                             backgroundColor: AppColors.cardDocument,
                             foregroundColor: AppColors.cardDarkText,
-                            height: lastCardHeight,
+                            height: cardHeight,
                             topCornerRadius: 32,
                             hasBottomRadius: true
                         ) {
@@ -121,6 +121,25 @@ struct HomeView: View {
                         }
                         .offset(y: offset4)
                         .zIndex(4)
+
+                        ServiceCard(
+                            title: "Video Downloader",
+                            systemIconName: "arrow.down.to.line",
+                            arrowName: "icon_arrow_dark",
+                            backgroundGradient: LinearGradient(
+                                colors: [AppColors.accentLight, AppColors.accent, AppColors.accentLight],
+                                startPoint: .topTrailing,
+                                endPoint: .bottomLeading
+                            ),
+                            foregroundColor: AppColors.cardDarkText,
+                            height: lastCardHeight,
+                            topCornerRadius: 32,
+                            hasBottomRadius: true
+                        ) {
+                            onCategorySelected?(.download)
+                        }
+                        .offset(y: offset5)
+                        .zIndex(5)
                     }
                     .frame(height: totalHeight, alignment: .top)
                     .padding(.horizontal, 16)
@@ -148,9 +167,11 @@ struct HomeView: View {
 
 private struct ServiceCard: View {
     let title: LocalizedStringKey
-    let iconName: String
+    var iconName: String?
+    var systemIconName: String?
     let arrowName: String
-    let backgroundColor: Color
+    var backgroundColor: Color?
+    var backgroundGradient: LinearGradient?
     let foregroundColor: Color
     let height: CGFloat
     let topCornerRadius: CGFloat
@@ -162,11 +183,18 @@ private struct ServiceCard: View {
             VStack {
                 HStack(alignment: .center) {
                     VStack(alignment: .leading, spacing: 4) {
-                        Image(iconName)
-                            .resizable()
-                            .renderingMode(.template)
-                            .frame(width: 32, height: 32)
-                            .foregroundColor(foregroundColor)
+                        if let iconName = iconName {
+                            Image(iconName)
+                                .resizable()
+                                .renderingMode(.template)
+                                .frame(width: 32, height: 32)
+                                .foregroundColor(foregroundColor)
+                        } else if let systemIconName = systemIconName {
+                            Image(systemName: systemIconName)
+                                .font(.system(size: 24, weight: .bold))
+                                .frame(width: 32, height: 32)
+                                .foregroundColor(foregroundColor)
+                        }
 
                         Text(title)
                             .font(.system(size: 16, weight: .semibold))
@@ -189,7 +217,13 @@ private struct ServiceCard: View {
             }
             .frame(maxWidth: .infinity)
             .frame(height: height)
-            .background(backgroundColor)
+            .background {
+                if let backgroundGradient = backgroundGradient {
+                    backgroundGradient
+                } else if let backgroundColor = backgroundColor {
+                    backgroundColor
+                }
+            }
             .clipShape(CardShape(topRadius: topCornerRadius, bottomRadius: hasBottomRadius ? topCornerRadius : 0))
             .shadow(color: .black.opacity(0.05), radius: 2, y: 1)
         }
@@ -240,6 +274,7 @@ enum MediaCategory: String, CaseIterable {
     case video
     case audio
     case document
+    case download
 }
 
 // MARK: - Color Extension

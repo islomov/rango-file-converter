@@ -146,6 +146,14 @@ struct ContentView: View {
                     selectedTab = .history
                 }
             )
+        case .download:
+            VideoDownloaderView(
+                onBack: {
+                    withAnimation(.spring(response: 0.35, dampingFraction: 0.9)) {
+                        selectedCategory = nil
+                    }
+                }
+            )
         }
     }
 }

@@ -1,9 +1,11 @@
 import SwiftUI
+import PencilKit
 
 private struct ImageTool: Identifiable, Hashable {
     let id: String
     let title: LocalizedStringKey
     let icon: String
+    let systemIcon: String?
     let isAvailable: Bool
     let isFullWidth: Bool
 
@@ -11,10 +13,11 @@ private struct ImageTool: Identifiable, Hashable {
     static func == (lhs: ImageTool, rhs: ImageTool) -> Bool { lhs.id == rhs.id }
     func hash(into hasher: inout Hasher) { hasher.combine(id) }
 
-    init(id: String, title: LocalizedStringKey, icon: String, isAvailable: Bool = true, isFullWidth: Bool = false) {
+    init(id: String, title: LocalizedStringKey, icon: String, systemIcon: String? = nil, isAvailable: Bool = true, isFullWidth: Bool = false) {
         self.id = id
         self.title = title
         self.icon = icon
+        self.systemIcon = systemIcon
         self.isAvailable = isAvailable
         self.isFullWidth = isFullWidth
     }
@@ -26,6 +29,7 @@ private let imageTools: [ImageTool] = [
     ImageTool(id: "rotate", title: "Rotate", icon: "icon_rotate"),
     ImageTool(id: "resize", title: "Resize", icon: "icon_resize"),
     ImageTool(id: "crop", title: "Crop", icon: "icon_crop"),
+    ImageTool(id: "draw", title: "Draw", icon: "icon_draw", systemIcon: "pencil.tip.crop.circle"),
     ImageTool(id: "stitch", title: "Stitch", icon: "icon_stitch"),
     ImageTool(id: "gif", title: "Make GIF", icon: "icon_gif", isFullWidth: true),
 ]
@@ -45,6 +49,7 @@ struct ImageConverterView: View {
     @State private var showCropView = false
     @State private var showResizeView = false
     @State private var showCompressView = false
+    @State private var showDrawView = false
     @State private var toolFileURL: URL?
     @State private var toolFileName: String = ""
 
@@ -164,6 +169,22 @@ struct ImageConverterView: View {
                     .hidesFloatingTabBar()
                 }
             }
+            .navigationDestination(isPresented: $showDrawView) {
+                if let url = toolFileURL {
+                    ImageDrawView(
+                        fileURL: url,
+                        fileName: toolFileName
+                    ) { drawing, canvasDisplaySize in
+                        viewModel.processDraw(
+                            fileURL: url,
+                            fileName: toolFileName,
+                            drawing: drawing,
+                            canvasDisplaySize: canvasDisplaySize
+                        )
+                    }
+                    .hidesFloatingTabBar()
+                }
+            }
             .navigationDestination(isPresented: $showGifView) {
                 if !gifFileURLs.isEmpty {
                     MakeGifView(
@@ -209,6 +230,7 @@ struct ImageConverterView: View {
                 showCropView = false
                 showResizeView = false
                 showCompressView = false
+                showDrawView = false
                 showGifView = false
                 showGifPicker = false
                 showStitchView = false
@@ -281,9 +303,20 @@ struct ImageConverterView: View {
 
     private func toolCard(_ tool: ImageTool) -> some View {
         VStack(spacing: 8) {
-            Image(tool.icon)
-                .resizable()
-                .frame(width: 28, height: 28)
+            if UIImage(named: tool.icon) != nil {
+                Image(tool.icon)
+                    .resizable()
+                    .frame(width: 28, height: 28)
+            } else if let systemIcon = tool.systemIcon {
+                Image(systemName: systemIcon)
+                    .font(.system(size: 24))
+                    .foregroundColor(AppColors.textPrimary)
+                    .frame(width: 28, height: 28)
+            } else {
+                Image(tool.icon)
+                    .resizable()
+                    .frame(width: 28, height: 28)
+            }
 
             Text(tool.title)
                 .font(.system(size: 16, weight: .semibold))
@@ -328,6 +361,8 @@ struct ImageConverterView: View {
             showCompressView = true
         case "crop":
             showCropView = true
+        case "draw":
+            showDrawView = true
         default:
             break
         }

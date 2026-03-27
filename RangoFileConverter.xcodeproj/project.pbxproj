@@ -318,11 +318,11 @@
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = Info.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = Rangoo;
+				INFOPLIST_KEY_CFBundleDisplayName = "Media Converter";
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
-				INFOPLIST_KEY_NSCameraUsageDescription = "Rango needs access to the camera to capture photos and videos for conversion.";
-				INFOPLIST_KEY_NSMicrophoneUsageDescription = "Rango needs access to the microphone to record audio for conversion.";
-				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "Rango needs access to your photo library to select images for conversion.";
+				INFOPLIST_KEY_NSCameraUsageDescription = "Media Converter needs access to the camera to capture photos and videos for conversion.";
+				INFOPLIST_KEY_NSMicrophoneUsageDescription = "Media Converter needs access to the microphone to record audio for conversion.";
+				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "Media Converter needs access to your photo library to select images for conversion.";
 				INFOPLIST_KEY_UIAppFonts = "Montserrat-Bold.ttf Montserrat-SemiBold.ttf Montserrat-Medium.ttf Montserrat-Regular.ttf Sora-Regular.ttf";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
@@ -362,11 +362,11 @@
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = Info.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = Rangoo;
+				INFOPLIST_KEY_CFBundleDisplayName = "Media Converter";
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
-				INFOPLIST_KEY_NSCameraUsageDescription = "Rango needs access to the camera to capture photos and videos for conversion.";
-				INFOPLIST_KEY_NSMicrophoneUsageDescription = "Rango needs access to the microphone to record audio for conversion.";
-				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "Rango needs access to your photo library to select images for conversion.";
+				INFOPLIST_KEY_NSCameraUsageDescription = "Media Converter needs access to the camera to capture photos and videos for conversion.";
+				INFOPLIST_KEY_NSMicrophoneUsageDescription = "Media Converter needs access to the microphone to record audio for conversion.";
+				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "Media Converter needs access to your photo library to select images for conversion.";
 				INFOPLIST_KEY_UIAppFonts = "Montserrat-Bold.ttf Montserrat-SemiBold.ttf Montserrat-Medium.ttf Montserrat-Regular.ttf Sora-Regular.ttf";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
@@ -487,4 +487,8 @@
 /* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = 1570794F2F4881F500B64C40 /* Project object */;
+}
+}
+}
+}
 }

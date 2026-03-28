@@ -25,7 +25,7 @@ struct PDFProtectView: View {
         }
         .navigationBarHidden(true)
         .hidesFloatingTabBar()
-        .fileImporter(
+        .typedFilePicker(
             isPresented: $showFilePicker,
             allowedContentTypes: [.pdf],
             allowsMultipleSelection: false

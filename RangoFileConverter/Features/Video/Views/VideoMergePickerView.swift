@@ -51,7 +51,7 @@ struct VideoMergePickerView: View {
         .task {
             videoVM.requestAccessAndFetch()
         }
-        .fileImporter(
+        .typedFilePicker(
             isPresented: $showFilePicker,
             allowedContentTypes: [UTType.movie, UTType.video, UTType.mpeg4Movie, UTType.quickTimeMovie, UTType.avi],
             allowsMultipleSelection: true

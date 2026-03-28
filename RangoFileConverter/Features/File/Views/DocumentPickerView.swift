@@ -16,12 +16,13 @@ struct DocumentPickerConfig {
         heading: "Select a document to convert",
         subtitle: "Supported: DOC, DOCX, PDF, HTML, ODT, RTF, TXT",
         buttonTitle: "Choose file",
-        allowedTypes: [
-            .pdf, .plainText, .rtf, .html,
-            UTType("com.microsoft.word.doc") ?? .data,
-            UTType("org.openxmlformats.wordprocessingml.document") ?? .data,
-            UTType("org.oasis-open.opendocument.text") ?? .data,
-        ],
+        allowedTypes: {
+            var types: [UTType] = [.pdf, .plainText, .rtf, .html]
+            if let doc = UTType("com.microsoft.word.doc") { types.append(doc) }
+            if let docx = UTType("org.openxmlformats.wordprocessingml.document") { types.append(docx) }
+            if let odt = UTType("org.oasis-open.opendocument.text") { types.append(odt) }
+            return types
+        }(),
         allowsMultipleSelection: false
     )
 
@@ -107,7 +108,7 @@ struct DocumentPickerView: View {
         }
         .navigationBarHidden(true)
         .hidesFloatingTabBar()
-        .fileImporter(
+        .typedFilePicker(
             isPresented: $showFilePicker,
             allowedContentTypes: config.allowedTypes,
             allowsMultipleSelection: config.allowsMultipleSelection

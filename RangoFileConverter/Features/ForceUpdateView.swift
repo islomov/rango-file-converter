@@ -33,7 +33,7 @@ struct ForceUpdateView: View {
                         .font(.custom("Montserrat-Bold", size: 24))
                         .foregroundColor(AppColors.textPrimary)
 
-                    Text("A new version of Rango is available. Please update to continue using the app.")
+                    Text("A new version of Media Converter is available. Please update to continue using the app.")
                         .font(.custom("Sora-Regular", size: 15))
                         .foregroundColor(AppColors.textSecondary)
                         .multilineTextAlignment(.center)
@@ -66,3 +66,4 @@ struct ForceUpdateView: View {
         .interactiveDismissDisabled()
     }
 }
+

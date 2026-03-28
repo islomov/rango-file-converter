@@ -36,7 +36,7 @@ final class DailyReminderManager: ObservableObject {
         ),
         (
             "Video Conversion Made Easy",
-            "Need to convert a video to MP4, MOV, or AVI? Rango handles it all on your device."
+            "Need to convert a video to MP4, MOV, or AVI? Media Converter handles it all on your device."
         ),
         (
             "Extract Audio from Videos",
@@ -116,3 +116,4 @@ final class DailyReminderManager: ObservableObject {
         return (weekday - 1) % reminders.count
     }
 }
+

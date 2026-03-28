@@ -11,7 +11,7 @@ struct FAQBottomSheetView: View {
         ),
         (
             "What file formats are supported?",
-            "Rango supports 74 formats across 4 categories: 21 image formats (HEIC, JPEG, PNG, WEBP, etc.), 21 video formats (MP4, AVI, MOV, MKV, etc.), 25 audio formats (MP3, WAV, FLAC, AAC, etc.), and 7 document formats (PDF, DOCX, TXT, etc.)."
+            "Media Converter supports 74 formats across 4 categories: 21 image formats (HEIC, JPEG, PNG, WEBP, etc.), 21 video formats (MP4, AVI, MOV, MKV, etc.), 25 audio formats (MP3, WAV, FLAC, AAC, etc.), and 7 document formats (PDF, DOCX, TXT, etc.)."
         ),
         (
             "Is my data safe?",
@@ -27,11 +27,11 @@ struct FAQBottomSheetView: View {
         ),
         (
             "Can I convert multiple files at once?",
-            "Currently, Rango processes one file at a time to ensure the best quality and performance. Select a file, convert it, then proceed with the next one."
+            "Currently, Media Converter processes one file at a time to ensure the best quality and performance. Select a file, convert it, then proceed with the next one."
         ),
         (
             "Where are my converted files saved?",
-            "Converted files are saved in your device's Files app under the Rango folder. You can also find your conversion history in the History tab."
+            "Converted files are saved in your device's Files app under the Media Converter folder. You can also find your conversion history in the History tab."
         ),
     ]
 
@@ -177,4 +177,6 @@ private struct FAQItemView: View {
         .background(AppColors.textSecondary.opacity(0.08))
         .cornerRadius(20)
     }
+}
+
 }

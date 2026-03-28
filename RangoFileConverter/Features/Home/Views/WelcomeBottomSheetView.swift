@@ -25,7 +25,7 @@ struct WelcomeBottomSheetView: View {
 
                 // Title & description
                 VStack(spacing: 16) {
-                    Text("Welcome to Rango!")
+                    Text("Welcome to Media Converter!")
                         .font(.custom("Montserrat-Bold", size: 28))
                         .foregroundColor(AppColors.textPrimary)
                         .multilineTextAlignment(.center)
@@ -79,3 +79,4 @@ struct WelcomeBottomSheetView: View {
         .background(AppColors.surface)
     }
 }
+

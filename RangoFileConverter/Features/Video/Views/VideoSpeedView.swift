@@ -1,26 +1,14 @@
 import SwiftUI
 import AVFoundation
 
-private enum SpeedPreset: Double, CaseIterable {
-    case quarter = 0.25
-    case half = 0.5
-    case threeQuarters = 0.75
-    case oneAndHalf = 1.5
-    case double = 2.0
-    case triple = 3.0
-    case quadruple = 4.0
+private let speedPresets: [Double] = [0.25, 0.5, 0.75, 1.5, 2.0, 3.0, 4.0]
 
-    var label: String {
-        switch self {
-        case .quarter: return "0.25x"
-        case .half: return "0.5x"
-        case .threeQuarters: return "0.75x"
-        case .oneAndHalf: return "1.5x"
-        case .double: return "2x"
-        case .triple: return "3x"
-        case .quadruple: return "4x"
-        }
+private func speedLabel(_ speed: Double) -> String {
+    if speed == Double(Int(speed)) {
+        return "\(Int(speed))x"
     }
+    let formatted = String(format: "%g", speed)
+    return "\(formatted)x"
 }
 
 struct VideoSpeedView: View {
@@ -30,7 +18,7 @@ struct VideoSpeedView: View {
     let onApply: (_ speed: Double) -> Void
 
     @Environment(\.dismiss) private var dismiss
-    @State private var selectedSpeed: SpeedPreset = .double
+    @State private var selectedSpeed: Double = 2.0
     @State private var isPlaying = false
     @State private var originalDuration: Double = 0
     @State private var player: AVPlayer?
@@ -153,7 +141,7 @@ struct VideoSpeedView: View {
                 .font(.system(size: 10, weight: .semibold))
                 .foregroundColor(AppColors.textPrimary)
 
-            Text(formatDuration(originalDuration / selectedSpeed.rawValue))
+            Text(formatDuration(originalDuration / selectedSpeed))
                 .font(.system(size: 12, weight: .semibold))
                 .foregroundColor(AppColors.accent)
                 .tracking(-0.408)
@@ -179,33 +167,52 @@ struct VideoSpeedView: View {
     }
 
     private var speedPicker: some View {
-        ScrollView(.horizontal, showsIndicators: false) {
-            HStack(spacing: 8) {
-                ForEach(SpeedPreset.allCases, id: \.self) { preset in
-                    Button {
-                        selectedSpeed = preset
-                    } label: {
-                        Text(preset.label)
-                            .font(.system(size: 14, weight: .semibold))
-                            .tracking(-0.408)
-                            .foregroundColor(
-                                selectedSpeed == preset
-                                    ? .white
-                                    : AppColors.textPrimary
-                            )
-                            .padding(.horizontal, 12)
-                            .padding(.vertical, 8)
-                            .background(
-                                Capsule()
-                                    .fill(
-                                        selectedSpeed == preset
-                                            ? AppColors.accent
-                                            : AppColors.textSecondary.opacity(0.08)
-                                    )
-                            )
+        VStack(spacing: 12) {
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: 8) {
+                    ForEach(speedPresets, id: \.self) { preset in
+                        Button {
+                            selectedSpeed = preset
+                        } label: {
+                            Text(speedLabel(preset))
+                                .font(.system(size: 14, weight: .semibold))
+                                .tracking(-0.408)
+                                .foregroundColor(
+                                    selectedSpeed == preset
+                                        ? .white
+                                        : AppColors.textPrimary
+                                )
+                                .padding(.horizontal, 12)
+                                .padding(.vertical, 8)
+                                .background(
+                                    Capsule()
+                                        .fill(
+                                            selectedSpeed == preset
+                                                ? AppColors.accent
+                                                : AppColors.textSecondary.opacity(0.08)
+                                        )
+                                )
+                        }
+                        .buttonStyle(.plain)
                     }
-                    .buttonStyle(.plain)
                 }
+            }
+
+            VStack(spacing: 4) {
+                Slider(value: $selectedSpeed, in: 0.25...4.0, step: 0.05)
+                    .tint(AppColors.accent)
+
+                HStack {
+                    Text("0.25x")
+                    Spacer()
+                    Text(speedLabel(selectedSpeed))
+                        .foregroundColor(AppColors.accent)
+                        .fontWeight(.semibold)
+                    Spacer()
+                    Text("4x")
+                }
+                .font(.system(size: 12))
+                .foregroundColor(AppColors.textSecondary)
             }
         }
     }
@@ -272,7 +279,7 @@ struct VideoSpeedView: View {
 
             HStack(spacing: spacing) {
                 Button {
-                    selectedSpeed = .double
+                    selectedSpeed = 2.0
                 } label: {
                     Text("Reset")
                         .font(.system(size: 16, weight: .semibold))
@@ -286,7 +293,7 @@ struct VideoSpeedView: View {
                 Button {
                     player?.pause()
                     isPlaying = false
-                    onApply(selectedSpeed.rawValue)
+                    onApply(selectedSpeed)
                 } label: {
                     Text("Change speed")
                         .font(.system(size: 16, weight: .semibold))
@@ -374,11 +381,11 @@ struct VideoSpeedView: View {
             let total = player.currentItem?.duration.seconds ?? 0
             if current.isFinite && total.isFinite && current >= total - 0.2 {
                 player.seek(to: .zero, toleranceBefore: .zero, toleranceAfter: .zero) { [weak player] _ in
-                    player?.rate = Float(selectedSpeed.rawValue)
+                    player?.rate = Float(selectedSpeed)
                     isPlaying = true
                 }
             } else {
-                player.rate = Float(selectedSpeed.rawValue)
+                player.rate = Float(selectedSpeed)
                 isPlaying = true
             }
         }
@@ -389,7 +396,7 @@ struct VideoSpeedView: View {
         player.pause()
         isPlaying = false
         player.seek(to: .zero, toleranceBefore: .zero, toleranceAfter: .zero) { [weak player] _ in
-            player?.rate = Float(selectedSpeed.rawValue)
+            player?.rate = Float(selectedSpeed)
             isPlaying = true
         }
     }

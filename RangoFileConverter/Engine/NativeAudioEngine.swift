@@ -18,8 +18,6 @@ final class NativeAudioEngine: ConversionEngine {
     }
 
     func canHandle(job: ConversionJob) -> Bool {
-        // Speed changes require atempo filter — let FFmpeg handle those
-        if let speed = job.speedMultiplier, speed != 1.0 { return false }
         return true
     }
 
@@ -51,6 +49,33 @@ final class NativeAudioEngine: ConversionEngine {
 
     private func exportM4A(job: ConversionJob, to outputURL: URL) async throws {
         let asset = AVAsset(url: job.inputURL)
+
+        // If speed change is needed, decode to PCM, apply speed, then re-encode to M4A
+        if let speed = job.speedMultiplier, speed != 1.0 {
+            let pcmURL = try await decodeToPCM(job: job)
+            defer { try? FileManager.default.removeItem(at: pcmURL) }
+
+            let speedURL = try await applySpeedChange(to: pcmURL, speed: speed)
+            defer { try? FileManager.default.removeItem(at: speedURL) }
+
+            // Re-encode the speed-adjusted PCM to M4A
+            let speedAsset = AVAsset(url: speedURL)
+            guard let reExport = AVAssetExportSession(
+                asset: speedAsset,
+                presetName: AVAssetExportPresetAppleM4A
+            ) else {
+                throw NativeAudioError.exportSessionCreationFailed
+            }
+
+            reExport.outputURL = outputURL
+            reExport.outputFileType = .m4a
+            await reExport.export()
+
+            guard reExport.status == .completed else {
+                throw reExport.error ?? NativeAudioError.exportFailed
+            }
+            return
+        }
 
         guard let exportSession = AVAssetExportSession(
             asset: asset,
@@ -89,8 +114,19 @@ final class NativeAudioEngine: ConversionEngine {
         let pcmURL = try await decodeToPCM(job: job)
         defer { try? FileManager.default.removeItem(at: pcmURL) }
 
-        // Step 2: Encode PCM to MP3 using LAME
-        let audioFile = try AVAudioFile(forReading: pcmURL)
+        // Step 2: Apply speed change if needed
+        let sourceURL: URL
+        if let speed = job.speedMultiplier, speed != 1.0 {
+            sourceURL = try await applySpeedChange(to: pcmURL, speed: speed)
+        } else {
+            sourceURL = pcmURL
+        }
+        defer {
+            if sourceURL != pcmURL { try? FileManager.default.removeItem(at: sourceURL) }
+        }
+
+        // Step 3: Encode PCM to MP3 using LAME
+        let audioFile = try AVAudioFile(forReading: sourceURL)
         let format = audioFile.processingFormat
         let sampleRate = Int32(format.sampleRate)
         let channels = format.channelCount
@@ -268,6 +304,44 @@ final class NativeAudioEngine: ConversionEngine {
         try? FileManager.default.removeItem(at: tempM4A)
 
         return tempWAV
+    }
+
+    // MARK: - Speed Change via FFmpeg
+
+    /// Applies a speed change using FFmpeg's atempo filter, outputting a temp WAV file.
+    /// This avoids FFmpeg's MP3 encoding (no libmp3lame) while still using its reliable atempo filter.
+    private func applySpeedChange(to inputURL: URL, speed: Double) async throws -> URL {
+        let tempDir = FileManager.default.temporaryDirectory
+            .appendingPathComponent("rango_audio_speed", isDirectory: true)
+        try? FileManager.default.createDirectory(at: tempDir, withIntermediateDirectories: true)
+
+        let shortID = UUID().uuidString.prefix(8)
+        let outputURL = tempDir.appendingPathComponent("speed_\(shortID).wav")
+
+        let atempoFilter = buildAtempoFilter(speed: speed)
+        try await FFmpegWrapper.shared.convert(
+            input: inputURL,
+            output: outputURL,
+            extraArgs: ["-af", atempoFilter]
+        )
+
+        return outputURL
+    }
+
+    /// Builds an atempo filter chain. FFmpeg atempo supports 0.5–100.0 per instance,
+    /// so speeds below 0.5 are achieved by chaining multiple atempo filters.
+    private func buildAtempoFilter(speed: Double) -> String {
+        let clamped = max(0.25, min(speed, 4.0))
+        var remaining = clamped
+        var filters: [String] = []
+
+        while remaining < 0.5 {
+            filters.append("atempo=0.5")
+            remaining /= 0.5
+        }
+
+        filters.append("atempo=\(String(format: "%.4f", remaining))")
+        return filters.joined(separator: ",")
     }
 
     // MARK: - Helpers

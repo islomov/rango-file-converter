@@ -39,5 +39,3 @@ struct RateAppPrompt {
         allPrompts.randomElement() ?? allPrompts[0]
     }
 }
-    }
-}

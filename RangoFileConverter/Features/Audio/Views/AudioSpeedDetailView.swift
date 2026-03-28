@@ -2,26 +2,14 @@ import SwiftUI
 import AVFoundation
 import Combine
 
-private enum AudioSpeedPreset: Double, CaseIterable {
-    case quarter = 0.25
-    case half = 0.5
-    case threeQuarters = 0.75
-    case oneAndHalf = 1.5
-    case double = 2.0
-    case triple = 3.0
-    case quadruple = 4.0
+private let audioSpeedPresets: [Double] = [0.25, 0.5, 0.75, 1.5, 2.0, 3.0, 4.0]
 
-    var label: String {
-        switch self {
-        case .quarter: return "0.25x"
-        case .half: return "0.5x"
-        case .threeQuarters: return "0.75x"
-        case .oneAndHalf: return "1.5x"
-        case .double: return "2x"
-        case .triple: return "3x"
-        case .quadruple: return "4x"
-        }
+private func audioSpeedLabel(_ speed: Double) -> String {
+    if speed == Double(Int(speed)) {
+        return "\(Int(speed))x"
     }
+    let formatted = String(format: "%g", speed)
+    return "\(formatted)x"
 }
 
 struct AudioSpeedDetailView: View {
@@ -36,7 +24,7 @@ struct AudioSpeedDetailView: View {
     ]
 
     @Environment(\.dismiss) private var dismiss
-    @State private var selectedSpeed: AudioSpeedPreset = .quarter
+    @State private var selectedSpeed: Double = 0.25
     @State private var targetFormat: FormatDefinition = FormatRegistry.audioFormats[0]
     @State private var audioPlayer: AVPlayer?
     @State private var isPlaying = false
@@ -150,7 +138,7 @@ struct AudioSpeedDetailView: View {
                 .font(.system(size: 10, weight: .semibold))
                 .foregroundColor(AppColors.textPrimary)
 
-            Text(formatDuration(duration / selectedSpeed.rawValue))
+            Text(formatDuration(duration / selectedSpeed))
                 .font(.system(size: 12, weight: .semibold))
                 .foregroundColor(AppColors.accent)
                 .tracking(-0.408)
@@ -233,33 +221,52 @@ struct AudioSpeedDetailView: View {
     }
 
     private var speedPicker: some View {
-        ScrollView(.horizontal, showsIndicators: false) {
-            HStack(spacing: 8) {
-                ForEach(AudioSpeedPreset.allCases, id: \.self) { preset in
-                    Button {
-                        selectedSpeed = preset
-                    } label: {
-                        Text(LocalizedStringKey(preset.label))
-                            .font(.system(size: 14, weight: .semibold))
-                            .tracking(-0.408)
-                            .foregroundColor(
-                                selectedSpeed == preset
-                                    ? .white
-                                    : AppColors.textPrimary
-                            )
-                            .padding(.horizontal, 12)
-                            .padding(.vertical, 8)
-                            .background(
-                                Capsule()
-                                    .fill(
-                                        selectedSpeed == preset
-                                            ? AppColors.accent
-                                            : AppColors.textSecondary.opacity(0.08)
-                                    )
-                            )
+        VStack(spacing: 12) {
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: 8) {
+                    ForEach(audioSpeedPresets, id: \.self) { preset in
+                        Button {
+                            selectedSpeed = preset
+                        } label: {
+                            Text(audioSpeedLabel(preset))
+                                .font(.system(size: 14, weight: .semibold))
+                                .tracking(-0.408)
+                                .foregroundColor(
+                                    selectedSpeed == preset
+                                        ? .white
+                                        : AppColors.textPrimary
+                                )
+                                .padding(.horizontal, 12)
+                                .padding(.vertical, 8)
+                                .background(
+                                    Capsule()
+                                        .fill(
+                                            selectedSpeed == preset
+                                                ? AppColors.accent
+                                                : AppColors.textSecondary.opacity(0.08)
+                                        )
+                                )
+                        }
+                        .buttonStyle(.plain)
                     }
-                    .buttonStyle(.plain)
                 }
+            }
+
+            VStack(spacing: 4) {
+                Slider(value: $selectedSpeed, in: 0.25...4.0, step: 0.05)
+                    .tint(AppColors.accent)
+
+                HStack {
+                    Text("0.25x")
+                    Spacer()
+                    Text(audioSpeedLabel(selectedSpeed))
+                        .foregroundColor(AppColors.accent)
+                        .fontWeight(.semibold)
+                    Spacer()
+                    Text("4x")
+                }
+                .font(.system(size: 12))
+                .foregroundColor(AppColors.textSecondary)
             }
         }
     }
@@ -324,7 +331,7 @@ struct AudioSpeedDetailView: View {
             VStack {
                 Button {
                     cleanupPlayer()
-                    onConvert(selectedSpeed.rawValue, targetFormat)
+                    onConvert(selectedSpeed, targetFormat)
                 } label: {
                     Text("Change speed")
                         .font(.system(size: 16, weight: .semibold))
@@ -395,7 +402,7 @@ struct AudioSpeedDetailView: View {
         audioPlayer.pause()
         isPlaying = false
         audioPlayer.seek(to: .zero, toleranceBefore: .zero, toleranceAfter: .zero) { [weak audioPlayer] _ in
-            audioPlayer?.rate = Float(selectedSpeed.rawValue)
+            audioPlayer?.rate = Float(selectedSpeed)
             isPlaying = true
         }
     }
@@ -411,11 +418,11 @@ struct AudioSpeedDetailView: View {
             let total = audioPlayer.currentItem?.duration.seconds ?? 0
             if current.isFinite && total.isFinite && current >= total - 0.2 {
                 audioPlayer.seek(to: .zero, toleranceBefore: .zero, toleranceAfter: .zero) { [weak audioPlayer] _ in
-                    audioPlayer?.rate = Float(selectedSpeed.rawValue)
+                    audioPlayer?.rate = Float(selectedSpeed)
                     isPlaying = true
                 }
             } else {
-                audioPlayer.rate = Float(selectedSpeed.rawValue)
+                audioPlayer.rate = Float(selectedSpeed)
                 isPlaying = true
             }
         }

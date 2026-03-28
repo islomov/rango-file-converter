@@ -178,5 +178,3 @@ private struct FAQItemView: View {
         .cornerRadius(20)
     }
 }
-
-}

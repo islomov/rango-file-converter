@@ -82,7 +82,7 @@ struct AssetPickerView: View {
         .task {
             photoVM.requestAccessAndFetch()
         }
-        .fileImporter(
+        .typedFilePicker(
             isPresented: $showFilePicker,
             allowedContentTypes: [UTType.image],
             allowsMultipleSelection: isMultiSelect

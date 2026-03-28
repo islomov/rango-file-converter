@@ -48,7 +48,7 @@ struct AudioPickerView: View {
         .task {
             videoVM.requestAccessAndFetch()
         }
-        .fileImporter(
+        .typedFilePicker(
             isPresented: $showFilePicker,
             allowedContentTypes: Self.fileAllowedTypes,
             allowsMultipleSelection: false

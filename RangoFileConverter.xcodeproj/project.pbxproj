@@ -488,7 +488,3 @@
 	};
 	rootObject = 1570794F2F4881F500B64C40 /* Project object */;
 }
-}
-}
-}
-}

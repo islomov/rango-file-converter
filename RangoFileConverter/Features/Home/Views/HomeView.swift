@@ -53,7 +53,7 @@ struct HomeView: View {
             // Stacked cards — responsive with capped max size
             GeometryReader { geo in
                 // Visible gap between cards, capped so cards don't get too big
-                let gap = min(geo.size.height / 5.8, 118.0)
+                let gap = min(geo.size.height / 4.8, 118.0)
                 let lastCardHeight = gap * 1.2
                 // Each overlapping card extends one gap behind the next card
                 let cardHeight = gap * 2
@@ -61,8 +61,7 @@ struct HomeView: View {
                 let offset2 = gap
                 let offset3 = gap * 2
                 let offset4 = gap * 3
-                let offset5 = gap * 4
-                let totalHeight = offset5 + lastCardHeight
+                let totalHeight = offset4 + lastCardHeight
 
                 ScrollView(.vertical, showsIndicators: false) {
                     ZStack(alignment: .top) {
@@ -113,7 +112,7 @@ struct HomeView: View {
                             arrowName: "icon_arrow_dark",
                             backgroundColor: AppColors.cardDocument,
                             foregroundColor: AppColors.cardDarkText,
-                            height: cardHeight,
+                            height: lastCardHeight,
                             topCornerRadius: 32,
                             hasBottomRadius: true
                         ) {
@@ -121,25 +120,6 @@ struct HomeView: View {
                         }
                         .offset(y: offset4)
                         .zIndex(4)
-
-                        ServiceCard(
-                            title: "Video Downloader",
-                            systemIconName: "arrow.down.to.line",
-                            arrowName: "icon_arrow_dark",
-                            backgroundGradient: LinearGradient(
-                                colors: [AppColors.accentLight, AppColors.accent, AppColors.accentLight],
-                                startPoint: .topTrailing,
-                                endPoint: .bottomLeading
-                            ),
-                            foregroundColor: AppColors.cardDarkText,
-                            height: lastCardHeight,
-                            topCornerRadius: 32,
-                            hasBottomRadius: true
-                        ) {
-                            onCategorySelected?(.download)
-                        }
-                        .offset(y: offset5)
-                        .zIndex(5)
                     }
                     .frame(height: totalHeight, alignment: .top)
                     .padding(.horizontal, 16)
@@ -281,7 +261,6 @@ enum MediaCategory: String, CaseIterable {
     case video
     case audio
     case document
-    case download
 }
 
 // MARK: - Color Extension

@@ -65,7 +65,7 @@ struct ContentView: View {
         .animation(.easeInOut(duration: 0.25), value: selectedTab)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .safeAreaInset(edge: .bottom, spacing: 0) {
-            if !hideTabBar {
+            if !hideTabBar || selectedTab != .home {
                 FloatingTabBar(selectedTab: $selectedTab) {
                     // Reset category when tapping home
                     if selectedTab == .home {
@@ -76,8 +76,13 @@ struct ContentView: View {
             }
         }
         .onPreferenceChange(TabBarVisibilityPreferenceKey.self) { shouldHide in
+            // Only respect the hide preference on the Home tab.
+            // Prevents stale preferences from converter sub-views (which use
+            // .hidesFloatingTabBar()) from keeping the tab bar hidden after
+            // navigating to History/Settings during a transition animation.
+            let effective = shouldHide && selectedTab == .home
             withAnimation(.easeInOut(duration: 0.25)) {
-                hideTabBar = shouldHide
+                hideTabBar = effective
             }
         }
         .onChange(of: selectedTab) { _ in

@@ -10,6 +10,7 @@ struct PDFReorderView: View {
     @State private var pageItems: [PageItem] = []
     @State private var showFilePicker = false
     @State private var draggingItem: PageItem?
+    @State private var hasReordered: Bool = false
     @Environment(\.dismiss) private var dismiss
 
     struct PageItem: Identifiable, Equatable {
@@ -141,20 +142,32 @@ struct PDFReorderView: View {
                 .fill(AppColors.shadow.opacity(0.08))
                 .frame(height: 1)
 
-            // Page grid
+            // Page grid — non-lazy so all drop targets stay active
             ScrollView {
-                LazyVGrid(columns: columns, spacing: 12) {
-                    ForEach(pageItems) { item in
-                        pageCell(item)
-                            .onDrag {
-                                draggingItem = item
-                                return NSItemProvider(object: item.id.uuidString as NSString)
+                VStack(spacing: 12) {
+                    ForEach(0..<rowCount(for: pageItems.count), id: \.self) { row in
+                        HStack(spacing: 12) {
+                            ForEach(0..<3, id: \.self) { col in
+                                let index = row * 3 + col
+                                if index < pageItems.count {
+                                    let item = pageItems[index]
+                                    pageCell(item)
+                                        .onDrag {
+                                            draggingItem = item
+                                            return NSItemProvider(object: item.id.uuidString as NSString)
+                                        }
+                                        .onDrop(of: [.text], delegate: PageDropDelegate(
+                                            item: item,
+                                            pageItems: $pageItems,
+                                            draggingItem: $draggingItem,
+                                            hasReordered: $hasReordered
+                                        ))
+                                } else {
+                                    Color.clear
+                                        .aspectRatio(0.75, contentMode: .fit)
+                                }
                             }
-                            .onDrop(of: [.text], delegate: PageDropDelegate(
-                                item: item,
-                                pageItems: $pageItems,
-                                draggingItem: $draggingItem
-                            ))
+                        }
                     }
                 }
                 .padding(16)
@@ -177,10 +190,10 @@ struct PDFReorderView: View {
                 if let thumb = item.thumbnail {
                     Image(uiImage: thumb)
                         .resizable()
-                        .aspectRatio(contentMode: .fill)
+                        .aspectRatio(contentMode: .fit)
                         .frame(maxWidth: .infinity)
                         .aspectRatio(0.75, contentMode: .fit)
-                        .clipped()
+                        .background(AppColors.placeholder)
                 } else {
                     Rectangle()
                         .fill(AppColors.placeholder)
@@ -298,6 +311,10 @@ struct PDFReorderView: View {
         }
     }
 
+    private func rowCount(for total: Int) -> Int {
+        (total + 2) / 3
+    }
+
     // MARK: - File Import
 
     private func handleFileImport(_ result: Result<[URL], Error>) {
@@ -343,6 +360,7 @@ private struct PageDropDelegate: DropDelegate {
     let item: PDFReorderView.PageItem
     @Binding var pageItems: [PDFReorderView.PageItem]
     @Binding var draggingItem: PDFReorderView.PageItem?
+    @Binding var hasReordered: Bool
 
     func performDrop(info: DropInfo) -> Bool {
         draggingItem = nil
@@ -359,9 +377,18 @@ private struct PageDropDelegate: DropDelegate {
         withAnimation(.easeInOut(duration: 0.2)) {
             pageItems.move(fromOffsets: IndexSet(integer: fromIndex), toOffset: toIndex > fromIndex ? toIndex + 1 : toIndex)
         }
+        hasReordered = true
     }
 
     func dropUpdated(info: DropInfo) -> DropProposal? {
         DropProposal(operation: .move)
+    }
+
+    func dropExited(info: DropInfo) {
+        // No-op — keep draggingItem so other cells can still receive it
+    }
+
+    func validateDrop(info: DropInfo) -> Bool {
+        true
     }
 }

@@ -27,6 +27,7 @@ enum ToolType: String, Codable, CaseIterable {
     case reorderPDF = "Reorder PDF"
     case protectPDF = "Protect PDF"
     case imageToPDF = "Image to PDF"
+    case pdfToImage = "PDF to Image"
     case draw = "Draw"
 
     var filterID: Int {
@@ -48,6 +49,7 @@ enum ToolType: String, Codable, CaseIterable {
         case .reorderPDF:   return 114
         case .protectPDF:   return 115
         case .imageToPDF:   return 116
+        case .pdfToImage:   return 118
         case .draw:         return 117
         }
     }

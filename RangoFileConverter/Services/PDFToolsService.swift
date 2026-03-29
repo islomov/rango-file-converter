@@ -158,6 +158,62 @@ struct PDFToolsService {
         return outputURL
     }
 
+    // MARK: - Render to Images
+
+    /// Renders specified pages of a PDF as separate image files.
+    /// If `pages` is nil, all pages are rendered.
+    static func renderToImages(
+        pdfURL: URL,
+        format: String,
+        pages: [Int]? = nil,
+        scale: CGFloat = 2.0
+    ) throws -> [(page: Int, url: URL)] {
+        guard let doc = PDFDocument(url: pdfURL) else { throw PDFToolsError.corruptPDF }
+        guard doc.pageCount > 0 else { throw PDFToolsError.noPages }
+
+        let pageIndices = pages ?? Array(0..<doc.pageCount)
+        guard !pageIndices.isEmpty else { throw PDFToolsError.noPages }
+
+        let tempDir = FileManager.default.temporaryDirectory
+            .appendingPathComponent("rango_conversions", isDirectory: true)
+        try? FileManager.default.createDirectory(at: tempDir, withIntermediateDirectories: true)
+
+        var results: [(page: Int, url: URL)] = []
+
+        for i in pageIndices {
+            guard i >= 0 && i < doc.pageCount else { throw PDFToolsError.invalidPageRange }
+            guard let page = doc.page(at: i) else { continue }
+            let pageRect = page.bounds(for: .mediaBox)
+            let renderSize = CGSize(
+                width: pageRect.width * scale,
+                height: pageRect.height * scale
+            )
+            let image = page.thumbnail(of: renderSize, for: .mediaBox)
+
+            let data: Data?
+            let ext: String
+            switch format.lowercased() {
+            case "png":
+                data = image.pngData()
+                ext = "png"
+            default:
+                data = image.jpegData(compressionQuality: 0.92)
+                ext = format.lowercased()
+            }
+
+            guard let imageData = data else { throw PDFToolsError.writeFailed }
+
+            let shortID = UUID().uuidString.prefix(8)
+            let fileName = "pdf2img_p\(i + 1)_\(shortID).\(ext)"
+            let fileURL = tempDir.appendingPathComponent(fileName)
+            try imageData.write(to: fileURL)
+            results.append((page: i, url: fileURL))
+        }
+
+        guard !results.isEmpty else { throw PDFToolsError.noPages }
+        return results
+    }
+
     // MARK: - Helpers
 
     private static func makeOutputURL(suffix: String) -> URL {

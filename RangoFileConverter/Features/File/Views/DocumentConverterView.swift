@@ -29,6 +29,7 @@ private let documentTools: [DocumentTool] = [
     DocumentTool(id: "reorder", title: "Reorder pages", icon: "icon_doc_reorder", isAvailable: true),
     DocumentTool(id: "protect", title: "Protect PDF", icon: "icon_doc_protect", isAvailable: true),
     DocumentTool(id: "imageToPDF", title: "Image to PDF", icon: "doc.richtext", isAvailable: true, isSystemImage: true),
+    DocumentTool(id: "pdfToImage", title: "PDF to Image", icon: "photo.on.rectangle", isAvailable: true, isSystemImage: true),
 ]
 
 struct DocumentConverterView: View {
@@ -44,6 +45,7 @@ struct DocumentConverterView: View {
     @State private var showReorderView = false
     @State private var showProtectView = false
     @State private var showImageToPDFView = false
+    @State private var showPDFToImageView = false
     @State private var showSettings = false
     @State private var selectedRecord: ConversionRecord?
 
@@ -119,6 +121,12 @@ struct DocumentConverterView: View {
                     viewModel.createPDFFromImages(images: images)
                 }
             }
+            // PDF to Image
+            .navigationDestination(isPresented: $showPDFToImageView) {
+                PDFToImageView { url, name, format, pages in
+                    viewModel.convertPDFToImages(inputURL: url, fileName: name, targetFormat: format, pages: pages)
+                }
+            }
             .onChange(of: viewModel.navigateToHistoryTrigger) { _ in
                 viewModel.showConversionDetail = false
                 showDocumentPicker = false
@@ -127,6 +135,7 @@ struct DocumentConverterView: View {
                 showReorderView = false
                 showProtectView = false
                 showImageToPDFView = false
+                showPDFToImageView = false
                 selectedTab = .history
                 onNavigateToHistory?()
             }
@@ -217,6 +226,8 @@ struct DocumentConverterView: View {
             showProtectView = true
         case "imageToPDF":
             showImageToPDFView = true
+        case "pdfToImage":
+            showPDFToImageView = true
         default:
             break
         }

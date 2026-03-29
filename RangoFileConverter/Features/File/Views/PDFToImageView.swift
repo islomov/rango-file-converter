@@ -2,14 +2,19 @@ import SwiftUI
 import PDFKit
 import UniformTypeIdentifiers
 
-struct PDFSplitView: View {
-    let onSplit: (URL, String, [Int]) -> Void
+struct PDFToImageView: View {
+    let onConvert: (URL, String, FormatDefinition, [Int]) -> Void
+
+    private static let supportedFormats: [FormatDefinition] = FormatRegistry.imageFormats.filter {
+        ["jpeg", "png", "jpg", "heic", "bmp", "tiff"].contains($0.fileExtension.lowercased())
+    }
 
     @State private var fileURL: URL?
     @State private var fileName: String = ""
     @State private var pageCount: Int = 0
     @State private var selectedPages: [Int: Bool] = [:]
     @State private var pageThumbnails: [Int: UIImage] = [:]
+    @State private var targetFormat: FormatDefinition = supportedFormats[0]
     @State private var showFilePicker = false
     @Environment(\.dismiss) private var dismiss
 
@@ -20,6 +25,13 @@ struct PDFSplitView: View {
     private var allSelected: Bool {
         pageCount > 0 && selectedCount == pageCount
     }
+
+    private let formatColumns = [
+        GridItem(.flexible(), spacing: 4),
+        GridItem(.flexible(), spacing: 4),
+        GridItem(.flexible(), spacing: 4),
+        GridItem(.flexible(), spacing: 4),
+    ]
 
     var body: some View {
         ZStack {
@@ -53,12 +65,11 @@ struct PDFSplitView: View {
 
             VStack(spacing: 24) {
                 VStack(spacing: 12) {
-                    Image("icon_doc_split")
-                        .resizable()
-                        .renderingMode(.original)
-                        .frame(width: 56, height: 56)
+                    Image(systemName: "photo.on.rectangle")
+                        .font(.system(size: 40))
+                        .foregroundColor(AppColors.accent)
 
-                    Text("Select a PDF to split")
+                    Text("Select a PDF to convert to images")
                         .font(.system(size: 20, weight: .semibold))
                         .foregroundColor(AppColors.textPrimary)
                         .tracking(-0.408)
@@ -99,6 +110,8 @@ struct PDFSplitView: View {
 
             fileInfoRow
 
+            formatSelection
+
             pageSelectionHeader
 
             ScrollView {
@@ -119,7 +132,7 @@ struct PDFSplitView: View {
             }
             .padding(.top, 4)
 
-            splitButton
+            convertButton
         }
     }
 
@@ -132,11 +145,9 @@ struct PDFSplitView: View {
                     .fill(AppColors.placeholder)
                     .frame(width: 28, height: 28)
 
-                Image("icon_doc_split")
-                    .resizable()
-                    .renderingMode(.template)
+                Image(systemName: "doc.richtext")
+                    .font(.system(size: 14))
                     .foregroundColor(AppColors.textSecondary)
-                    .frame(width: 16, height: 16)
             }
 
             VStack(alignment: .leading, spacing: 4) {
@@ -174,11 +185,51 @@ struct PDFSplitView: View {
         )
     }
 
+    // MARK: - Format Selection
+
+    private var formatSelection: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text("Convert to")
+                .font(.system(size: 14, weight: .semibold))
+                .foregroundColor(AppColors.textSecondary)
+                .tracking(-0.408)
+
+            LazyVGrid(columns: formatColumns, spacing: 4) {
+                ForEach(Self.supportedFormats) { format in
+                    Button {
+                        targetFormat = format
+                    } label: {
+                        Text(format.displayName)
+                            .font(.system(size: 16, weight: .semibold))
+                            .tracking(-0.408)
+                            .foregroundColor(
+                                targetFormat.id == format.id
+                                    ? AppColors.accent
+                                    : AppColors.textPrimary
+                            )
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 12)
+                            .background(
+                                RoundedRectangle(cornerRadius: 12)
+                                    .fill(
+                                        targetFormat.id == format.id
+                                            ? AppColors.accent.opacity(0.08)
+                                            : Color.clear
+                                    )
+                            )
+                    }
+                    .buttonStyle(.plain)
+                }
+            }
+        }
+        .padding(16)
+    }
+
     // MARK: - Page Selection Header
 
     private var pageSelectionHeader: some View {
         HStack {
-            Text("Select pages to extract")
+            Text("Select pages to convert")
                 .font(.system(size: 12, weight: .semibold))
                 .foregroundColor(AppColors.textSecondary)
                 .tracking(-0.408)
@@ -239,7 +290,6 @@ struct PDFSplitView: View {
                         .frame(height: 140)
                 }
 
-                // Page number badge
                 Text("\(index + 1)")
                     .font(.system(size: 10, weight: .bold))
                     .foregroundColor(isSelected ? .white : AppColors.textSecondary)
@@ -262,22 +312,22 @@ struct PDFSplitView: View {
         .buttonStyle(.plain)
     }
 
-    // MARK: - Split Button
+    // MARK: - Convert Button
 
-    private var splitButton: some View {
+    private var convertButton: some View {
         VStack(spacing: 0) {
             Rectangle()
                 .fill(AppColors.shadow.opacity(0.08))
                 .frame(height: 1)
 
             Button {
-                performSplit()
+                performConvert()
             } label: {
                 Group {
                     if selectedCount == 0 {
-                        Text("Split PDF")
+                        Text("Convert to \(targetFormat.displayName)")
                     } else {
-                        Text("Split \(selectedCount) pages")
+                        Text("Convert \(selectedCount) pages to \(targetFormat.displayName)")
                     }
                 }
                     .font(.system(size: 16, weight: .semibold))
@@ -287,7 +337,7 @@ struct PDFSplitView: View {
                     .frame(height: 60)
                     .background(
                         RoundedRectangle(cornerRadius: 16)
-                            .fill(splitButtonGradient)
+                            .fill(convertButtonGradient)
                     )
             }
             .disabled(selectedCount == 0)
@@ -297,11 +347,27 @@ struct PDFSplitView: View {
         }
     }
 
+    private var convertButtonGradient: LinearGradient {
+        if selectedCount == 0 {
+            return LinearGradient(
+                colors: [AppColors.buttonDisabledStart, AppColors.buttonDisabledMid, AppColors.buttonDisabledStart],
+                startPoint: .topTrailing,
+                endPoint: .bottomLeading
+            )
+        } else {
+            return LinearGradient(
+                colors: [AppColors.accentLight, AppColors.accent, AppColors.accentLight],
+                startPoint: .topTrailing,
+                endPoint: .bottomLeading
+            )
+        }
+    }
+
     // MARK: - Navigation Bar
 
     private var navBar: some View {
         ZStack {
-            Text("Split PDF")
+            Text("PDF to Image")
                 .font(.system(size: 20, weight: .semibold))
                 .foregroundColor(AppColors.textPrimary)
                 .tracking(-0.408)
@@ -322,22 +388,6 @@ struct PDFSplitView: View {
         }
         .frame(height: 56)
         .padding(.horizontal, 8)
-    }
-
-    private var splitButtonGradient: LinearGradient {
-        if selectedCount == 0 {
-            return LinearGradient(
-                colors: [AppColors.buttonDisabledStart, AppColors.buttonDisabledMid, AppColors.buttonDisabledStart],
-                startPoint: .topTrailing,
-                endPoint: .bottomLeading
-            )
-        } else {
-            return LinearGradient(
-                colors: [AppColors.accentLight, AppColors.accent, AppColors.accentLight],
-                startPoint: .topTrailing,
-                endPoint: .bottomLeading
-            )
-        }
     }
 
     // MARK: - Thumbnail Generation
@@ -370,7 +420,7 @@ struct PDFSplitView: View {
 
         let name = sourceURL.lastPathComponent
         let tempDir = FileManager.default.temporaryDirectory
-            .appendingPathComponent("rango_pdf_split", isDirectory: true)
+            .appendingPathComponent("rango_pdf_to_image", isDirectory: true)
         try? FileManager.default.createDirectory(at: tempDir, withIntermediateDirectories: true)
 
         let destURL = tempDir.appendingPathComponent(name)
@@ -391,9 +441,9 @@ struct PDFSplitView: View {
         }
     }
 
-    private func performSplit() {
+    private func performConvert() {
         guard let url = fileURL, selectedCount > 0 else { return }
         let sortedPages = selectedPages.filter { $0.value }.keys.sorted()
-        onSplit(url, fileName, sortedPages)
+        onConvert(url, fileName, targetFormat, sortedPages)
     }
 }

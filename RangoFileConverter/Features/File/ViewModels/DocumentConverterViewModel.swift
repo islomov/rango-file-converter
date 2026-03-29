@@ -320,6 +320,83 @@ final class DocumentConverterViewModel: ObservableObject {
         taskManager.register(id: record.id, task: task)
     }
 
+    // MARK: - PDF to Image
+
+    func convertPDFToImages(inputURL: URL, fileName: String, targetFormat: FormatDefinition, pages: [Int]) {
+        let batchID = UUID()
+
+        let task = Task.detached { [weak self] in
+            guard let self else { return }
+            defer { self.taskManager.remove(id: batchID) }
+
+            await AdTrackingManager.shared.ensureTrackingRequested()
+
+            do {
+                let renderedPages = try PDFToolsService.renderToImages(
+                    pdfURL: inputURL,
+                    format: targetFormat.fileExtension,
+                    pages: pages
+                )
+
+                for (pageIndex, tempURL) in renderedPages {
+                    let record = ConversionRecord(
+                        sourceFileName: "\(fileName) — Page \(pageIndex + 1)",
+                        sourceFormat: "PDF",
+                        targetFormatID: targetFormat.id,
+                        thumbnailData: nil,
+                        status: .converting,
+                        toolType: ToolType.pdfToImage.rawValue,
+                        mediaCategory: "document"
+                    )
+
+                    let outputPath = ConversionRecord.persistOutput(from: tempURL)
+
+                    // Generate thumbnail
+                    let thumbData: Data? = {
+                        guard let data = try? Data(contentsOf: tempURL),
+                              let img = UIImage(data: data) else { return nil }
+                        let size = CGSize(width: 120, height: 120)
+                        let renderer = UIGraphicsImageRenderer(size: size)
+                        let thumb = renderer.image { _ in
+                            img.draw(in: CGRect(origin: .zero, size: size))
+                        }
+                        return thumb.jpegData(compressionQuality: 0.7)
+                    }()
+
+                    await MainActor.run {
+                        record.thumbnailData = thumbData
+                        record.progress = 1.0
+                        record.status = .converted
+                        record.outputPath = outputPath
+                        self.store.add(record)
+                        self.store.save()
+                    }
+                }
+
+                await MainActor.run {
+                    self.navigateToHistoryTrigger += 1
+                }
+            } catch {
+                let record = ConversionRecord(
+                    sourceFileName: fileName,
+                    sourceFormat: "PDF",
+                    targetFormatID: targetFormat.id,
+                    status: .failed,
+                    errorMessage: error.localizedDescription,
+                    toolType: ToolType.pdfToImage.rawValue,
+                    mediaCategory: "document"
+                )
+                await MainActor.run {
+                    self.store.add(record)
+                    self.store.save()
+                    self.navigateToHistoryTrigger += 1
+                }
+            }
+        }
+
+        taskManager.register(id: batchID, task: task)
+    }
+
     // MARK: - Private
 
     private func failRecord(_ record: ConversionRecord, error: String) {

@@ -23,11 +23,6 @@ struct PDFReorderView: View {
         }
     }
 
-    private let columns = [
-        GridItem(.flexible(), spacing: 12),
-        GridItem(.flexible(), spacing: 12),
-        GridItem(.flexible(), spacing: 12),
-    ]
 
     var body: some View {
         ZStack {
@@ -142,32 +137,28 @@ struct PDFReorderView: View {
                 .fill(AppColors.shadow.opacity(0.08))
                 .frame(height: 1)
 
-            // Page grid — non-lazy so all drop targets stay active
+            // Page grid
             ScrollView {
-                VStack(spacing: 12) {
-                    ForEach(0..<rowCount(for: pageItems.count), id: \.self) { row in
-                        HStack(spacing: 12) {
-                            ForEach(0..<3, id: \.self) { col in
-                                let index = row * 3 + col
-                                if index < pageItems.count {
-                                    let item = pageItems[index]
-                                    pageCell(item)
-                                        .onDrag {
-                                            draggingItem = item
-                                            return NSItemProvider(object: item.id.uuidString as NSString)
-                                        }
-                                        .onDrop(of: [.text], delegate: PageDropDelegate(
-                                            item: item,
-                                            pageItems: $pageItems,
-                                            draggingItem: $draggingItem,
-                                            hasReordered: $hasReordered
-                                        ))
-                                } else {
-                                    Color.clear
-                                        .aspectRatio(0.75, contentMode: .fit)
-                                }
+                let columns = [
+                    GridItem(.flexible(), spacing: 12),
+                    GridItem(.flexible(), spacing: 12),
+                    GridItem(.flexible(), spacing: 12),
+                ]
+
+                LazyVGrid(columns: columns, spacing: 12) {
+                    ForEach(pageItems) { item in
+                        pageCell(item)
+                            .contentShape(.dragPreview, RoundedRectangle(cornerRadius: 8))
+                            .onDrag {
+                                draggingItem = item
+                                return NSItemProvider(object: item.id.uuidString as NSString)
                             }
-                        }
+                            .onDrop(of: [.text], delegate: PageDropDelegate(
+                                item: item,
+                                pageItems: $pageItems,
+                                draggingItem: $draggingItem,
+                                hasReordered: $hasReordered
+                            ))
                     }
                 }
                 .padding(16)
@@ -192,12 +183,12 @@ struct PDFReorderView: View {
                         .resizable()
                         .aspectRatio(contentMode: .fit)
                         .frame(maxWidth: .infinity)
-                        .aspectRatio(0.75, contentMode: .fit)
+                        .frame(height: 140)
                         .background(AppColors.placeholder)
                 } else {
                     Rectangle()
                         .fill(AppColors.placeholder)
-                        .aspectRatio(0.75, contentMode: .fit)
+                        .frame(height: 140)
                 }
 
                 // Page number badge
@@ -222,6 +213,7 @@ struct PDFReorderView: View {
                 .foregroundColor(AppColors.textSecondary)
                 .tracking(-0.408)
         }
+        .contentShape(Rectangle())
         .opacity(isDragging ? 0.4 : 1.0)
     }
 
@@ -311,10 +303,6 @@ struct PDFReorderView: View {
         }
     }
 
-    private func rowCount(for total: Int) -> Int {
-        (total + 2) / 3
-    }
-
     // MARK: - File Import
 
     private func handleFileImport(_ result: Result<[URL], Error>) {
@@ -363,7 +351,9 @@ private struct PageDropDelegate: DropDelegate {
     @Binding var hasReordered: Bool
 
     func performDrop(info: DropInfo) -> Bool {
-        draggingItem = nil
+        withAnimation {
+            draggingItem = nil
+        }
         return true
     }
 

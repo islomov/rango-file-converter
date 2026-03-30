@@ -34,6 +34,7 @@ final class AdTrackingManager: ObservableObject {
 
         trackingStatus = status
         updateAdvertisingId()
+        AdNetworkManager.shared.updateTrackingConsent(authorized: status == .authorized)
     }
 
     /// Returns the IDFA if authorized, otherwise nil.

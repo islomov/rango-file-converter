@@ -14,6 +14,7 @@
 		15707A042F5B000100B64C40 /* FirebaseAnalytics in Frameworks */ = {isa = PBXBuildFile; productRef = 15707A022F5B000100B64C40 /* FirebaseAnalytics */; };
 		15707A062F5B000100B64C40 /* FirebaseCrashlytics in Frameworks */ = {isa = PBXBuildFile; productRef = 15707A052F5B000100B64C40 /* FirebaseCrashlytics */; };
 		15A0B0032F6C800000B64C40 /* lame in Frameworks */ = {isa = PBXBuildFile; productRef = 15A0B0022F6C800000B64C40 /* lame */; };
+		15AD00152FA6A00000B64C40 /* FacebookCore in Frameworks */ = {isa = PBXBuildFile; productRef = 15AD00142FA6A00000B64C40 /* FacebookCore */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -40,6 +41,7 @@
 				15707A042F5B000100B64C40 /* FirebaseAnalytics in Frameworks */,
 				15707A062F5B000100B64C40 /* FirebaseCrashlytics in Frameworks */,
 				15A0B0032F6C800000B64C40 /* lame in Frameworks */,
+				15AD00152FA6A00000B64C40 /* FacebookCore in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -89,6 +91,7 @@
 				15707A022F5B000100B64C40 /* FirebaseAnalytics */,
 				15707A052F5B000100B64C40 /* FirebaseCrashlytics */,
 				15A0B0022F6C800000B64C40 /* lame */,
+				15AD00142FA6A00000B64C40 /* FacebookCore */,
 			);
 			productName = RangoFileConverter;
 			productReference = 157079572F4881F500B64C40 /* RangoFileConverter.app */;
@@ -153,6 +156,7 @@
 				157079C12F4AEC5C00B64C40 /* XCRemoteSwiftPackageReference "webp.swift" */,
 				15707A002F5B000100B64C40 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */,
 				15A0B0012F6C800000B64C40 /* XCRemoteSwiftPackageReference "swift-lame" */,
+				15AD00132FA6A00000B64C40 /* XCRemoteSwiftPackageReference "facebook-ios-sdk" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 157079582F4881F500B64C40 /* Products */;
@@ -451,6 +455,14 @@
 				minimumVersion = 3.100.0;
 			};
 		};
+		15AD00132FA6A00000B64C40 /* XCRemoteSwiftPackageReference "facebook-ios-sdk" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/facebook/facebook-ios-sdk.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 18.0.0;
+			};
+		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
@@ -483,6 +495,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 15A0B0012F6C800000B64C40 /* XCRemoteSwiftPackageReference "swift-lame" */;
 			productName = lame;
+		};
+		15AD00142FA6A00000B64C40 /* FacebookCore */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 15AD00132FA6A00000B64C40 /* XCRemoteSwiftPackageReference "facebook-ios-sdk" */;
+			productName = FacebookCore;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

@@ -24,9 +24,18 @@ final class AppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCent
         ])
         RemoteConfigManager.shared.configure()
         RemoteConfigManager.shared.fetchAndActivate()
+        AdNetworkManager.shared.configure(application: application, launchOptions: launchOptions)
         UNUserNotificationCenter.current().delegate = self
         DailyReminderManager.shared.rescheduleIfNeeded()
         return true
+    }
+
+    func application(
+        _ app: UIApplication,
+        open url: URL,
+        options: [UIApplication.OpenURLOptionsKey: Any] = [:]
+    ) -> Bool {
+        AdNetworkManager.shared.handleMetaOpenURL(app, open: url, options: options)
     }
 
     // Show notification even when app is in foreground

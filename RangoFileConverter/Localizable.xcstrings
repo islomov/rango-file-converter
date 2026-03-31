@@ -200,6 +200,186 @@
             "state": "new",
             "value": "%1$@ (%2$@)"
           }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ (%@)"
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ (%@)"
+          }
+        },
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ (%@)"
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ (%@)"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ (%@)"
+          }
+        },
+        "el": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ (%@)"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ (%@)"
+          }
+        },
+        "fi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ (%@)"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ (%@)"
+          }
+        },
+        "he": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ (%@)"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ (%@)"
+          }
+        },
+        "hu": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ (%@)"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ (%@)"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ (%@)"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ (%@)"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ (%@)"
+          }
+        },
+        "ms": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ (%@)"
+          }
+        },
+        "nb": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ (%@)"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ (%@)"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ (%@)"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ (%@)"
+          }
+        },
+        "ro": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ (%@)"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ (%@)"
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ (%@)"
+          }
+        },
+        "th": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ (%@)"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ (%@)"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ (%@)"
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ (%@)"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ (%@)"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ (%@)"
+          }
         }
       }
     },
@@ -215,6 +395,186 @@
           "stringUnit": {
             "state": "new",
             "value": "%1$lld × %2$lld"
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld × %lld"
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld × %lld"
+          }
+        },
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld × %lld"
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld × %lld"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld × %lld"
+          }
+        },
+        "el": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld × %lld"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld × %lld"
+          }
+        },
+        "fi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld × %lld"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld × %lld"
+          }
+        },
+        "he": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld × %lld"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld × %lld"
+          }
+        },
+        "hu": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld × %lld"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld × %lld"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld × %lld"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld × %lld"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld × %lld"
+          }
+        },
+        "ms": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld × %lld"
+          }
+        },
+        "nb": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld × %lld"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld × %lld"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld × %lld"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld × %lld"
+          }
+        },
+        "ro": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld × %lld"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld × %lld"
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld × %lld"
+          }
+        },
+        "th": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld × %lld"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld × %lld"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld × %lld"
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld × %lld"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld × %lld"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld × %lld"
           }
         }
       }
@@ -1357,6 +1717,186 @@
           "stringUnit": {
             "state": "new",
             "value": "%1$lld×%2$lld"
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld×%lld"
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld×%lld"
+          }
+        },
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld×%lld"
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld×%lld"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld×%lld"
+          }
+        },
+        "el": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld×%lld"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld×%lld"
+          }
+        },
+        "fi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld×%lld"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld×%lld"
+          }
+        },
+        "he": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld×%lld"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld×%lld"
+          }
+        },
+        "hu": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld×%lld"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld×%lld"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld×%lld"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld×%lld"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld×%lld"
+          }
+        },
+        "ms": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld×%lld"
+          }
+        },
+        "nb": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld×%lld"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld×%lld"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld×%lld"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld×%lld"
+          }
+        },
+        "ro": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld×%lld"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld×%lld"
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld×%lld"
+          }
+        },
+        "th": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld×%lld"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld×%lld"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld×%lld"
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld×%lld"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld×%lld"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld×%lld"
           }
         }
       }
@@ -5350,7 +5890,189 @@
     },
     "Cancelled by user": {
       "comment": "Error message displayed when a conversion is cancelled by the user.",
-      "isCommentAutoGenerated": true
+      "isCommentAutoGenerated": true,
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ألغاه المستخدم"
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ব্যবহারকারী বাতিল করেছেন"
+          }
+        },
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zrušeno uživatelem"
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Annulleret af brugeren"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vom Benutzer abgebrochen"
+          }
+        },
+        "el": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ακυρώθηκε από τον χρήστη"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cancelado por el usuario"
+          }
+        },
+        "fi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Käyttäjä peruutti"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Annulé par l'utilisateur"
+          }
+        },
+        "he": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "בוטל על ידי המשתמש"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "उपयोगकर्ता द्वारा रद्द किया गया"
+          }
+        },
+        "hu": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A felhasználó megszakította"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dibatalkan oleh pengguna"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Annullato dall'utente"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ユーザーによりキャンセルされました"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "사용자가 취소했습니다"
+          }
+        },
+        "ms": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dibatalkan oleh pengguna"
+          }
+        },
+        "nb": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Avbrutt av brukeren"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Geannuleerd door gebruiker"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Anulowane przez użytkownika"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cancelado pelo usuário"
+          }
+        },
+        "ro": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Anulat de utilizator"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Отменено пользователем"
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Avbrutet av användaren"
+          }
+        },
+        "th": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ยกเลิกโดยผู้ใช้"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kullanıcı tarafından iptal edildi"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Скасовано користувачем"
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Đã hủy bởi người dùng"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已被用户取消"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已被使用者取消"
+          }
+        }
+      }
     },
     "Capture images for PDF": {
       "comment": "A heading displayed in the \"Empty State\" of the `ImageToPDFView`.",
@@ -11220,7 +11942,189 @@
     },
     "Converting HEIC to JPG, MP4 to MP3, or PDF to Word — all done on your device. Love it? Leave a quick review!": {
       "comment": "Message in the \"Rate Media Converter?\" prompt, encouraging users to leave a review.",
-      "isCommentAutoGenerated": true
+      "isCommentAutoGenerated": true,
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "تحويل HEIC إلى JPG، MP4 إلى MP3، أو PDF إلى Word — كل ذلك على جهازك. أعجبك؟ اترك تقييماً سريعاً!"
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "HEIC থেকে JPG, MP4 থেকে MP3, বা PDF থেকে Word — সব আপনার ডিভাইসে। পছন্দ হয়েছে? একটি দ্রুত রিভিউ দিন!"
+          }
+        },
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Převod HEIC na JPG, MP4 na MP3 nebo PDF na Word — vše na vašem zařízení. Líbí se vám to? Zanechte rychlé hodnocení!"
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Konvertering af HEIC til JPG, MP4 til MP3 eller PDF til Word — alt på din enhed. Kan du lide det? Giv en hurtig anmeldelse!"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "HEIC in JPG, MP4 in MP3 oder PDF in Word konvertieren — alles auf Ihrem Gerät. Gefällt es Ihnen? Hinterlassen Sie eine kurze Bewertung!"
+          }
+        },
+        "el": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Μετατροπή HEIC σε JPG, MP4 σε MP3 ή PDF σε Word — όλα στη συσκευή σας. Σας αρέσει; Αφήστε μια γρήγορη κριτική!"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Convierte HEIC a JPG, MP4 a MP3 o PDF a Word — todo en tu dispositivo. ¿Te gusta? ¡Deja una reseña rápida!"
+          }
+        },
+        "fi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Muunna HEIC JPG:ksi, MP4 MP3:ksi tai PDF Wordiksi — kaikki laitteellasi. Pidätkö? Jätä nopea arvostelu!"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Conversion de HEIC en JPG, MP4 en MP3 ou PDF en Word — tout sur votre appareil. Vous aimez ? Laissez un avis rapide !"
+          }
+        },
+        "he": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "המרת HEIC ל-JPG, MP4 ל-MP3, או PDF ל-Word — הכל על המכשיר שלך. אהבתם? השאירו ביקורת מהירה!"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "HEIC से JPG, MP4 से MP3, या PDF से Word में बदलें — सब आपके डिवाइस पर। पसंद आया? एक त्वरित समीक्षा दें!"
+          }
+        },
+        "hu": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "HEIC konvertálása JPG-be, MP4 MP3-ba vagy PDF Wordbe — minden az eszközén. Tetszik? Írjon egy gyors értékelést!"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mengonversi HEIC ke JPG, MP4 ke MP3, atau PDF ke Word — semua di perangkat Anda. Suka? Tinggalkan ulasan singkat!"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Converti HEIC in JPG, MP4 in MP3 o PDF in Word — tutto sul tuo dispositivo. Ti piace? Lascia una recensione veloce!"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "HEICからJPG、MP4からMP3、PDFからWordへ — すべてデバイス上で完結。気に入りましたか？レビューをお願いします！"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "HEIC를 JPG로, MP4를 MP3로, PDF를 Word로 — 모두 기기에서 변환. 마음에 드시나요? 간단한 리뷰를 남겨주세요!"
+          }
+        },
+        "ms": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Menukar HEIC ke JPG, MP4 ke MP3, atau PDF ke Word — semua di peranti anda. Suka? Tinggalkan ulasan pantas!"
+          }
+        },
+        "nb": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Konverter HEIC til JPG, MP4 til MP3 eller PDF til Word — alt på enheten din. Liker du det? Legg igjen en rask anmeldelse!"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "HEIC naar JPG, MP4 naar MP3 of PDF naar Word — alles op uw apparaat. Bevalt het? Laat een snelle beoordeling achter!"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Konwersja HEIC na JPG, MP4 na MP3 lub PDF na Word — wszystko na Twoim urządzeniu. Podoba się? Zostaw szybką opinię!"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Converter HEIC para JPG, MP4 para MP3 ou PDF para Word — tudo no seu dispositivo. Gostou? Deixe uma avaliação rápida!"
+          }
+        },
+        "ro": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Convertiți HEIC în JPG, MP4 în MP3 sau PDF în Word — totul pe dispozitivul dvs. Vă place? Lăsați o recenzie rapidă!"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Конвертация HEIC в JPG, MP4 в MP3 или PDF в Word — всё на вашем устройстве. Нравится? Оставьте быстрый отзыв!"
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Konvertera HEIC till JPG, MP4 till MP3 eller PDF till Word — allt på din enhet. Gillar du det? Lämna ett snabbt omdöme!"
+          }
+        },
+        "th": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "แปลง HEIC เป็น JPG, MP4 เป็น MP3 หรือ PDF เป็น Word — ทั้งหมดบนอุปกรณ์ของคุณ ชอบไหม? เขียนรีวิวสั้นๆ!"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "HEIC'i JPG'ye, MP4'ü MP3'e veya PDF'i Word'e dönüştürün — hepsi cihazınızda. Beğendiniz mi? Hızlı bir değerlendirme bırakın!"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Конвертація HEIC у JPG, MP4 у MP3 або PDF у Word — усе на вашому пристрої. Подобається? Залиште швидкий відгук!"
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Chuyển đổi HEIC sang JPG, MP4 sang MP3 hoặc PDF sang Word — tất cả trên thiết bị của bạn. Thích không? Để lại đánh giá nhanh!"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "将 HEIC 转为 JPG、MP4 转为 MP3 或 PDF 转为 Word — 全部在设备上完成。喜欢吗？留个快速评价吧！"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "將 HEIC 轉為 JPG、MP4 轉為 MP3 或 PDF 轉為 Word — 全部在裝置上完成。喜歡嗎？留個快速評價吧！"
+          }
+        }
+      }
     },
     "Converting...": {
       "comment": "A label indicating that a file is currently being converted.",
@@ -14998,7 +15902,189 @@
     },
     "Enjoying Media Converter?": {
       "comment": "Message in a prompt to rate the app, encouraging users to do so.",
-      "isCommentAutoGenerated": true
+      "isCommentAutoGenerated": true,
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "هل تستمتع بـ Media Converter؟"
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Media Converter উপভোগ করছেন?"
+          }
+        },
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Líbí se vám Media Converter?"
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nyder du Media Converter?"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gefällt Ihnen Media Converter?"
+          }
+        },
+        "el": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Απολαμβάνετε το Media Converter;"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "¿Disfrutas de Media Converter?"
+          }
+        },
+        "fi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pidätkö Media Converterista?"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vous appréciez Media Converter ?"
+          }
+        },
+        "he": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "נהנים מ-Media Converter?"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Media Converter का आनंद ले रहे हैं?"
+          }
+        },
+        "hu": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tetszik a Media Converter?"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Menyukai Media Converter?"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ti piace Media Converter?"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Media Converterを気に入っていますか？"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Media Converter가 마음에 드시나요?"
+          }
+        },
+        "ms": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Menikmati Media Converter?"
+          }
+        },
+        "nb": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Liker du Media Converter?"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bevalt Media Converter?"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Podoba Ci się Media Converter?"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gostando do Media Converter?"
+          }
+        },
+        "ro": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vă place Media Converter?"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Нравится Media Converter?"
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gillar du Media Converter?"
+          }
+        },
+        "th": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ชอบ Media Converter ไหม?"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Media Converter'ı beğeniyor musunuz?"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Подобається Media Converter?"
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bạn thích Media Converter không?"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "喜欢 Media Converter 吗？"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "喜歡 Media Converter 嗎？"
+          }
+        }
+      }
     },
     "Extract": {
       "localizations": {
@@ -16329,7 +17415,189 @@
     },
     "Failed to save": {
       "comment": "Error message displayed when an attempt to save a photo to the photo library fails.",
-      "isCommentAutoGenerated": true
+      "isCommentAutoGenerated": true,
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "فشل الحفظ"
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "সংরক্ষণ ব্যর্থ হয়েছে"
+          }
+        },
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Uložení se nezdařilo"
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kunne ikke gemme"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Speichern fehlgeschlagen"
+          }
+        },
+        "el": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Η αποθήκευση απέτυχε"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Error al guardar"
+          }
+        },
+        "fi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tallennus epäonnistui"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Échec de l'enregistrement"
+          }
+        },
+        "he": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "השמירה נכשלה"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "सहेजना विफल रहा"
+          }
+        },
+        "hu": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A mentés sikertelen"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gagal menyimpan"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Salvataggio non riuscito"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "保存に失敗しました"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "저장에 실패했습니다"
+          }
+        },
+        "ms": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gagal menyimpan"
+          }
+        },
+        "nb": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kunne ikke lagre"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Opslaan mislukt"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nie udało się zapisać"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Falha ao salvar"
+          }
+        },
+        "ro": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Salvarea a eșuat"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Не удалось сохранить"
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kunde inte spara"
+          }
+        },
+        "th": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "บันทึกไม่สำเร็จ"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kaydetme başarısız oldu"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Не вдалося зберегти"
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lưu thất bại"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "保存失败"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "儲存失敗"
+          }
+        }
+      }
     },
     "FAQ": {
       "localizations": {
@@ -19368,7 +20636,189 @@
     },
     "Help Us Grow!": {
       "comment": "Message in a prompt to rate the app, encouraging users to help the app grow by sharing it with others.",
-      "isCommentAutoGenerated": true
+      "isCommentAutoGenerated": true,
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ساعدنا في النمو!"
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "আমাদের বাড়তে সাহায্য করুন!"
+          }
+        },
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pomozte nám růst!"
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hjælp os med at vokse!"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Helfen Sie uns zu wachsen!"
+          }
+        },
+        "el": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Βοηθήστε μας να αναπτυχθούμε!"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "¡Ayúdanos a crecer!"
+          }
+        },
+        "fi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Auta meitä kasvamaan!"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aidez-nous à grandir !"
+          }
+        },
+        "he": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "עזרו לנו לצמוח!"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "हमें बढ़ने में मदद करें!"
+          }
+        },
+        "hu": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Segítsen nekünk növekedni!"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bantu kami berkembang!"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aiutaci a crescere!"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "成長にご協力ください！"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "성장을 도와주세요!"
+          }
+        },
+        "ms": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bantu kami berkembang!"
+          }
+        },
+        "nb": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hjelp oss å vokse!"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Help ons groeien!"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pomóż nam się rozwijać!"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ajude-nos a crescer!"
+          }
+        },
+        "ro": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ajutați-ne să creștem!"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Помогите нам расти!"
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hjälp oss att växa!"
+          }
+        },
+        "th": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ช่วยให้เราเติบโต!"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Büyümemize yardım edin!"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Допоможіть нам рости!"
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hãy giúp chúng tôi phát triển!"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "帮助我们成长！"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "幫助我們成長！"
+          }
+        }
+      }
     },
     "High": {
       "localizations": {
@@ -19942,11 +21392,375 @@
     },
     "How's Your Experience?": {
       "comment": "A message in a prompt to rate a SwiftUI app.",
-      "isCommentAutoGenerated": true
+      "isCommentAutoGenerated": true,
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "كيف كانت تجربتك؟"
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "আপনার অভিজ্ঞতা কেমন?"
+          }
+        },
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Jaký je váš zážitek?"
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hvordan er din oplevelse?"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wie ist Ihre Erfahrung?"
+          }
+        },
+        "el": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Πώς είναι η εμπειρία σας;"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "¿Cómo es tu experiencia?"
+          }
+        },
+        "fi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Millainen kokemuksesi on?"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Comment trouvez-vous l'expérience ?"
+          }
+        },
+        "he": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "מה דעתך על החוויה?"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "आपका अनुभव कैसा है?"
+          }
+        },
+        "hu": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Milyen a tapasztalata?"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bagaimana pengalaman Anda?"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Com'è la tua esperienza?"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "使い心地はいかがですか？"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "경험은 어떠신가요?"
+          }
+        },
+        "ms": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bagaimana pengalaman anda?"
+          }
+        },
+        "nb": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hvordan er opplevelsen?"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hoe bevalt uw ervaring?"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Jak oceniasz swoje wrażenia?"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Como está sua experiência?"
+          }
+        },
+        "ro": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cum este experiența dvs.?"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Как вам приложение?"
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hur är din upplevelse?"
+          }
+        },
+        "th": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ประสบการณ์ของคุณเป็นอย่างไร?"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Deneyiminiz nasıl?"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Як вам додаток?"
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Trải nghiệm của bạn thế nào?"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "您的使用体验如何？"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "您的使用體驗如何？"
+          }
+        }
+      }
     },
     "If Media Converter makes file converting easy, share the love with a quick review. It helps other users find the best converter app.": {
       "comment": "A message in a prompt to rate the app, encouraging users to do so.",
-      "isCommentAutoGenerated": true
+      "isCommentAutoGenerated": true,
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "إذا جعل Media Converter تحويل الملفات سهلاً، شارك حبك بتقييم سريع. يساعد المستخدمين الآخرين في العثور على أفضل تطبيق تحويل."
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Media Converter যদি ফাইল রূপান্তর সহজ করে, একটি দ্রুত রিভিউ দিয়ে ভালোবাসা শেয়ার করুন।"
+          }
+        },
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pokud Media Converter usnadňuje převod souborů, sdílejte svou lásku rychlým hodnocením. Pomůže ostatním uživatelům najít nejlepší aplikaci."
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hvis Media Converter gør filkonvertering let, del kærligheden med en hurtig anmeldelse. Det hjælper andre med at finde den bedste app."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wenn Media Converter die Dateikonvertierung einfach macht, teilen Sie Ihre Begeisterung mit einer kurzen Bewertung. Es hilft anderen, die beste App zu finden."
+          }
+        },
+        "el": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Αν το Media Converter κάνει τη μετατροπή εύκολη, μοιραστείτε τη χαρά σας με μια γρήγορη κριτική. Βοηθά άλλους να βρουν την καλύτερη εφαρμογή."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Si Media Converter facilita la conversión, comparte tu experiencia con una reseña rápida. Ayuda a otros a encontrar la mejor app."
+          }
+        },
+        "fi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Jos Media Converter tekee muunnoksesta helppoa, jaa kokemuksesi nopealla arvostelulla. Se auttaa muita löytämään parhaan sovelluksen."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Si Media Converter facilite la conversion, partagez votre avis avec une évaluation rapide. Cela aide d'autres utilisateurs à trouver la meilleure application."
+          }
+        },
+        "he": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "אם Media Converter מקל על המרת קבצים, שתפו את האהבה עם ביקורת מהירה. זה עוזר למשתמשים אחרים למצוא את האפליקציה הטובה ביותר."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "अगर Media Converter फ़ाइल कन्वर्ट करना आसान बनाता है, तो एक त्वरित समीक्षा से प्यार बाँटें। यह अन्य उपयोगकर्ताओं की मदद करता है।"
+          }
+        },
+        "hu": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ha a Media Converter megkönnyíti a fájlkonvertálást, ossza meg szeretetét egy gyors értékeléssel. Segít más felhasználóknak megtalálni a legjobb alkalmazást."
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Jika Media Converter memudahkan konversi file, bagikan cinta dengan ulasan singkat. Ini membantu pengguna lain menemukan aplikasi terbaik."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Se Media Converter rende facile la conversione, condividi con una recensione veloce. Aiuta altri utenti a trovare la migliore app."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Media Converterでファイル変換が簡単になったら、レビューで応援してください。他のユーザーが最高のアプリを見つける助けになります。"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Media Converter로 파일 변환이 쉬워졌다면, 간단한 리뷰로 사랑을 나눠주세요. 다른 사용자들에게 도움이 됩니다."
+          }
+        },
+        "ms": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Jika Media Converter memudahkan penukaran fail, kongsi kasih dengan ulasan pantas. Ia membantu pengguna lain menemui aplikasi terbaik."
+          }
+        },
+        "nb": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hvis Media Converter gjør filkonvertering enkelt, del kjærligheten med en rask anmeldelse. Det hjelper andre å finne den beste appen."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Als Media Converter het converteren makkelijk maakt, deel uw liefde met een snelle beoordeling. Het helpt anderen de beste app te vinden."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Jeśli Media Converter ułatwia konwersję plików, podziel się opinią w szybkiej recenzji. Pomaga to innym znaleźć najlepszą aplikację."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Se o Media Converter facilita a conversão, compartilhe o amor com uma avaliação rápida. Isso ajuda outros a encontrar o melhor app."
+          }
+        },
+        "ro": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dacă Media Converter face conversia ușoară, împărtășiți dragostea cu o recenzie rapidă. Ajută alți utilizatori să găsească cea mai bună aplicație."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Если Media Converter упрощает конвертацию файлов, поделитесь впечатлениями в быстром отзыве. Это помогает другим найти лучшее приложение."
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Om Media Converter gör filkonvertering enkel, dela kärleken med ett snabbt omdöme. Det hjälper andra att hitta den bästa appen."
+          }
+        },
+        "th": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ถ้า Media Converter ทำให้การแปลงไฟล์ง่าย แบ่งปันความชอบด้วยรีวิวสั้นๆ ช่วยให้ผู้ใช้คนอื่นค้นพบแอปที่ดีที่สุด"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Media Converter dosya dönüştürmeyi kolaylaştırıyorsa, hızlı bir değerlendirmeyle sevginizi paylaşın. Diğer kullanıcılara en iyi uygulamayı bulmalarında yardımcı olur."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Якщо Media Converter спрощує конвертацію файлів, поділіться враженнями у швидкому відгуку. Це допоможе іншим знайти найкращий додаток."
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nếu Media Converter giúp chuyển đổi tệp dễ dàng, hãy chia sẻ bằng đánh giá nhanh. Điều này giúp người dùng khác tìm được ứng dụng tốt nhất."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "如果 Media Converter 让文件转换变得简单，请留下一个快速评价。这能帮助其他用户找到最好的转换应用。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "如果 Media Converter 讓檔案轉換變得簡單，請留下一個快速評價。這能幫助其他使用者找到最好的轉換應用程式。"
+          }
+        }
+      }
     },
     "Image": {
       "localizations": {
@@ -23727,7 +25541,189 @@
     },
     "Loving Media Converter File Converter?": {
       "comment": "Title of a prompt to rate the app.",
-      "isCommentAutoGenerated": true
+      "isCommentAutoGenerated": true,
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "هل تحب Media Converter؟"
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Media Converter পছন্দ করছেন?"
+          }
+        },
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Máte rádi Media Converter?"
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Er du glad for Media Converter?"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lieben Sie Media Converter?"
+          }
+        },
+        "el": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Σας αρέσει το Media Converter;"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "¿Te encanta Media Converter?"
+          }
+        },
+        "fi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rakastatko Media Converteria?"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vous adorez Media Converter ?"
+          }
+        },
+        "he": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "אוהבים את Media Converter?"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Media Converter पसंद आ रहा है?"
+          }
+        },
+        "hu": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Szereti a Media Convertert?"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Suka Media Converter?"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ti piace Media Converter?"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Media Converterがお気に入りですか？"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Media Converter가 마음에 드시나요?"
+          }
+        },
+        "ms": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Suka Media Converter?"
+          }
+        },
+        "nb": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Elsker du Media Converter?"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Houdt u van Media Converter?"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kochasz Media Converter?"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Está amando o Media Converter?"
+          }
+        },
+        "ro": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vă place Media Converter?"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Нравится Media Converter?"
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Älskar du Media Converter?"
+          }
+        },
+        "th": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ชอบ Media Converter ไหม?"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Media Converter'ı seviyor musunuz?"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Подобається Media Converter?"
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Yêu thích Media Converter?"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "喜欢 Media Converter 吗？"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "喜歡 Media Converter 嗎？"
+          }
+        }
+      }
     },
     "Low": {
       "comment": "A text label indicating a low quality setting.",
@@ -24109,7 +26105,189 @@
     },
     "Maybe Later": {
       "comment": "A button that dismisses an alert presented by the app.",
-      "isCommentAutoGenerated": true
+      "isCommentAutoGenerated": true,
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ربما لاحقاً"
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "পরে হয়তো"
+          }
+        },
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Možná později"
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Måske senere"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vielleicht später"
+          }
+        },
+        "el": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ίσως αργότερα"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Quizás más tarde"
+          }
+        },
+        "fi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ehkä myöhemmin"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Peut-être plus tard"
+          }
+        },
+        "he": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "אולי מאוחר יותר"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "शायद बाद में"
+          }
+        },
+        "hu": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Talán később"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mungkin nanti"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Forse più tardi"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "また後で"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "나중에"
+          }
+        },
+        "ms": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mungkin nanti"
+          }
+        },
+        "nb": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kanskje senere"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Misschien later"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Może później"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Talvez depois"
+          }
+        },
+        "ro": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Poate mai târziu"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Может быть, позже"
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kanske senare"
+          }
+        },
+        "th": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ไว้ทีหลัง"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Belki sonra"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Можливо, пізніше"
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Có lẽ sau"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "以后再说"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "以後再說"
+          }
+        }
+      }
     },
     "Merge": {
       "extractionState": "stale",
@@ -27332,7 +29510,189 @@
     },
     "One Tap to Support Media Converter": {
       "comment": "Text displayed in a notification when a user is prompted to rate the app.",
-      "isCommentAutoGenerated": true
+      "isCommentAutoGenerated": true,
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "نقرة واحدة لدعم Media Converter"
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Media Converter সমর্থন করতে এক ট্যাপ"
+          }
+        },
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Jedním klepnutím podpořte Media Converter"
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Et tryk for at støtte Media Converter"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ein Tipp, um Media Converter zu unterstützen"
+          }
+        },
+        "el": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ένα πάτημα για να υποστηρίξετε το Media Converter"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Un toque para apoyar a Media Converter"
+          }
+        },
+        "fi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Yksi napautus tukeaksesi Media Converteria"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Un tap pour soutenir Media Converter"
+          }
+        },
+        "he": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "הקשה אחת לתמיכה ב-Media Converter"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Media Converter का समर्थन करने के लिए एक टैप"
+          }
+        },
+        "hu": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Egy koppintás a Media Converter támogatásához"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Satu ketukan untuk mendukung Media Converter"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Un tocco per supportare Media Converter"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ワンタップでMedia Converterを応援"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "한 번의 탭으로 Media Converter 지원하기"
+          }
+        },
+        "ms": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Satu ketukan untuk menyokong Media Converter"
+          }
+        },
+        "nb": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ett trykk for å støtte Media Converter"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Eén tik om Media Converter te steunen"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Jedno dotknięcie, aby wesprzeć Media Converter"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Um toque para apoiar o Media Converter"
+          }
+        },
+        "ro": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "O atingere pentru a susține Media Converter"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Одно нажатие, чтобы поддержать Media Converter"
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ett tryck för att stödja Media Converter"
+          }
+        },
+        "th": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "แตะครั้งเดียวเพื่อสนับสนุน Media Converter"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Media Converter'ı desteklemek için bir dokunuş"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Один дотик, щоб підтримати Media Converter"
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Một chạm để ủng hộ Media Converter"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "一键支持 Media Converter"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "一鍵支持 Media Converter"
+          }
+        }
+      }
     },
     "Open": {
       "comment": "Button title that opens a file with its associated system app.",
@@ -29023,7 +31383,189 @@
     },
     "Photo library access denied. Please allow access in Settings.": {
       "comment": "Error message displayed when the user denies access to the photo library.",
-      "isCommentAutoGenerated": true
+      "isCommentAutoGenerated": true,
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "تم رفض الوصول إلى مكتبة الصور. يرجى السماح بالوصول من الإعدادات."
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ফটো লাইব্রেরি অ্যাক্সেস অস্বীকৃত। অনুগ্রহ করে সেটিংসে অ্যাক্সেস অনুমতি দিন।"
+          }
+        },
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Přístup k fototéce byl odepřen. Povolte přístup v Nastavení."
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Adgang til fotobibliotek nægtet. Tillad adgang i Indstillinger."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zugriff auf die Fotobibliothek verweigert. Bitte erlauben Sie den Zugriff in den Einstellungen."
+          }
+        },
+        "el": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Η πρόσβαση στη βιβλιοθήκη φωτογραφιών απορρίφθηκε. Επιτρέψτε την πρόσβαση στις Ρυθμίσεις."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Acceso a la biblioteca de fotos denegado. Permite el acceso en Configuración."
+          }
+        },
+        "fi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kuvakirjaston käyttöoikeus evätty. Salli käyttö Asetuksissa."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Accès à la photothèque refusé. Veuillez autoriser l'accès dans les Réglages."
+          }
+        },
+        "he": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "הגישה לספריית התמונות נדחתה. אנא אפשר גישה בהגדרות."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "फ़ोटो लाइब्रेरी एक्सेस अस्वीकृत। कृपया सेटिंग्स में एक्सेस की अनुमति दें।"
+          }
+        },
+        "hu": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A fotókönyvtár hozzáférése megtagadva. Engedélyezze a hozzáférést a Beállításokban."
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Akses perpustakaan foto ditolak. Izinkan akses di Pengaturan."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Accesso alla libreria foto negato. Consenti l'accesso nelle Impostazioni."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "写真ライブラリへのアクセスが拒否されました。設定でアクセスを許可してください。"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "사진 라이브러리 접근이 거부되었습니다. 설정에서 접근을 허용해 주세요."
+          }
+        },
+        "ms": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Akses pustaka foto ditolak. Sila benarkan akses dalam Tetapan."
+          }
+        },
+        "nb": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tilgang til bildebiblioteket nektet. Tillat tilgang i Innstillinger."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Toegang tot fotobibliotheek geweigerd. Sta toegang toe in Instellingen."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Odmowa dostępu do biblioteki zdjęć. Zezwól na dostęp w Ustawieniach."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Acesso à biblioteca de fotos negado. Permita o acesso em Ajustes."
+          }
+        },
+        "ro": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Acces la biblioteca foto refuzat. Permite accesul în Setări."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Доступ к медиатеке запрещён. Разрешите доступ в Настройках."
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Åtkomst till fotobiblioteket nekad. Tillåt åtkomst i Inställningar."
+          }
+        },
+        "th": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "การเข้าถึงคลังภาพถูกปฏิเสธ กรุณาอนุญาตการเข้าถึงในการตั้งค่า"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fotoğraf kitaplığına erişim reddedildi. Lütfen Ayarlar'da erişime izin verin."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Доступ до бібліотеки фотографій заборонено. Дозвольте доступ у Налаштуваннях."
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Quyền truy cập thư viện ảnh bị từ chối. Vui lòng cho phép truy cập trong Cài đặt."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "照片库访问被拒绝。请在设置中允许访问。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "照片圖庫存取被拒絕。請在設定中允許存取。"
+          }
+        }
+      }
     },
     "Photos": {
       "localizations": {
@@ -31103,10 +33645,558 @@
     },
     "Media Converter has converted your images, videos, and audio seamlessly. Tap to rate and help us become the top file converter on the App Store!": {
       "comment": "A message in the \"Rate\" sheet, encouraging users to leave a review.",
-      "isCommentAutoGenerated": true
+      "isCommentAutoGenerated": true,
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "قام Media Converter بتحويل صورك ومقاطع الفيديو والصوت بسلاسة. اضغط للتقييم وساعدنا في أن نصبح الأفضل!"
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Media Converter আপনার ছবি, ভিডিও এবং অডিও নির্বিঘ্নে রূপান্তর করেছে। রেট করতে ট্যাপ করুন!"
+          }
+        },
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Media Converter bezchybně převedl vaše obrázky, videa a zvuk. Klepnutím ohodnoťte a pomozte nám stát se nejlepšími!"
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Media Converter har konverteret dine billeder, videoer og lyd problemfrit. Tryk for at bedømme og hjælp os!"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Media Converter hat Ihre Bilder, Videos und Audiodateien nahtlos konvertiert. Tippen Sie zum Bewerten!"
+          }
+        },
+        "el": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Το Media Converter μετέτρεψε τα αρχεία σας απρόσκοπτα. Πατήστε για να βαθμολογήσετε!"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Media Converter ha convertido tus imágenes, videos y audio sin problemas. ¡Toca para valorar!"
+          }
+        },
+        "fi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Media Converter on muuntanut kuvasi, videosi ja äänesi saumattomasti. Napauta arvostellaksesi!"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Media Converter a converti vos images, vidéos et audio sans accroc. Appuyez pour évaluer !"
+          }
+        },
+        "he": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Media Converter המיר את הקבצים שלך בצורה חלקה. הקישו כדי לדרג!"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Media Converter ने आपकी तस्वीरें, वीडियो और ऑडियो को सहजता से बदल दिया। रेट करने के लिए टैप करें!"
+          }
+        },
+        "hu": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A Media Converter zökkenőmentesen konvertálta fájljait. Koppintson az értékeléshez!"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Media Converter telah mengonversi gambar, video, dan audio Anda dengan lancar. Ketuk untuk memberi nilai!"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Media Converter ha convertito i tuoi file senza problemi. Tocca per valutare!"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Media Converterは画像、動画、音声をシームレスに変換しました。タップして評価してください！"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Media Converter가 이미지, 동영상, 오디오를 매끄럽게 변환했습니다. 탭하여 평가해 주세요!"
+          }
+        },
+        "ms": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Media Converter telah menukar fail anda dengan lancar. Ketuk untuk menilai!"
+          }
+        },
+        "nb": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Media Converter har konvertert filene dine sømløst. Trykk for å vurdere!"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Media Converter heeft uw bestanden naadloos geconverteerd. Tik om te beoordelen!"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Media Converter bezproblemowo przekonwertował Twoje pliki. Stuknij, aby ocenić!"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "O Media Converter converteu seus arquivos perfeitamente. Toque para avaliar!"
+          }
+        },
+        "ro": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Media Converter a convertit fișierele fără probleme. Atingeți pentru a evalua!"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Media Converter легко конвертировал ваши файлы. Нажмите, чтобы оценить!"
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Media Converter har konverterat dina filer sömlöst. Tryck för att betygsätta!"
+          }
+        },
+        "th": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Media Converter แปลงไฟล์ของคุณได้อย่างราบรื่น แตะเพื่อให้คะแนน!"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Media Converter dosyalarınızı sorunsuzca dönüştürdü. Değerlendirmek için dokunun!"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Media Converter бездоганно конвертував ваші файли. Натисніть, щоб оцінити!"
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Media Converter đã chuyển đổi tệp của bạn một cách liền mạch. Nhấn để đánh giá!"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Media Converter 已无缝转换您的图片、视频和音频。点击评分吧！"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Media Converter 已無縫轉換您的圖片、影片和音訊。點擊評分吧！"
+          }
+        }
+      }
     },
-    "Media Converter Made It Easy!": {},
-    "Media Converter supports 70+ file formats — images, videos, audio, and documents. A 5-star rating helps others discover the ultimate converter app.": {},
+    "Media Converter Made It Easy!": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Media Converter جعلها سهلة!"
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Media Converter এটিকে সহজ করেছে!"
+          }
+        },
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Media Converter to usnadnil!"
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Media Converter gjorde det nemt!"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Media Converter macht es einfach!"
+          }
+        },
+        "el": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Το Media Converter το έκανε εύκολο!"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "¡Media Converter lo hizo fácil!"
+          }
+        },
+        "fi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Media Converter teki siitä helppoa!"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Media Converter a rendu ça facile !"
+          }
+        },
+        "he": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Media Converter עשה את זה קל!"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Media Converter ने इसे आसान बना दिया!"
+          }
+        },
+        "hu": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A Media Converter megkönnyítette!"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Media Converter membuatnya mudah!"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Media Converter l'ha reso facile!"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Media Converterで簡単に！"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Media Converter로 간편하게!"
+          }
+        },
+        "ms": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Media Converter memudahkannya!"
+          }
+        },
+        "nb": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Media Converter gjorde det enkelt!"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Media Converter maakte het makkelijk!"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Media Converter ułatwił sprawę!"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "O Media Converter facilitou!"
+          }
+        },
+        "ro": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Media Converter a făcut totul ușor!"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Media Converter сделал всё просто!"
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Media Converter gjorde det enkelt!"
+          }
+        },
+        "th": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Media Converter ทำให้ง่าย!"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Media Converter kolaylaştırdı!"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Media Converter зробив це простим!"
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Media Converter giúp mọi thứ dễ dàng!"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Media Converter 让一切变简单！"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Media Converter 讓一切變簡單！"
+          }
+        }
+      }
+    },
+    "Media Converter supports 70+ file formats — images, videos, audio, and documents. A 5-star rating helps others discover the ultimate converter app.": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "يدعم Media Converter أكثر من 70 تنسيقاً. تقييم 5 نجوم يساعد الآخرين في اكتشاف أفضل تطبيق تحويل."
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Media Converter 70+ ফাইল ফরম্যাট সমর্থন করে। 5-তারা রেটিং অন্যদের সেরা অ্যাপ আবিষ্কার করতে সাহায্য করে।"
+          }
+        },
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Media Converter podporuje 70+ formátů. 5hvězdičkové hodnocení pomáhá ostatním objevit nejlepší aplikaci."
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Media Converter understøtter 70+ formater. En 5-stjernet bedømmelse hjælper andre med at opdage den bedste app."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Media Converter unterstützt 70+ Formate. Eine 5-Sterne-Bewertung hilft anderen, die beste App zu entdecken."
+          }
+        },
+        "el": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Το Media Converter υποστηρίζει 70+ μορφές. Μια βαθμολογία 5 αστέρων βοηθά τους άλλους να ανακαλύψουν την καλύτερη εφαρμογή."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Media Converter admite más de 70 formatos. Una valoración de 5 estrellas ayuda a otros a descubrir la mejor app."
+          }
+        },
+        "fi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Media Converter tukee yli 70 muotoa. 5 tähden arvostelu auttaa muita löytämään parhaan sovelluksen."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Media Converter prend en charge plus de 70 formats. Une note de 5 étoiles aide les autres à découvrir la meilleure application."
+          }
+        },
+        "he": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Media Converter תומך ביותר מ-70 פורמטים. דירוג של 5 כוכבים עוזר לאחרים לגלות את האפליקציה האולטימטיבית."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Media Converter 70+ फ़ाइल प्रारूपों का समर्थन करता है। 5-स्टार रेटिंग दूसरों को सर्वश्रेष्ठ ऐप खोजने में मदद करती है।"
+          }
+        },
+        "hu": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A Media Converter 70+ formátumot támogat. Egy 5 csillagos értékelés segít másoknak felfedezni a legjobb alkalmazást."
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Media Converter mendukung 70+ format. Rating 5 bintang membantu orang lain menemukan aplikasi terbaik."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Media Converter supporta oltre 70 formati. Una valutazione a 5 stelle aiuta gli altri a scoprire la migliore app."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Media Converterは70以上の形式に対応。5つ星の評価は他のユーザーの助けになります。"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Media Converter는 70개 이상의 형식을 지원합니다. 별 5개 평가가 다른 사용자에게 도움이 됩니다."
+          }
+        },
+        "ms": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Media Converter menyokong 70+ format. Penarafan 5 bintang membantu orang lain menemui aplikasi terbaik."
+          }
+        },
+        "nb": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Media Converter støtter 70+ formater. En 5-stjerners vurdering hjelper andre å oppdage den beste appen."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Media Converter ondersteunt 70+ formaten. Een 5-sterrenbeoordeling helpt anderen de beste app te ontdekken."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Media Converter obsługuje 70+ formatów. Ocena 5 gwiazdek pomaga innym odkryć najlepszą aplikację."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "O Media Converter suporta mais de 70 formatos. Uma avaliação de 5 estrelas ajuda outros a descobrir o melhor app."
+          }
+        },
+        "ro": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Media Converter acceptă peste 70 de formate. O evaluare de 5 stele ajută pe alții să descopere cea mai bună aplicație."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Media Converter поддерживает 70+ форматов. Оценка в 5 звёзд помогает другим найти лучшее приложение."
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Media Converter stöder 70+ format. Ett 5-stjärnigt betyg hjälper andra att upptäcka den bästa appen."
+          }
+        },
+        "th": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Media Converter รองรับมากกว่า 70 รูปแบบ การให้คะแนน 5 ดาวช่วยให้คนอื่นค้นพบแอปที่ดีที่สุด"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Media Converter 70'ten fazla formatı destekler. 5 yıldızlı bir değerlendirme başkalarına en iyi uygulamayı keşfetmede yardımcı olur."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Media Converter підтримує 70+ форматів. Оцінка в 5 зірок допомагає іншим знайти найкращий додаток."
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Media Converter hỗ trợ hơn 70 định dạng. Đánh giá 5 sao giúp người khác khám phá ứng dụng tốt nhất."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Media Converter 支持 70 多种格式。5 星评分能帮助其他人发现这款最佳应用。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Media Converter 支援 70 多種格式。5 星評分能幫助其他人發現這款最佳應用程式。"
+          }
+        }
+      }
+    },
     "Rate app": {
       "localizations": {
         "ar": {
@@ -31299,7 +34389,189 @@
     },
     "Rate Now": {
       "comment": "The text on a button that allows a user to rate a SwiftUI app.",
-      "isCommentAutoGenerated": true
+      "isCommentAutoGenerated": true,
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "قيّم الآن"
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "এখনই রেট করুন"
+          }
+        },
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ohodnotit nyní"
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bedøm nu"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Jetzt bewerten"
+          }
+        },
+        "el": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Βαθμολογήστε τώρα"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Valorar ahora"
+          }
+        },
+        "fi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Arvostele nyt"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Évaluer maintenant"
+          }
+        },
+        "he": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "דרג עכשיו"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "अभी रेट करें"
+          }
+        },
+        "hu": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Értékelje most"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Beri nilai sekarang"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Valuta ora"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "今すぐ評価"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "지금 평가하기"
+          }
+        },
+        "ms": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nilai sekarang"
+          }
+        },
+        "nb": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vurder nå"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nu beoordelen"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Oceń teraz"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Avaliar agora"
+          }
+        },
+        "ro": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Evaluează acum"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Оценить сейчас"
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Betygsätt nu"
+          }
+        },
+        "th": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ให้คะแนนเลย"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Şimdi değerlendir"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Оцінити зараз"
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Đánh giá ngay"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "立即评分"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "立即評分"
+          }
+        }
+      }
     },
     "Ratio": {
       "extractionState": "stale",
@@ -36970,7 +40242,189 @@
     },
     "Select multiple videos to merge": {
       "comment": "A description under the \"Browse video files on your device\" text, explaining that users can select multiple videos to merge.",
-      "isCommentAutoGenerated": true
+      "isCommentAutoGenerated": true,
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "اختر عدة مقاطع فيديو للدمج"
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "মার্জ করতে একাধিক ভিডিও নির্বাচন করুন"
+          }
+        },
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vyberte více videí ke sloučení"
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vælg flere videoer at flette"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wählen Sie mehrere Videos zum Zusammenführen"
+          }
+        },
+        "el": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Επιλέξτε πολλά βίντεο για συγχώνευση"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Selecciona varios videos para combinar"
+          }
+        },
+        "fi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Valitse useita videoita yhdistettäväksi"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sélectionnez plusieurs vidéos à fusionner"
+          }
+        },
+        "he": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "בחר מספר סרטונים למיזוג"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "मर्ज करने के लिए कई वीडियो चुनें"
+          }
+        },
+        "hu": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Válasszon több videót az egyesítéshez"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pilih beberapa video untuk digabungkan"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Seleziona più video da unire"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "結合する動画を複数選択"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "병합할 동영상을 여러 개 선택하세요"
+          }
+        },
+        "ms": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pilih beberapa video untuk digabungkan"
+          }
+        },
+        "nb": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Velg flere videoer å slå sammen"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Selecteer meerdere video's om samen te voegen"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wybierz wiele filmów do połączenia"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Selecione vários vídeos para mesclar"
+          }
+        },
+        "ro": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Selectați mai multe videoclipuri pentru a le uni"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Выберите несколько видео для объединения"
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Välj flera videor att sammanfoga"
+          }
+        },
+        "th": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "เลือกวิดีโอหลายรายการเพื่อรวม"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Birleştirmek için birden fazla video seçin"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Виберіть кілька відео для об'єднання"
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Chọn nhiều video để gộp"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "选择多个视频进行合并"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "選擇多個影片進行合併"
+          }
+        }
+      }
     },
     "Select pages to extract": {
       "localizations": {
@@ -42073,7 +45527,189 @@
     },
     "This image format is not supported for saving to the photo library.": {
       "comment": "Error message displayed when an attempt to save an image to the photo library fails because the image format is not supported.",
-      "isCommentAutoGenerated": true
+      "isCommentAutoGenerated": true,
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "تنسيق الصورة هذا غير مدعوم للحفظ في مكتبة الصور."
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "এই ছবির ফরম্যাটটি ফটো লাইব্রেরিতে সংরক্ষণের জন্য সমর্থিত নয়।"
+          }
+        },
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tento formát obrázku není podporován pro uložení do fototéky."
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dette billedformat understøttes ikke til lagring i fotobiblioteket."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dieses Bildformat wird zum Speichern in der Fotobibliothek nicht unterstützt."
+          }
+        },
+        "el": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Αυτή η μορφή εικόνας δεν υποστηρίζεται για αποθήκευση στη βιβλιοθήκη φωτογραφιών."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Este formato de imagen no es compatible para guardar en la biblioteca de fotos."
+          }
+        },
+        "fi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tätä kuvamuotoa ei tueta tallennettavaksi kuvakirjastoon."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ce format d'image n'est pas pris en charge pour l'enregistrement dans la photothèque."
+          }
+        },
+        "he": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "פורמט תמונה זה אינו נתמך לשמירה בספריית התמונות."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "यह छवि प्रारूप फ़ोटो लाइब्रेरी में सहेजने के लिए समर्थित नहीं है।"
+          }
+        },
+        "hu": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ez a képformátum nem támogatott a fotókönyvtárba mentéshez."
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Format gambar ini tidak didukung untuk disimpan ke perpustakaan foto."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Questo formato immagine non è supportato per il salvataggio nella libreria foto."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "この画像形式は写真ライブラリへの保存に対応していません。"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "이 이미지 형식은 사진 라이브러리에 저장할 수 없습니다."
+          }
+        },
+        "ms": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Format imej ini tidak disokong untuk disimpan ke pustaka foto."
+          }
+        },
+        "nb": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dette bildeformatet støttes ikke for lagring i bildebiblioteket."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dit afbeeldingsformaat wordt niet ondersteund voor opslag in de fotobibliotheek."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ten format obrazu nie jest obsługiwany do zapisu w bibliotece zdjęć."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Este formato de imagem não é compatível para salvar na biblioteca de fotos."
+          }
+        },
+        "ro": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Acest format de imagine nu este acceptat pentru salvarea în biblioteca foto."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Этот формат изображения не поддерживается для сохранения в медиатеку."
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Detta bildformat stöds inte för sparning till fotobiblioteket."
+          }
+        },
+        "th": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "รูปแบบภาพนี้ไม่รองรับการบันทึกลงในคลังภาพ"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bu resim formatı fotoğraf kitaplığına kaydetme için desteklenmiyor."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Цей формат зображення не підтримується для збереження до бібліотеки фотографій."
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Định dạng ảnh này không được hỗ trợ để lưu vào thư viện ảnh."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此图像格式不支持保存到照片库。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此圖像格式不支援儲存到照片圖庫。"
+          }
+        }
+      }
     },
     "This tool is not available yet. Stay tuned!": {
       "localizations": {
@@ -46058,11 +49694,375 @@
     },
     "You're on a roll!": {
       "comment": "A description of a rate app prompt.",
-      "isCommentAutoGenerated": true
+      "isCommentAutoGenerated": true,
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "أنت في قمة النشاط!"
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "আপনি দারুণ করছেন!"
+          }
+        },
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Jste na vlně!"
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Du er godt i gang!"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sie sind auf dem richtigen Weg!"
+          }
+        },
+        "el": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Είστε σε φόρα!"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "¡Vas muy bien!"
+          }
+        },
+        "fi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Olet vauhdissa!"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vous êtes lancé !"
+          }
+        },
+        "he": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "אתה בתנופה!"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "आप शानदार कर रहे हैं!"
+          }
+        },
+        "hu": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nagyszerűen megy!"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Anda sedang beruntung!"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sei in gran forma!"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "絶好調ですね！"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "잘 하고 계시네요!"
+          }
+        },
+        "ms": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Anda sedang hebat!"
+          }
+        },
+        "nb": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Du er i flytsonen!"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "U bent lekker bezig!"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Świetnie Ci idzie!"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Você está arrasando!"
+          }
+        },
+        "ro": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sunteți în formă!"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Вы на ходу!"
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Du är på rulle!"
+          }
+        },
+        "th": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "คุณทำได้ดีมาก!"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Harika gidiyorsunuz!"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ви в ударі!"
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bạn đang làm rất tốt!"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "你太棒了！"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "你太棒了！"
+          }
+        }
+      }
     },
     "You've successfully converted your files! Help others discover the best format converter for HEIC, PDF, MP4, and 70+ formats — rate us on the App Store.": {
       "comment": "Message in a prompt to rate the app, encouraging users to do so to help others find the best converter app.",
-      "isCommentAutoGenerated": true
+      "isCommentAutoGenerated": true,
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "لقد نجحت في تحويل ملفاتك! ساعد الآخرين في اكتشاف أفضل محول — قيّمنا على App Store."
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "আপনি সফলভাবে ফাইল রূপান্তর করেছেন! অন্যদের সেরা কনভার্টার খুঁজে পেতে সাহায্য করুন — App Store-এ রেট করুন।"
+          }
+        },
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Úspěšně jste převedli soubory! Pomozte ostatním objevit nejlepší převodník — ohodnoťte nás na App Store."
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Du har konverteret dine filer! Hjælp andre med at opdage den bedste konverter — bedøm os på App Store."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sie haben Ihre Dateien erfolgreich konvertiert! Helfen Sie anderen — bewerten Sie uns im App Store."
+          }
+        },
+        "el": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Μετατρέψατε επιτυχώς τα αρχεία σας! Βοηθήστε τους άλλους — βαθμολογήστε μας στο App Store."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "¡Has convertido tus archivos! Ayuda a otros a descubrir el mejor convertidor — valóranos en la App Store."
+          }
+        },
+        "fi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Olet muuntanut tiedostosi! Auta muita löytämään paras muunnin — arvostele meitä App Storessa."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vous avez converti vos fichiers ! Aidez les autres — évaluez-nous sur l'App Store."
+          }
+        },
+        "he": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "המרתם את הקבצים בהצלחה! עזרו לאחרים — דרגו אותנו ב-App Store."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "आपने सफलतापूर्वक फ़ाइलें कन्वर्ट कर ली हैं! दूसरों की मदद करें — App Store पर हमें रेट करें।"
+          }
+        },
+        "hu": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sikeresen konvertálta fájljait! Segítsen másoknak — értékeljen minket az App Store-ban."
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Anda berhasil mengonversi file! Bantu orang lain menemukan konverter terbaik — beri nilai di App Store."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hai convertito i tuoi file! Aiuta gli altri a scoprire il miglior convertitore — valutaci sull'App Store."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ファイルの変換に成功しました！他のユーザーに紹介してください — App Storeで評価をお願いします。"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "파일을 성공적으로 변환했습니다! 다른 사용자를 도와주세요 — App Store에서 평가해 주세요."
+          }
+        },
+        "ms": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Anda berjaya menukar fail! Bantu orang lain menemui penukar terbaik — nilai kami di App Store."
+          }
+        },
+        "nb": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Du har konvertert filene dine! Hjelp andre — vurder oss på App Store."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "U hebt uw bestanden geconverteerd! Help anderen — beoordeel ons op de App Store."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pomyślnie przekonwertowałeś pliki! Pomóż innym — oceń nas w App Store."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Você converteu seus arquivos! Ajude outros a descobrir o melhor conversor — avalie-nos na App Store."
+          }
+        },
+        "ro": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ați convertit fișierele! Ajutați pe alții — evaluați-ne pe App Store."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Вы успешно конвертировали файлы! Помогите другим — оцените нас в App Store."
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Du har konverterat dina filer! Hjälp andra — betygsätt oss på App Store."
+          }
+        },
+        "th": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "คุณแปลงไฟล์สำเร็จแล้ว! ช่วยคนอื่นค้นพบตัวแปลงที่ดีที่สุด — ให้คะแนนเราบน App Store"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dosyalarınızı başarıyla dönüştürdünüz! Başkalarına yardımcı olun — App Store'da bizi değerlendirin."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ви успішно конвертували файли! Допоможіть іншим — оцініть нас в App Store."
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bạn đã chuyển đổi tệp thành công! Giúp người khác — đánh giá chúng tôi trên App Store."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "您已成功转换文件！帮助其他人发现最佳转换器 — 在 App Store 给我们评分。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "您已成功轉換檔案！幫助其他人發現最佳轉換器 — 在 App Store 給我們評分。"
+          }
+        }
+      }
     },
     "Your conversions will appear here": {
       "localizations": {
@@ -46256,11 +50256,375 @@
     },
     "Your files converted perfectly! If Media Converter helps you convert images, videos, and documents, a quick rating would mean a lot.": {
       "comment": "Message in a prompt to rate the app, encouraging users to do so if they have found it useful.",
-      "isCommentAutoGenerated": true
+      "isCommentAutoGenerated": true,
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "تم تحويل ملفاتك بشكل مثالي! إذا ساعدك Media Converter، فإن تقييماً سريعاً سيعني الكثير."
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "আপনার ফাইলগুলি নিখুঁতভাবে রূপান্তরিত হয়েছে! Media Converter সাহায্য করলে, একটি দ্রুত রেটিং অনেক অর্থবহ হবে।"
+          }
+        },
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vaše soubory byly převedeny perfektně! Pokud vám Media Converter pomáhá, rychlé hodnocení by znamenalo hodně."
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dine filer blev konverteret perfekt! Hvis Media Converter hjælper dig, ville en hurtig bedømmelse betyde meget."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ihre Dateien wurden perfekt konvertiert! Wenn Media Converter Ihnen hilft, würde eine kurze Bewertung viel bedeuten."
+          }
+        },
+        "el": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Τα αρχεία σας μετατράπηκαν τέλεια! Αν το Media Converter σας βοηθά, μια γρήγορη βαθμολογία θα σήμαινε πολλά."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "¡Tus archivos se convirtieron perfectamente! Si Media Converter te ayuda, una valoración rápida significaría mucho."
+          }
+        },
+        "fi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tiedostosi muunnettiin täydellisesti! Jos Media Converter auttaa sinua, nopea arvostelu merkitsisi paljon."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vos fichiers ont été convertis parfaitement ! Si Media Converter vous aide, une évaluation rapide nous ferait plaisir."
+          }
+        },
+        "he": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "הקבצים שלך הומרו בצורה מושלמת! אם Media Converter עוזר לך, דירוג מהיר יעשה לנו שמח."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "आपकी फ़ाइलें बिल्कुल सही तरीके से कन्वर्ट हो गईं! अगर Media Converter मदद करता है, तो एक त्वरित रेटिंग बहुत मायने रखेगी।"
+          }
+        },
+        "hu": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fájljai tökéletesen konvertálódtak! Ha a Media Converter segít, egy gyors értékelés sokat jelentene."
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "File Anda berhasil dikonversi dengan sempurna! Jika Media Converter membantu, penilaian singkat akan sangat berarti."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "I tuoi file sono stati convertiti perfettamente! Se Media Converter ti aiuta, una valutazione rapida significherebbe molto."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ファイルが完璧に変換されました！Media Converterが役立っているなら、簡単な評価をいただけると嬉しいです。"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "파일이 완벽하게 변환되었습니다! Media Converter가 도움이 된다면, 간단한 평가를 남겨주시면 큰 힘이 됩니다."
+          }
+        },
+        "ms": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fail anda telah ditukar dengan sempurna! Jika Media Converter membantu, penilaian pantas sangat bermakna."
+          }
+        },
+        "nb": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Filene dine ble konvertert perfekt! Hvis Media Converter hjelper deg, ville en rask vurdering bety mye."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Uw bestanden zijn perfect geconverteerd! Als Media Converter u helpt, zou een snelle beoordeling veel betekenen."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Twoje pliki zostały przekonwertowane idealnie! Jeśli Media Converter pomaga, szybka ocena wiele by znaczyła."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Seus arquivos foram convertidos perfeitamente! Se o Media Converter ajuda, uma avaliação rápida significaria muito."
+          }
+        },
+        "ro": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fișierele dvs. au fost convertite perfect! Dacă Media Converter vă ajută, o evaluare rapidă ar însemna mult."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ваши файлы конвертированы идеально! Если Media Converter помогает вам, быстрая оценка будет очень значима."
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dina filer konverterades perfekt! Om Media Converter hjälper dig, skulle ett snabbt betyg betyda mycket."
+          }
+        },
+        "th": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ไฟล์ของคุณถูกแปลงอย่างสมบูรณ์แบบ! ถ้า Media Converter ช่วยคุณ การให้คะแนนสั้นๆ จะมีความหมายมาก"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dosyalarınız mükemmel dönüştürüldü! Media Converter yardımcı oluyorsa, hızlı bir değerlendirme çok şey ifade eder."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ваші файли конвертовані ідеально! Якщо Media Converter допомагає, швидка оцінка буде дуже значущою."
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tệp của bạn đã được chuyển đổi hoàn hảo! Nếu Media Converter giúp ích, một đánh giá nhanh sẽ rất có ý nghĩa."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "您的文件已完美转换！如果 Media Converter 帮助了您，一个快速评分对我们意义重大。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "您的檔案已完美轉換！如果 Media Converter 幫助了您，一個快速評分對我們意義重大。"
+          }
+        }
+      }
     },
     "Your review helps millions find the best free file converter for photos, videos, and documents. Rate Media Converter on the App Store!": {
       "comment": "A randomly selected prompt for prompting the user to rate the app.",
-      "isCommentAutoGenerated": true
+      "isCommentAutoGenerated": true,
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "يساعد تقييمك الملايين في العثور على أفضل محول ملفات مجاني. قيّم Media Converter على App Store!"
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "আপনার রিভিউ লক্ষ লক্ষ মানুষকে সেরা বিনামূল্যে কনভার্টার খুঁজে পেতে সাহায্য করে। App Store-এ রেট করুন!"
+          }
+        },
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vaše recenze pomáhá milionům najít nejlepší bezplatný převodník. Ohodnoťte Media Converter na App Store!"
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Din anmeldelse hjælper millioner med at finde den bedste gratis konverter. Bedøm Media Converter på App Store!"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ihre Bewertung hilft Millionen, den besten kostenlosen Konverter zu finden. Bewerten Sie Media Converter im App Store!"
+          }
+        },
+        "el": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Η κριτική σας βοηθά εκατομμύρια να βρουν τον καλύτερο δωρεάν μετατροπέα. Βαθμολογήστε στο App Store!"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tu reseña ayuda a millones a encontrar el mejor convertidor gratuito. ¡Valora Media Converter en la App Store!"
+          }
+        },
+        "fi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Arvostelusi auttaa miljoonia löytämään parhaan ilmaisen muuntimen. Arvostele Media Converter App Storessa!"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Votre avis aide des millions à trouver le meilleur convertisseur gratuit. Évaluez Media Converter sur l'App Store !"
+          }
+        },
+        "he": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "הביקורת שלך עוזרת למיליונים למצוא את הממיר החינמי הטוב ביותר. דרגו ב-App Store!"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "आपकी समीक्षा लाखों लोगों को सबसे अच्छा मुफ़्त कनवर्टर खोजने में मदद करती है। App Store पर रेट करें!"
+          }
+        },
+        "hu": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Véleménye segít millióknak megtalálni a legjobb ingyenes konvertert. Értékelje az App Store-ban!"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ulasan Anda membantu jutaan menemukan konverter gratis terbaik. Beri nilai di App Store!"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La tua recensione aiuta milioni a trovare il miglior convertitore gratuito. Valuta sull'App Store!"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "あなたのレビューは最高の無料コンバーターを見つける数百万人の助けになります。App Storeで評価してください！"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "여러분의 리뷰는 수백만 명이 최고의 무료 변환기를 찾는 데 도움이 됩니다. App Store에서 평가해 주세요!"
+          }
+        },
+        "ms": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ulasan anda membantu jutaan menemui penukar percuma terbaik. Nilai di App Store!"
+          }
+        },
+        "nb": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Din anmeldelse hjelper millioner å finne den beste gratis konverteren. Vurder på App Store!"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Uw beoordeling helpt miljoenen de beste gratis converter te vinden. Beoordeel op de App Store!"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Twoja opinia pomaga milionom znaleźć najlepszy darmowy konwerter. Oceń w App Store!"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sua avaliação ajuda milhões a encontrar o melhor conversor gratuito. Avalie na App Store!"
+          }
+        },
+        "ro": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Recenzia dvs. ajută milioane să găsească cel mai bun convertor gratuit. Evaluați pe App Store!"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ваш отзыв помогает миллионам найти лучший бесплатный конвертер. Оцените в App Store!"
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Din recension hjälper miljoner att hitta den bästa gratis konverteraren. Betygsätt på App Store!"
+          }
+        },
+        "th": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "รีวิวของคุณช่วยให้คนนับล้านค้นหาตัวแปลงไฟล์ฟรีที่ดีที่สุด ให้คะแนนบน App Store!"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Değerlendirmeniz milyonlarca kişiye en iyi ücretsiz dönüştürücüyü bulmada yardımcı olur. App Store'da değerlendirin!"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ваш відгук допомагає мільйонам знайти найкращий безкоштовний конвертер. Оцініть в App Store!"
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Đánh giá của bạn giúp hàng triệu người tìm thấy trình chuyển đổi miễn phí tốt nhất. Đánh giá trên App Store!"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "您的评价帮助数百万人找到最好的免费转换器。在 App Store 给 Media Converter 评分吧！"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "您的評價幫助數百萬人找到最好的免費轉換器。在 App Store 給 Media Converter 評分吧！"
+          }
+        }
+      }
     },
     "Rename": {
       "localizations": {

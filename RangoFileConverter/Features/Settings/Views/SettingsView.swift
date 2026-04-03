@@ -566,19 +566,19 @@ struct SettingsView: View {
                 await MainActor.run {
                     isRestoringPurchases = false
                     if SubscriptionManager.shared.isProUser {
-                        restoreAlertTitle = "Purchases Restored"
-                        restoreAlertMessage = "Your Pro subscription has been restored successfully."
+                        restoreAlertTitle = String(localized: "Purchases Restored")
+                        restoreAlertMessage = String(localized: "Your Pro subscription has been restored successfully.")
                     } else {
-                        restoreAlertTitle = "No Purchases Found"
-                        restoreAlertMessage = "No previous purchases were found for this account."
+                        restoreAlertTitle = String(localized: "No Purchases Found")
+                        restoreAlertMessage = String(localized: "No previous purchases were found for this account.")
                     }
                     showRestoreAlert = true
                 }
             } catch {
                 await MainActor.run {
                     isRestoringPurchases = false
-                    restoreAlertTitle = "Restore Failed"
-                    restoreAlertMessage = "Unable to restore purchases. Please try again later."
+                    restoreAlertTitle = String(localized: "Restore Failed")
+                    restoreAlertMessage = String(localized: "Unable to restore purchases. Please try again later.")
                     showRestoreAlert = true
                 }
             }

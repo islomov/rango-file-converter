@@ -4,6 +4,7 @@ import Combine
 struct HistoryView: View {
     var onProTapped: (() -> Void)?
     @EnvironmentObject private var historyStore: HistoryStore
+    @ObservedObject private var subscriptionManager = SubscriptionManager.shared
     @State private var selectedRecord: ConversionRecord?
     @State private var searchText: String = ""
     @State private var showFilterSheet = false
@@ -89,33 +90,53 @@ struct HistoryView: View {
 
                 Spacer()
 
-                Button(action: {
-                    UIImpactFeedbackGenerator(style: .light).impactOccurred()
-                    if let onProTapped {
-                        onProTapped()
-                    } else {
-                        showSubscription = true
-                    }
-                }) {
+                if subscriptionManager.isProUser {
                     HStack(spacing: 6) {
                         Image(systemName: "crown.fill")
                             .font(.system(size: 14, weight: .bold))
-                            .foregroundColor(.white)
+                            .foregroundColor(AppColors.accent)
 
                         Text("PRO")
                             .font(.system(size: 14, weight: .bold))
-                            .foregroundColor(.white)
+                            .foregroundColor(AppColors.accent)
+
+                        Image(systemName: "checkmark.circle.fill")
+                            .font(.system(size: 12, weight: .bold))
+                            .foregroundColor(AppColors.accent)
                     }
                     .padding(.horizontal, 14)
                     .padding(.vertical, 10)
-                    .background(
-                        LinearGradient(
-                            colors: [AppColors.accentLight, AppColors.accent],
-                            startPoint: .topLeading,
-                            endPoint: .bottomTrailing
-                        )
-                    )
+                    .background(AppColors.accent.opacity(0.12))
                     .cornerRadius(22)
+                } else {
+                    Button(action: {
+                        UIImpactFeedbackGenerator(style: .light).impactOccurred()
+                        if let onProTapped {
+                            onProTapped()
+                        } else {
+                            showSubscription = true
+                        }
+                    }) {
+                        HStack(spacing: 6) {
+                            Image(systemName: "crown.fill")
+                                .font(.system(size: 14, weight: .bold))
+                                .foregroundColor(.white)
+
+                            Text("PRO")
+                                .font(.system(size: 14, weight: .bold))
+                                .foregroundColor(.white)
+                        }
+                        .padding(.horizontal, 14)
+                        .padding(.vertical, 10)
+                        .background(
+                            LinearGradient(
+                                colors: [AppColors.accentLight, AppColors.accent],
+                                startPoint: .topLeading,
+                                endPoint: .bottomTrailing
+                            )
+                        )
+                        .cornerRadius(22)
+                    }
                 }
             }
             .padding(.horizontal, 16)

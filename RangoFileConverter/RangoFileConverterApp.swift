@@ -25,6 +25,7 @@ final class AppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCent
         RemoteConfigManager.shared.configure()
         RemoteConfigManager.shared.fetchAndActivate()
         AdNetworkManager.shared.configure(application: application, launchOptions: launchOptions)
+        SubscriptionManager.shared.configure()
         UNUserNotificationCenter.current().delegate = self
         DailyReminderManager.shared.rescheduleIfNeeded()
         return true

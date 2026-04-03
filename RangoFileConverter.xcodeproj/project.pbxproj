@@ -15,6 +15,7 @@
 		15707A062F5B000100B64C40 /* FirebaseCrashlytics in Frameworks */ = {isa = PBXBuildFile; productRef = 15707A052F5B000100B64C40 /* FirebaseCrashlytics */; };
 		15A0B0032F6C800000B64C40 /* lame in Frameworks */ = {isa = PBXBuildFile; productRef = 15A0B0022F6C800000B64C40 /* lame */; };
 		15AD00152FA6A00000B64C40 /* FacebookCore in Frameworks */ = {isa = PBXBuildFile; productRef = 15AD00142FA6A00000B64C40 /* FacebookCore */; };
+		15B1C0032FA7A00000B64C40 /* RevenueCat in Frameworks */ = {isa = PBXBuildFile; productRef = 15B1C0022FA7A00000B64C40 /* RevenueCat */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -42,6 +43,7 @@
 				15707A062F5B000100B64C40 /* FirebaseCrashlytics in Frameworks */,
 				15A0B0032F6C800000B64C40 /* lame in Frameworks */,
 				15AD00152FA6A00000B64C40 /* FacebookCore in Frameworks */,
+				15B1C0032FA7A00000B64C40 /* RevenueCat in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -92,6 +94,7 @@
 				15707A052F5B000100B64C40 /* FirebaseCrashlytics */,
 				15A0B0022F6C800000B64C40 /* lame */,
 				15AD00142FA6A00000B64C40 /* FacebookCore */,
+				15B1C0022FA7A00000B64C40 /* RevenueCat */,
 			);
 			productName = RangoFileConverter;
 			productReference = 157079572F4881F500B64C40 /* RangoFileConverter.app */;
@@ -157,6 +160,7 @@
 				15707A002F5B000100B64C40 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */,
 				15A0B0012F6C800000B64C40 /* XCRemoteSwiftPackageReference "swift-lame" */,
 				15AD00132FA6A00000B64C40 /* XCRemoteSwiftPackageReference "facebook-ios-sdk" */,
+				15B1C0012FA7A00000B64C40 /* XCRemoteSwiftPackageReference "purchases-ios-spm" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 157079582F4881F500B64C40 /* Products */;
@@ -463,6 +467,14 @@
 				minimumVersion = 18.0.0;
 			};
 		};
+		15B1C0012FA7A00000B64C40 /* XCRemoteSwiftPackageReference "purchases-ios-spm" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/RevenueCat/purchases-ios-spm.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 5.0.0;
+			};
+		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
@@ -500,6 +512,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 15AD00132FA6A00000B64C40 /* XCRemoteSwiftPackageReference "facebook-ios-sdk" */;
 			productName = FacebookCore;
+		};
+		15B1C0022FA7A00000B64C40 /* RevenueCat */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 15B1C0012FA7A00000B64C40 /* XCRemoteSwiftPackageReference "purchases-ios-spm" */;
+			productName = RevenueCat;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

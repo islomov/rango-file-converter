@@ -13,6 +13,7 @@ struct SettingsView: View {
     @State private var showRateAppAlert = false
     @State private var rateAppPrompt: RateAppPrompt = .random()
     @State private var sectionsAppeared = false
+    @State private var showFAQ = false
     @State private var showSubscription = false
 
     var body: some View {
@@ -42,10 +43,15 @@ struct SettingsView: View {
                         .offset(y: sectionsAppeared ? 0 : 20)
                         .animation(.spring(response: 0.45, dampingFraction: 0.85).delay(0.22), value: sectionsAppeared)
 
-                    linksSection
+                    supportSection
                         .opacity(sectionsAppeared ? 1 : 0)
                         .offset(y: sectionsAppeared ? 0 : 20)
                         .animation(.spring(response: 0.45, dampingFraction: 0.85).delay(0.29), value: sectionsAppeared)
+
+                    linksSection
+                        .opacity(sectionsAppeared ? 1 : 0)
+                        .offset(y: sectionsAppeared ? 0 : 20)
+                        .animation(.spring(response: 0.45, dampingFraction: 0.85).delay(0.36), value: sectionsAppeared)
                 }
                 .padding(.horizontal, 16)
                 .padding(.top, 16)
@@ -77,6 +83,11 @@ struct SettingsView: View {
             .presentationDragIndicator(.hidden)
             .interactiveDismissDisabled()
             .preferredColorScheme(themeManager.colorScheme)
+        }
+        .sheet(isPresented: $showFAQ) {
+            FAQBottomSheetView()
+                .presentationDetents([.large])
+                .preferredColorScheme(themeManager.colorScheme)
         }
         .sheet(isPresented: $showSubscription) {
             SubscriptionView()
@@ -382,17 +393,29 @@ struct SettingsView: View {
         }
     }
 
-    // MARK: - Links Section
+    // MARK: - Support Section
 
-    private var linksSection: some View {
+    private var supportSection: some View {
         VStack(spacing: 0) {
-            linkRow(icon: "lightbulb.fill", title: "Feature request", isFirst: true, isLast: false) {
+            linkRow(icon: "questionmark.circle.fill", title: "FAQ", isFirst: true, isLast: false) {
+                showFAQ = true
+            }
+
+            linkRow(icon: "lightbulb.fill", title: "Feature request", isFirst: false, isLast: true) {
                 if let url = URL(string: "mailto:support@viralapps.studio?subject=Feature%20Request") {
                     UIApplication.shared.open(url)
                 }
             }
+        }
+        .background(AppColors.surface)
+        .cornerRadius(16)
+    }
 
-            linkRow(title: "Rate app", isFirst: false, isLast: false) {
+    // MARK: - Links Section
+
+    private var linksSection: some View {
+        VStack(spacing: 0) {
+            linkRow(title: "Rate app", isFirst: true, isLast: false) {
                 AnalyticsService.log(AnalyticsService.Event.rateAppTapped)
                 rateAppPrompt = .random()
                 showRateAppAlert = true

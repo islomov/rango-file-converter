@@ -12,7 +12,7 @@ final class AppReviewManager {
     private let successCountKey = "appReview_successCount"
     private let lastPromptDateKey = "appReview_lastPromptDate"
 
-    private let requiredSuccesses = 3
+    private let requiredSuccesses = 1
     private let minimumDaysBetweenPrompts = 90
 
     private init() {}

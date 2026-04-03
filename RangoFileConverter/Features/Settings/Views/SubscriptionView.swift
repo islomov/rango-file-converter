@@ -528,6 +528,7 @@ struct SubscriptionView: View {
                     AnalyticsService.log("subscription_purchased", parameters: [
                         "product_id": package.storeProduct.productIdentifier
                     ])
+                    dismiss()
                 }
             } catch {
                 isPurchasing = false

@@ -144,45 +144,81 @@ struct SettingsView: View {
 
     // MARK: - Pro Section
 
+    private let proCardIcons: [String] = [
+        "icon_convert", "icon_compress", "icon_crop", "icon_resize",
+        "icon_rotate", "icon_merge", "icon_filter", "icon_stitch",
+        "icon_gif", "icon_extract_audio", "icon_draw", "icon_speed",
+        "icon_clip", "icon_ratio", "icon_gallery", "icon_document",
+        "icon_video", "icon_musicnote", "icon_doc_merge", "icon_doc_split"
+    ]
+
     private var proSection: some View {
         Button {
             showSubscription = true
         } label: {
-            HStack(spacing: 12) {
-                Image(systemName: "crown.fill")
-                    .resizable()
-                    .aspectRatio(contentMode: .fit)
-                    .frame(width: 24, height: 24)
-                    .foregroundStyle(
-                        LinearGradient(
-                            colors: [AppColors.buttonGradientStart, AppColors.buttonGradientEnd],
-                            startPoint: .topLeading,
-                            endPoint: .bottomTrailing
-                        )
-                    )
+            ZStack {
+                // Orange gradient background
+                LinearGradient(
+                    colors: [AppColors.buttonGradientStart, AppColors.buttonGradientEnd],
+                    startPoint: .topLeading,
+                    endPoint: .bottomTrailing
+                )
 
-                VStack(alignment: .leading, spacing: 2) {
-                    Text("Rango Pro")
-                        .font(.system(size: 15, weight: .bold))
-                        .foregroundColor(AppColors.textPrimary)
+                // Scattered icons grid filling the card
+                proIconsGrid
+                    .opacity(0.3)
 
-                    Text(SubscriptionManager.shared.isProUser ? "Active" : "Unlock all features")
-                        .font(.system(size: 12, weight: .medium))
-                        .foregroundColor(AppColors.textSecondary)
+                // Content overlay at bottom-left
+                VStack {
+                    Spacer()
+                    HStack(spacing: 12) {
+                        Image(systemName: "crown.fill")
+                            .resizable()
+                            .aspectRatio(contentMode: .fit)
+                            .frame(width: 28, height: 28)
+                            .foregroundColor(.black)
+
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text("Media Converter Pro")
+                                .font(.system(size: 20, weight: .bold))
+                                .foregroundColor(.black)
+
+                            Text(SubscriptionManager.shared.isProUser ? "Active" : "Unlock all features")
+                                .font(.system(size: 13, weight: .medium))
+                                .foregroundColor(.black.opacity(0.6))
+                        }
+
+                        Spacer()
+                    }
+                    .padding(.horizontal, 20)
+                    .padding(.bottom, 16)
                 }
-
-                Spacer()
-
-                Image(systemName: "chevron.forward")
-                    .font(.system(size: 14, weight: .medium))
-                    .foregroundColor(AppColors.textSecondary)
             }
-            .padding(.horizontal, 16)
-            .padding(.vertical, 14)
+            .frame(height: 140)
+            .clipShape(RoundedRectangle(cornerRadius: 20))
         }
         .buttonStyle(.plain)
-        .background(AppColors.surface)
-        .cornerRadius(16)
+    }
+
+    private var proIconsGrid: some View {
+        let columns = 8
+        let rows = 4
+        return VStack(spacing: 6) {
+            ForEach(0..<rows, id: \.self) { row in
+                HStack(spacing: 6) {
+                    ForEach(0..<columns, id: \.self) { col in
+                        let index = (row * columns + col) % proCardIcons.count
+                        Image(proCardIcons[index])
+                            .resizable()
+                            .renderingMode(.template)
+                            .aspectRatio(contentMode: .fit)
+                            .frame(width: 30, height: 30)
+                            .foregroundColor(.white)
+                    }
+                }
+            }
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 
     // MARK: - General Section

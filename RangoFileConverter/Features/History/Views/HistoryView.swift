@@ -2,6 +2,7 @@ import SwiftUI
 import Combine
 
 struct HistoryView: View {
+    var onProTapped: (() -> Void)?
     @EnvironmentObject private var historyStore: HistoryStore
     @State private var selectedRecord: ConversionRecord?
     @State private var searchText: String = ""
@@ -86,6 +87,31 @@ struct HistoryView: View {
                     .foregroundColor(AppColors.textPrimary)
 
                 Spacer()
+
+                Button(action: {
+                    UIImpactFeedbackGenerator(style: .light).impactOccurred()
+                    onProTapped?()
+                }) {
+                    HStack(spacing: 6) {
+                        Image(systemName: "crown.fill")
+                            .font(.system(size: 14, weight: .bold))
+                            .foregroundColor(.white)
+
+                        Text("PRO")
+                            .font(.system(size: 14, weight: .bold))
+                            .foregroundColor(.white)
+                    }
+                    .padding(.horizontal, 14)
+                    .padding(.vertical, 10)
+                    .background(
+                        LinearGradient(
+                            colors: [AppColors.accentLight, AppColors.accent],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        )
+                    )
+                    .cornerRadius(22)
+                }
             }
             .padding(.horizontal, 16)
             .padding(.top, 24)

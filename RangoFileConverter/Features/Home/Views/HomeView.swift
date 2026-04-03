@@ -2,7 +2,7 @@ import SwiftUI
 
 struct HomeView: View {
     var onCategorySelected: ((MediaCategory) -> Void)?
-    @State private var showFAQ = false
+    var onProTapped: (() -> Void)?
     @State private var cardsAppeared = false
 
     var body: some View {
@@ -17,23 +17,27 @@ struct HomeView: View {
 
                 Button(action: {
                     UIImpactFeedbackGenerator(style: .light).impactOccurred()
-                    showFAQ = true
+                    onProTapped?()
                 }) {
-                    ZStack {
-                        Circle()
-                            .fill(
-                                LinearGradient(
-                                    colors: [AppColors.accentLight, AppColors.accent, AppColors.accentLight],
-                                    startPoint: .topTrailing,
-                                    endPoint: .bottomLeading
-                                )
-                            )
-                            .frame(width: 44, height: 44)
+                    HStack(spacing: 6) {
+                        Image(systemName: "crown.fill")
+                            .font(.system(size: 14, weight: .bold))
+                            .foregroundColor(.white)
 
-                        Image("icon_question")
-                            .resizable()
-                            .frame(width: 24, height: 24)
+                        Text("PRO")
+                            .font(.system(size: 14, weight: .bold))
+                            .foregroundColor(.white)
                     }
+                    .padding(.horizontal, 14)
+                    .padding(.vertical, 10)
+                    .background(
+                        LinearGradient(
+                            colors: [AppColors.accentLight, AppColors.accent],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        )
+                    )
+                    .cornerRadius(22)
                 }
             }
             .padding(.horizontal, 16)
@@ -135,10 +139,6 @@ struct HomeView: View {
             if !cardsAppeared {
                 cardsAppeared = true
             }
-        }
-        .sheet(isPresented: $showFAQ) {
-            FAQBottomSheetView()
-                .presentationDetents([.large])
         }
     }
 }

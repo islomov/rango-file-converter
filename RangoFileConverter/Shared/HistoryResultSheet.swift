@@ -5,11 +5,14 @@ import AVKit
 import Combine
 import QuickLook
 import PDFKit
+import RevenueCat
 
 struct HistoryResultSheet: View {
     @ObservedObject var record: ConversionRecord
     @EnvironmentObject private var historyStore: HistoryStore
+    @ObservedObject private var subscriptionManager = SubscriptionManager.shared
     @Environment(\.dismiss) private var dismiss
+    @State private var showSubscription = false
     @State private var showSaveSuccess = false
     @State private var saveError: String?
     @State private var audioPlayer: AVPlayer?
@@ -77,6 +80,9 @@ struct HistoryResultSheet: View {
             Button("Rename") { renameFile() }
         } message: {
             Text("Enter a new name for this file.")
+        }
+        .sheet(isPresented: $showSubscription) {
+            SubscriptionView()
         }
     }
 
@@ -445,18 +451,35 @@ struct HistoryResultSheet: View {
     private func actionButtonsRow(url: URL) -> some View {
         ScrollView(.horizontal, showsIndicators: false) {
             HStack(spacing: 11) {
-                ShareLink(item: url) {
-                    actionButton(
-                        title: "Share",
-                        icon: "square.and.arrow.up",
-                        foregroundColor: AppColors.textPrimary,
-                        backgroundColor: AppColors.textPrimary.opacity(0.08)
-                    )
+                if subscriptionManager.isProUser {
+                    ShareLink(item: url) {
+                        actionButton(
+                            title: "Share",
+                            icon: "square.and.arrow.up",
+                            foregroundColor: AppColors.textPrimary,
+                            backgroundColor: AppColors.textPrimary.opacity(0.08)
+                        )
+                    }
+                } else {
+                    Button {
+                        showSubscription = true
+                    } label: {
+                        actionButton(
+                            title: "Share",
+                            icon: "square.and.arrow.up",
+                            foregroundColor: AppColors.textPrimary,
+                            backgroundColor: AppColors.textPrimary.opacity(0.08)
+                        )
+                    }
                 }
 
                 if outputMediaType(for: url) == .document {
                     Button {
-                        quickLookURL = url
+                        if subscriptionManager.isProUser {
+                            quickLookURL = url
+                        } else {
+                            showSubscription = true
+                        }
                     } label: {
                         actionButton(
                             title: "View",
@@ -469,7 +492,11 @@ struct HistoryResultSheet: View {
 
                 if canSaveToPhotos(url: url) {
                     Button {
-                        saveToPhotos(url: url)
+                        if subscriptionManager.isProUser {
+                            saveToPhotos(url: url)
+                        } else {
+                            showSubscription = true
+                        }
                     } label: {
                         actionButton(
                             title: "Save",
@@ -481,7 +508,11 @@ struct HistoryResultSheet: View {
                 }
 
                 Button {
-                    saveToFiles(url: url)
+                    if subscriptionManager.isProUser {
+                        saveToFiles(url: url)
+                    } else {
+                        showSubscription = true
+                    }
                 } label: {
                     actionButton(
                         title: "Save to Files",

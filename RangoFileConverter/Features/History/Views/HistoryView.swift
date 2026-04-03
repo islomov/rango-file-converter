@@ -7,6 +7,7 @@ struct HistoryView: View {
     @State private var selectedRecord: ConversionRecord?
     @State private var searchText: String = ""
     @State private var showFilterSheet = false
+    @State private var showSubscription = false
     @State private var filterState = HistoryFilterState()
     @State private var now = Date()
     @State private var showLatestInfo = false
@@ -90,7 +91,11 @@ struct HistoryView: View {
 
                 Button(action: {
                     UIImpactFeedbackGenerator(style: .light).impactOccurred()
-                    onProTapped?()
+                    if let onProTapped {
+                        onProTapped()
+                    } else {
+                        showSubscription = true
+                    }
                 }) {
                     HStack(spacing: 6) {
                         Image(systemName: "crown.fill")
@@ -328,5 +333,8 @@ struct HistoryView: View {
             }
         }
         .preference(key: TabBarVisibilityPreferenceKey.self, value: false)
+        .sheet(isPresented: $showSubscription) {
+            SubscriptionView()
+        }
     }
 }

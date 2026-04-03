@@ -4,6 +4,7 @@ struct HomeView: View {
     var onCategorySelected: ((MediaCategory) -> Void)?
     var onProTapped: (() -> Void)?
     @State private var cardsAppeared = false
+    @State private var showSubscription = false
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
@@ -17,7 +18,11 @@ struct HomeView: View {
 
                 Button(action: {
                     UIImpactFeedbackGenerator(style: .light).impactOccurred()
-                    onProTapped?()
+                    if let onProTapped {
+                        onProTapped()
+                    } else {
+                        showSubscription = true
+                    }
                 }) {
                     HStack(spacing: 6) {
                         Image(systemName: "crown.fill")
@@ -140,6 +145,9 @@ struct HomeView: View {
             if !cardsAppeared {
                 cardsAppeared = true
             }
+        }
+        .sheet(isPresented: $showSubscription) {
+            SubscriptionView()
         }
     }
 }

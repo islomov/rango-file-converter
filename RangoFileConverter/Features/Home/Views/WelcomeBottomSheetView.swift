@@ -37,7 +37,7 @@ struct WelcomeBottomSheetView: View {
                             .multilineTextAlignment(.center)
                             .lineSpacing(17 * 0.4)
 
-                        Text("100% Free. No Ads. No Paywall. Ever.")
+                        Text("74+ Formats. On-Device. Fast & Private.")
                             .font(.system(size: 19, weight: .bold))
                             .foregroundStyle(
                                 LinearGradient(

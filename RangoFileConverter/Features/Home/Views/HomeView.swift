@@ -99,7 +99,8 @@ struct HomeView: View {
                             backgroundColor: AppColors.cardAudio,
                             foregroundColor: AppColors.cardDarkText,
                             height: cardHeight,
-                            topCornerRadius: 32
+                            topCornerRadius: 32,
+                            hasBottomRadius: true
                         ) {
                             onCategorySelected?(.audio)
                         }

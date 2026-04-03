@@ -17,7 +17,7 @@ struct SubscriptionView: View {
     @State private var glowRotation: Double = 0
     @State private var glowScale: CGFloat = 1.0
 
-    private let features: [(icon: String, title: String)] = [
+    private let features: [(icon: String, title: LocalizedStringKey)] = [
         ("infinity", "Unlimited Conversions"),
         ("bolt.fill", "Priority Processing"),
         ("eye.slash.fill", "Ad-Free Experience"),
@@ -89,14 +89,14 @@ struct SubscriptionView: View {
         .alert("Error", isPresented: $showError) {
             Button("OK", role: .cancel) { }
         } message: {
-            Text(errorMessage ?? "Something went wrong. Please try again.")
+            Text(errorMessage ?? String(localized: "Something went wrong. Please try again."))
         }
         .alert("Purchases Restored", isPresented: $showRestoreSuccess) {
             Button("OK", role: .cancel) { }
         } message: {
             Text(subscriptionManager.isProUser
-                 ? "Your Pro subscription has been restored!"
-                 : "No active subscriptions found.")
+                 ? LocalizedStringKey("Your Pro subscription has been restored!")
+                 : LocalizedStringKey("No active subscriptions found."))
         }
         .sheet(isPresented: $showPrivacyPolicy) {
             WebViewSheet(
@@ -455,7 +455,7 @@ struct SubscriptionView: View {
     private func priceText(for package: Package) -> String {
         let price = package.storeProduct.localizedPriceString
         let period = package.storeProduct.subscriptionPeriod?.periodLabel ?? ""
-        return "\(price) per \(period)"
+        return String(localized: "\(price) per \(period)")
     }
 
     private func packageRow(_ package: Package) -> some View {
@@ -560,13 +560,13 @@ private extension SubscriptionPeriod {
     var periodDescription: String {
         switch unit {
         case .day:
-            return value == 7 ? "1 week" : "\(value) day\(value == 1 ? "" : "s")"
+            return value == 7 ? String(localized: "1 week") : "\(value) " + String(localized: value == 1 ? "day" : "days")
         case .week:
-            return "\(value) week\(value == 1 ? "" : "s")"
+            return "\(value) " + String(localized: value == 1 ? "week" : "weeks")
         case .month:
-            return "\(value) month\(value == 1 ? "" : "s")"
+            return "\(value) " + String(localized: value == 1 ? "month" : "months")
         case .year:
-            return "\(value) year\(value == 1 ? "" : "s")"
+            return "\(value) " + String(localized: value == 1 ? "year" : "years")
         @unknown default:
             return ""
         }
@@ -575,13 +575,13 @@ private extension SubscriptionPeriod {
     var periodLabel: String {
         switch unit {
         case .day:
-            return value == 7 ? "week" : "day"
+            return value == 7 ? String(localized: "week") : String(localized: "day")
         case .week:
-            return "week"
+            return String(localized: "week")
         case .month:
-            return "month"
+            return String(localized: "month")
         case .year:
-            return "year"
+            return String(localized: "year")
         @unknown default:
             return ""
         }

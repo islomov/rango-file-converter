@@ -14,28 +14,17 @@ struct SubscriptionView: View {
     @State private var showRestoreSuccess = false
     @State private var showPrivacyPolicy = false
     @State private var showTermsOfUse = false
-    @State private var currentCarouselPage = 0
     @State private var glowRotation: Double = 0
+    @State private var glowScale: CGFloat = 1.0
 
-    private let carouselTimer = Timer.publish(every: 3.5, on: .main, in: .common).autoconnect()
-
-    // 8 features across 2 carousel pages (2x2 grid each)
-    private let allFeatures: [(icon: String, title: String)] = [
+    private let features: [(icon: String, title: String)] = [
         ("infinity", "Unlimited Conversions"),
         ("bolt.fill", "Priority Processing"),
         ("eye.slash.fill", "Ad-Free Experience"),
         ("star.fill", "All 74+ Formats"),
-        ("square.and.arrow.down.on.square", "Batch Processing"),
-        ("wand.and.stars", "HD Quality Output"),
         ("clock.arrow.circlepath", "Conversion History"),
         ("person.crop.circle.badge.checkmark", "Premium Support")
     ]
-
-    private var featurePages: [[(icon: String, title: String)]] {
-        stride(from: 0, to: allFeatures.count, by: 4).map { start in
-            Array(allFeatures[start..<min(start + 4, allFeatures.count)])
-        }
-    }
 
     var body: some View {
         ZStack {
@@ -58,10 +47,11 @@ struct SubscriptionView: View {
                 .padding(.horizontal, 16)
                 .padding(.top, 8)
 
+                headerSection
+
                 ScrollView(showsIndicators: false) {
                     VStack(spacing: 24) {
-                        headerSection
-                        featureCarousel
+                        featureList
 
                         if subscriptionManager.isProUser {
                             activeSubscriptionBadge
@@ -85,14 +75,16 @@ struct SubscriptionView: View {
         .navigationBarHidden(true)
         .onAppear {
             subscriptionManager.fetchOfferings()
+            selectYearlyIfNeeded()
             withAnimation(.linear(duration: 3).repeatForever(autoreverses: false)) {
                 glowRotation = 360
             }
-        }
-        .onReceive(carouselTimer) { _ in
-            withAnimation(.easeInOut(duration: 0.4)) {
-                currentCarouselPage = (currentCarouselPage + 1) % featurePages.count
+            withAnimation(.easeInOut(duration: 2).repeatForever(autoreverses: true)) {
+                glowScale = 1.15
             }
+        }
+        .onChange(of: subscriptionManager.currentOffering?.identifier) { _ in
+            selectYearlyIfNeeded()
         }
         .alert("Error", isPresented: $showError) {
             Button("OK", role: .cancel) { }
@@ -135,58 +127,45 @@ struct SubscriptionView: View {
     private var headerSection: some View {
         VStack(spacing: 12) {
             ZStack {
-                // Animated gradient ring
-                Circle()
-                    .stroke(
-                        AngularGradient(
-                            gradient: Gradient(colors: [
-                                AppColors.buttonGradientStart,
-                                AppColors.buttonGradientEnd,
-                                AppColors.accent,
-                                AppColors.accentLight,
-                                AppColors.buttonGradientStart
-                            ]),
-                            center: .center,
-                            angle: .degrees(glowRotation)
-                        ),
-                        lineWidth: 3
-                    )
+                // Soft ambient glow behind icon
+                RoundedRectangle(cornerRadius: 24)
+                    .fill(AppColors.accent.opacity(0.15))
                     .frame(width: 100, height: 100)
-                    .blur(radius: 2)
+                    .blur(radius: 20)
+                    .scaleEffect(glowScale)
 
-                // Outer glow
-                Circle()
+                // Subtle rotating border
+                RoundedRectangle(cornerRadius: 20)
                     .stroke(
                         AngularGradient(
                             gradient: Gradient(colors: [
-                                AppColors.buttonGradientStart.opacity(0.4),
-                                AppColors.buttonGradientEnd.opacity(0.1),
-                                AppColors.accentLight.opacity(0.4),
-                                AppColors.buttonGradientStart.opacity(0.1),
-                                AppColors.buttonGradientStart.opacity(0.4)
+                                AppColors.buttonGradientStart.opacity(0.6),
+                                AppColors.buttonGradientEnd.opacity(0.2),
+                                AppColors.accentLight.opacity(0.6),
+                                AppColors.buttonGradientStart.opacity(0.2),
+                                AppColors.buttonGradientStart.opacity(0.6)
                             ]),
                             center: .center,
                             angle: .degrees(glowRotation)
                         ),
-                        lineWidth: 6
+                        lineWidth: 2.5
                     )
-                    .frame(width: 106, height: 106)
-                    .blur(radius: 6)
+                    .frame(width: 90, height: 90)
 
                 // App icon
-                Image("AppIcon")
+                Image("app_icon")
                     .resizable()
                     .aspectRatio(contentMode: .fit)
-                    .frame(width: 80, height: 80)
-                    .clipShape(RoundedRectangle(cornerRadius: 18))
+                    .frame(width: 76, height: 76)
+                    .clipShape(RoundedRectangle(cornerRadius: 17))
             }
 
             HStack(spacing: 6) {
-                Text("Rango")
+                Text("Media Converter")
                     .font(.system(size: 28, weight: .bold))
                     .foregroundColor(AppColors.textPrimary)
 
-                Text("PRO")
+                Text("Pro")
                     .font(.system(size: 28, weight: .bold))
                     .foregroundStyle(
                         LinearGradient(
@@ -198,66 +177,39 @@ struct SubscriptionView: View {
             }
         }
         .padding(.top, 8)
+        .padding(.bottom, 27)
     }
 
-    // MARK: - Feature Carousel (2x2 grid pages)
+    // MARK: - Feature List (icons, no cards)
 
-    private var featureCarousel: some View {
-        VStack(spacing: 12) {
-            TabView(selection: $currentCarouselPage) {
-                ForEach(Array(featurePages.enumerated()), id: \.offset) { pageIndex, page in
-                    featureGrid(features: page)
-                        .tag(pageIndex)
-                }
-            }
-            .tabViewStyle(.page(indexDisplayMode: .never))
-            .frame(height: 200)
-
-            // Page indicators
-            HStack(spacing: 6) {
-                ForEach(0..<featurePages.count, id: \.self) { index in
-                    Capsule()
-                        .fill(index == currentCarouselPage ? AppColors.accent : AppColors.placeholder)
-                        .frame(width: index == currentCarouselPage ? 20 : 7, height: 7)
-                        .animation(.easeInOut(duration: 0.25), value: currentCarouselPage)
-                }
-            }
-        }
-    }
-
-    private func featureGrid(features: [(icon: String, title: String)]) -> some View {
-        let columns = [
-            GridItem(.flexible(), spacing: 10),
-            GridItem(.flexible(), spacing: 10)
-        ]
-
-        return LazyVGrid(columns: columns, spacing: 10) {
+    private var featureList: some View {
+        VStack(spacing: 14) {
             ForEach(Array(features.enumerated()), id: \.offset) { _, feature in
-                featureGridCell(icon: feature.icon, title: feature.title)
+                HStack(spacing: 14) {
+                    Image(systemName: feature.icon)
+                        .font(.system(size: 18, weight: .medium))
+                        .foregroundStyle(
+                            LinearGradient(
+                                colors: [AppColors.buttonGradientStart, AppColors.buttonGradientEnd],
+                                startPoint: .topLeading,
+                                endPoint: .bottomTrailing
+                            )
+                        )
+                        .frame(width: 28)
+
+                    Text(feature.title)
+                        .font(.system(size: 15, weight: .medium))
+                        .foregroundColor(AppColors.textPrimary)
+
+                    Spacer()
+
+                    Image(systemName: "checkmark")
+                        .font(.system(size: 13, weight: .bold))
+                        .foregroundColor(AppColors.success)
+                }
             }
         }
         .padding(.horizontal, 4)
-    }
-
-    private func featureGridCell(icon: String, title: String) -> some View {
-        VStack(spacing: 8) {
-            Image(systemName: icon)
-                .font(.system(size: 24, weight: .medium))
-                .foregroundColor(AppColors.accent)
-                .frame(height: 28)
-
-            Text(title)
-                .font(.system(size: 13, weight: .semibold))
-                .foregroundColor(AppColors.textPrimary)
-                .multilineTextAlignment(.center)
-                .lineLimit(2)
-                .fixedSize(horizontal: false, vertical: true)
-        }
-        .frame(maxWidth: .infinity)
-        .padding(.vertical, 16)
-        .padding(.horizontal, 8)
-        .background(AppColors.surface)
-        .cornerRadius(14)
     }
 
     // MARK: - Active Badge
@@ -282,16 +234,26 @@ struct SubscriptionView: View {
 
     private var bottomSection: some View {
         VStack(spacing: 10) {
-            // Package selection
+            // Package selection — yearly first
             if let offering = subscriptionManager.currentOffering {
+                let sorted = sortedPackages(offering.availablePackages)
                 VStack(spacing: 8) {
-                    ForEach(offering.availablePackages, id: \.identifier) { package in
-                        packageRow(package)
-                            .onAppear {
-                                if selectedPackage == nil {
-                                    selectedPackage = package
+                    ForEach(Array(sorted.enumerated()), id: \.element.identifier) { index, package in
+                        if package.packageType == .annual {
+                            yearlyPackageSection(package, allPackages: offering.availablePackages)
+                                .onAppear {
+                                    if selectedPackage == nil {
+                                        selectedPackage = package
+                                    }
                                 }
-                            }
+                        } else {
+                            packageRow(package)
+                                .onAppear {
+                                    if selectedPackage == nil {
+                                        selectedPackage = package
+                                    }
+                                }
+                        }
                     }
                 }
             }
@@ -305,7 +267,7 @@ struct SubscriptionView: View {
                     .font(.system(size: 12, weight: .medium))
                     .foregroundColor(AppColors.textSecondary)
             }
-            .padding(.top, 2)
+            .padding(.top, 7)
 
             // Continue button
             Button {
@@ -357,11 +319,147 @@ struct SubscriptionView: View {
         .background(AppColors.background)
     }
 
-    // MARK: - Package Row (border-only selection, no toggle)
+    // MARK: - Package sorting (yearly first)
+
+    private func sortedPackages(_ packages: [Package]) -> [Package] {
+        packages.sorted { a, b in
+            packageSortOrder(a.packageType) < packageSortOrder(b.packageType)
+        }
+    }
+
+    private func packageSortOrder(_ type: PackageType) -> Int {
+        switch type {
+        case .annual: return 0
+        case .monthly: return 1
+        case .weekly: return 2
+        default: return 3
+        }
+    }
+
+    // MARK: - Savings calculation
+
+    /// Calculate savings % of a package compared to the weekly plan
+    private func savingsPercentage(for package: Package, allPackages: [Package]) -> Int? {
+        guard package.packageType == .annual else { return nil }
+
+        // Find the weekly package to calculate savings against
+        guard let weeklyPackage = allPackages.first(where: { $0.packageType == .weekly }) else {
+            return nil
+        }
+
+        let weeklyPricePerYear = weeklyPackage.storeProduct.price as Decimal * 52
+        let yearlyPrice = package.storeProduct.price as Decimal
+        guard weeklyPricePerYear > 0 else { return nil }
+
+        let savings = ((weeklyPricePerYear - yearlyPrice) / weeklyPricePerYear) * 100
+        return Int(NSDecimalNumber(decimal: savings).doubleValue.rounded())
+    }
+
+    /// Calculate per-day price for yearly plan
+    private func perDayPrice(for package: Package) -> String? {
+        guard package.packageType == .annual else { return nil }
+
+        let yearlyPrice = (package.storeProduct.price as NSDecimalNumber).doubleValue
+        let perDay = yearlyPrice / 365.0
+
+        let formatter = NumberFormatter()
+        formatter.numberStyle = .currency
+        formatter.locale = package.storeProduct.priceFormatter?.locale ?? .current
+        formatter.maximumFractionDigits = 2
+        formatter.minimumFractionDigits = 2
+
+        return formatter.string(from: NSNumber(value: perDay))
+    }
+
+    // MARK: - Yearly Package Section (banner + card)
+
+    private func yearlyPackageSection(_ package: Package, allPackages: [Package]) -> some View {
+        let isSelected = selectedPackage?.identifier == package.identifier
+        let savings = savingsPercentage(for: package, allPackages: allPackages)
+
+        return Button {
+            withAnimation(.easeInOut(duration: 0.2)) {
+                selectedPackage = package
+            }
+        } label: {
+            VStack(spacing: 0) {
+                // Full-width "SAVE XX%" banner on top
+                if let savings = savings {
+                    Text("SAVE \(savings)%")
+                        .font(.system(size: 13, weight: .bold))
+                        .foregroundColor(.white)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 6)
+                        .background(
+                            LinearGradient(
+                                colors: [AppColors.buttonGradientStart, AppColors.buttonGradientEnd],
+                                startPoint: .leading,
+                                endPoint: .trailing
+                            )
+                        )
+                }
+
+                // Card content
+                HStack {
+                    VStack(alignment: .leading, spacing: 3) {
+                        Text(package.storeProduct.localizedTitle)
+                            .font(.system(size: 17, weight: .semibold))
+                            .foregroundColor(AppColors.textPrimary)
+
+                        if let intro = package.storeProduct.introductoryDiscount,
+                           intro.paymentMode == .freeTrial {
+                            Text("then \(package.storeProduct.localizedPriceString) per \(package.storeProduct.subscriptionPeriod?.periodLabel ?? "")")
+                                .font(.system(size: 14, weight: .regular))
+                                .foregroundColor(AppColors.textSecondary)
+                        } else {
+                            Text("Only \(package.storeProduct.localizedPriceString) per year")
+                                .font(.system(size: 14, weight: .regular))
+                                .foregroundColor(AppColors.textSecondary)
+                        }
+                    }
+
+                    Spacer()
+
+                    if let intro = package.storeProduct.introductoryDiscount,
+                       intro.paymentMode == .freeTrial {
+                        Text("FREE")
+                            .font(.system(size: 18, weight: .bold))
+                            .foregroundColor(isSelected ? AppColors.accent : AppColors.textPrimary)
+                    } else if let dayPrice = perDayPrice(for: package) {
+                        VStack(spacing: 1) {
+                            Text(dayPrice)
+                                .font(.system(size: 18, weight: .bold))
+                                .foregroundColor(isSelected ? AppColors.accent : AppColors.textPrimary)
+                            Text("per day")
+                                .font(.system(size: 12, weight: .medium))
+                                .foregroundColor(AppColors.textSecondary)
+                        }
+                    }
+                }
+                .padding(.horizontal, 16)
+                .padding(.vertical, 14)
+                .background(AppColors.surface)
+            }
+            .clipShape(RoundedRectangle(cornerRadius: 14))
+            .overlay(
+                RoundedRectangle(cornerRadius: 14)
+                    .stroke(isSelected ? AppColors.accent : AppColors.border, lineWidth: isSelected ? 2 : 1)
+            )
+        }
+        .buttonStyle(.plain)
+    }
+
+    // MARK: - Package Row (non-yearly)
+
+    /// Format price text as "X.XX per period"
+    private func priceText(for package: Package) -> String {
+        let price = package.storeProduct.localizedPriceString
+        let period = package.storeProduct.subscriptionPeriod?.periodLabel ?? ""
+        return "\(price) per \(period)"
+    }
 
     private func packageRow(_ package: Package) -> some View {
         let isSelected = selectedPackage?.identifier == package.identifier
-        let hasSavingsBadge = package.packageType == .annual
 
         return Button {
             withAnimation(.easeInOut(duration: 0.2)) {
@@ -369,19 +467,19 @@ struct SubscriptionView: View {
             }
         } label: {
             HStack {
-                VStack(alignment: .leading, spacing: 2) {
+                VStack(alignment: .leading, spacing: 3) {
                     Text(package.storeProduct.localizedTitle)
-                        .font(.system(size: 15, weight: .semibold))
+                        .font(.system(size: 17, weight: .semibold))
                         .foregroundColor(AppColors.textPrimary)
 
                     if let intro = package.storeProduct.introductoryDiscount,
                        intro.paymentMode == .freeTrial {
-                        Text("then \(package.storeProduct.localizedPriceString)/\(package.storeProduct.subscriptionPeriod?.periodLabel ?? "")")
-                            .font(.system(size: 12, weight: .regular))
+                        Text("then \(priceText(for: package))")
+                            .font(.system(size: 14, weight: .regular))
                             .foregroundColor(AppColors.textSecondary)
                     } else {
-                        Text("\(package.storeProduct.localizedPriceString)/\(package.storeProduct.subscriptionPeriod?.periodLabel ?? "")")
-                            .font(.system(size: 12, weight: .regular))
+                        Text(priceText(for: package))
+                            .font(.system(size: 14, weight: .regular))
                             .foregroundColor(AppColors.textSecondary)
                     }
                 }
@@ -391,11 +489,11 @@ struct SubscriptionView: View {
                 if let intro = package.storeProduct.introductoryDiscount,
                    intro.paymentMode == .freeTrial {
                     Text("FREE")
-                        .font(.system(size: 16, weight: .bold))
+                        .font(.system(size: 18, weight: .bold))
                         .foregroundColor(isSelected ? AppColors.accent : AppColors.textPrimary)
                 } else {
                     Text(package.storeProduct.localizedPriceString)
-                        .font(.system(size: 16, weight: .bold))
+                        .font(.system(size: 18, weight: .bold))
                         .foregroundColor(isSelected ? AppColors.accent : AppColors.textPrimary)
                 }
             }
@@ -407,23 +505,18 @@ struct SubscriptionView: View {
                 RoundedRectangle(cornerRadius: 14)
                     .stroke(isSelected ? AppColors.accent : AppColors.border, lineWidth: isSelected ? 2 : 1)
             )
-            .overlay(alignment: .topTrailing) {
-                if hasSavingsBadge {
-                    Text("SAVE 90%")
-                        .font(.system(size: 10, weight: .bold))
-                        .foregroundColor(.white)
-                        .padding(.horizontal, 8)
-                        .padding(.vertical, 3)
-                        .background(AppColors.accent)
-                        .cornerRadius(6)
-                        .offset(x: -12, y: -10)
-                }
-            }
         }
         .buttonStyle(.plain)
     }
 
     // MARK: - Actions
+
+    private func selectYearlyIfNeeded() {
+        guard selectedPackage == nil,
+              let offering = subscriptionManager.currentOffering else { return }
+        selectedPackage = offering.availablePackages.first(where: { $0.packageType == .annual })
+            ?? offering.availablePackages.first
+    }
 
     private func purchasePackage(_ package: Package) {
         isPurchasing = true

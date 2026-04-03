@@ -13,6 +13,7 @@ struct SettingsView: View {
     @State private var showRateAppAlert = false
     @State private var rateAppPrompt: RateAppPrompt = .random()
     @State private var sectionsAppeared = false
+    @State private var showSubscription = false
 
     var body: some View {
         ZStack {
@@ -21,25 +22,30 @@ struct SettingsView: View {
 
             ScrollView {
                 VStack(spacing: 12) {
+                    proSection
+                        .opacity(sectionsAppeared ? 1 : 0)
+                        .offset(y: sectionsAppeared ? 0 : 20)
+                        .animation(.spring(response: 0.45, dampingFraction: 0.85).delay(0.02), value: sectionsAppeared)
+
                     generalSection
                         .opacity(sectionsAppeared ? 1 : 0)
                         .offset(y: sectionsAppeared ? 0 : 20)
-                        .animation(.spring(response: 0.45, dampingFraction: 0.85).delay(0.05), value: sectionsAppeared)
+                        .animation(.spring(response: 0.45, dampingFraction: 0.85).delay(0.08), value: sectionsAppeared)
 
                     themeSection
                         .opacity(sectionsAppeared ? 1 : 0)
                         .offset(y: sectionsAppeared ? 0 : 20)
-                        .animation(.spring(response: 0.45, dampingFraction: 0.85).delay(0.12), value: sectionsAppeared)
+                        .animation(.spring(response: 0.45, dampingFraction: 0.85).delay(0.15), value: sectionsAppeared)
 
                     storageSection
                         .opacity(sectionsAppeared ? 1 : 0)
                         .offset(y: sectionsAppeared ? 0 : 20)
-                        .animation(.spring(response: 0.45, dampingFraction: 0.85).delay(0.19), value: sectionsAppeared)
+                        .animation(.spring(response: 0.45, dampingFraction: 0.85).delay(0.22), value: sectionsAppeared)
 
                     linksSection
                         .opacity(sectionsAppeared ? 1 : 0)
                         .offset(y: sectionsAppeared ? 0 : 20)
-                        .animation(.spring(response: 0.45, dampingFraction: 0.85).delay(0.26), value: sectionsAppeared)
+                        .animation(.spring(response: 0.45, dampingFraction: 0.85).delay(0.29), value: sectionsAppeared)
                 }
                 .padding(.horizontal, 16)
                 .padding(.top, 16)
@@ -71,6 +77,11 @@ struct SettingsView: View {
             .presentationDragIndicator(.hidden)
             .interactiveDismissDisabled()
             .preferredColorScheme(themeManager.colorScheme)
+        }
+        .sheet(isPresented: $showSubscription) {
+            SubscriptionView()
+                .environmentObject(themeManager)
+                .preferredColorScheme(themeManager.colorScheme)
         }
         .sheet(isPresented: $showLanguagePicker) {
             LanguagePickerSheet()
@@ -118,6 +129,49 @@ struct SettingsView: View {
         .padding(.top, 18)
         .padding(.bottom, 16)
         .background(AppColors.background)
+    }
+
+    // MARK: - Pro Section
+
+    private var proSection: some View {
+        Button {
+            showSubscription = true
+        } label: {
+            HStack(spacing: 12) {
+                Image(systemName: "crown.fill")
+                    .resizable()
+                    .aspectRatio(contentMode: .fit)
+                    .frame(width: 24, height: 24)
+                    .foregroundStyle(
+                        LinearGradient(
+                            colors: [AppColors.buttonGradientStart, AppColors.buttonGradientEnd],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        )
+                    )
+
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("Rango Pro")
+                        .font(.system(size: 15, weight: .bold))
+                        .foregroundColor(AppColors.textPrimary)
+
+                    Text(SubscriptionManager.shared.isProUser ? "Active" : "Unlock all features")
+                        .font(.system(size: 12, weight: .medium))
+                        .foregroundColor(AppColors.textSecondary)
+                }
+
+                Spacer()
+
+                Image(systemName: "chevron.forward")
+                    .font(.system(size: 14, weight: .medium))
+                    .foregroundColor(AppColors.textSecondary)
+            }
+            .padding(.horizontal, 16)
+            .padding(.vertical, 14)
+        }
+        .buttonStyle(.plain)
+        .background(AppColors.surface)
+        .cornerRadius(16)
     }
 
     // MARK: - General Section

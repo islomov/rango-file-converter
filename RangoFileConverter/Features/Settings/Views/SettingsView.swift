@@ -15,6 +15,10 @@ struct SettingsView: View {
     @State private var sectionsAppeared = false
     @State private var showFAQ = false
     @State private var showSubscription = false
+    @State private var isRestoringPurchases = false
+    @State private var showRestoreAlert = false
+    @State private var restoreAlertTitle = ""
+    @State private var restoreAlertMessage = ""
 
     var body: some View {
         ZStack {
@@ -113,6 +117,11 @@ struct SettingsView: View {
             Button("Cancel", role: .cancel) { }
         } message: {
             Text("This will permanently delete all converted \(clearStorageCategory ?? "") files. This action cannot be undone.")
+        }
+        .alert(restoreAlertTitle, isPresented: $showRestoreAlert) {
+            Button("OK", role: .cancel) { }
+        } message: {
+            Text(restoreAlertMessage)
         }
         .alert(rateAppPrompt.title, isPresented: $showRateAppAlert) {
             Button("Rate Now") {
@@ -429,6 +438,8 @@ struct SettingsView: View {
                 showTermsOfUse = true
             }
 
+            restorePurchasesRow
+
             versionRow
         }
         .background(AppColors.surface)
@@ -513,6 +524,65 @@ struct SettingsView: View {
         }
         .frame(height: 56)
         .padding(.horizontal, 16)
+    }
+
+    private var restorePurchasesRow: some View {
+        Button {
+            restorePurchases()
+        } label: {
+            HStack {
+                Text("Restore purchases")
+                    .font(.system(size: 14, weight: .semibold))
+                    .foregroundColor(AppColors.textPrimary)
+
+                Spacer()
+
+                if isRestoringPurchases {
+                    ProgressView()
+                } else {
+                    Image(systemName: "arrow.clockwise")
+                        .font(.system(size: 14, weight: .medium))
+                        .foregroundColor(AppColors.textSecondary)
+                }
+            }
+            .frame(height: 56)
+            .padding(.horizontal, 16)
+            .contentShape(Rectangle())
+            .overlay(alignment: .bottom) {
+                Rectangle()
+                    .fill(AppColors.textSecondary.opacity(0.12))
+                    .frame(height: 1)
+            }
+        }
+        .buttonStyle(.plain)
+        .disabled(isRestoringPurchases)
+    }
+
+    private func restorePurchases() {
+        isRestoringPurchases = true
+        Task {
+            do {
+                try await SubscriptionManager.shared.restorePurchases()
+                await MainActor.run {
+                    isRestoringPurchases = false
+                    if SubscriptionManager.shared.isProUser {
+                        restoreAlertTitle = "Purchases Restored"
+                        restoreAlertMessage = "Your Pro subscription has been restored successfully."
+                    } else {
+                        restoreAlertTitle = "No Purchases Found"
+                        restoreAlertMessage = "No previous purchases were found for this account."
+                    }
+                    showRestoreAlert = true
+                }
+            } catch {
+                await MainActor.run {
+                    isRestoringPurchases = false
+                    restoreAlertTitle = "Restore Failed"
+                    restoreAlertMessage = "Unable to restore purchases. Please try again later."
+                    showRestoreAlert = true
+                }
+            }
+        }
     }
 
     // MARK: - Helpers

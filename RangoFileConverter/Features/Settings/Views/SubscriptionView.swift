@@ -333,6 +333,32 @@ struct SubscriptionView: View {
         }
     }
 
+    // MARK: - Price formatting
+
+    /// Format a price amount using the product's currency with a clean symbol (e.g. "$" not "US$", "£" not "UK£").
+    /// Uses the user's locale for number formatting but strips country-prefixed currency symbols.
+    private func formatPrice(_ amount: Decimal, for product: StoreProduct) -> String {
+        let formatter = NumberFormatter()
+        formatter.numberStyle = .currency
+        formatter.locale = Locale.current
+        formatter.currencyCode = product.currencyCode
+
+        // Look up the clean currency symbol (e.g. "$" for USD, "£" for GBP)
+        // by using the "en" locale which doesn't add country prefixes
+        let symbolLookup = NumberFormatter()
+        symbolLookup.numberStyle = .currency
+        symbolLookup.currencyCode = product.currencyCode
+        symbolLookup.locale = Locale(identifier: "en")
+        formatter.currencySymbol = symbolLookup.currencySymbol
+
+        return formatter.string(from: amount as NSDecimalNumber) ?? product.localizedPriceString
+    }
+
+    /// The product's formatted price string using clean currency symbols
+    private func cleanPrice(for package: Package) -> String {
+        formatPrice(package.storeProduct.price, for: package.storeProduct)
+    }
+
     // MARK: - Savings calculation
 
     /// Calculate savings % of a package compared to the weekly plan
@@ -359,13 +385,7 @@ struct SubscriptionView: View {
         let yearlyPrice = (package.storeProduct.price as NSDecimalNumber).doubleValue
         let perDay = yearlyPrice / 365.0
 
-        let formatter = NumberFormatter()
-        formatter.numberStyle = .currency
-        formatter.locale = package.storeProduct.priceFormatter?.locale ?? .current
-        formatter.maximumFractionDigits = 2
-        formatter.minimumFractionDigits = 2
-
-        return formatter.string(from: NSNumber(value: perDay))
+        return formatPrice(Decimal(perDay), for: package.storeProduct)
     }
 
     // MARK: - Yearly Package Section (banner + card)
@@ -405,11 +425,11 @@ struct SubscriptionView: View {
 
                         if let intro = package.storeProduct.introductoryDiscount,
                            intro.paymentMode == .freeTrial {
-                            Text("then \(package.storeProduct.localizedPriceString) per \(package.storeProduct.subscriptionPeriod?.periodLabel ?? "")")
+                            Text("then \(cleanPrice(for: package)) per \(package.storeProduct.subscriptionPeriod?.periodLabel ?? "")")
                                 .font(.system(size: 14, weight: .regular))
                                 .foregroundColor(AppColors.textSecondary)
                         } else {
-                            Text("Only \(package.storeProduct.localizedPriceString) per year")
+                            Text("Only \(cleanPrice(for: package)) per year")
                                 .font(.system(size: 14, weight: .regular))
                                 .foregroundColor(AppColors.textSecondary)
                         }
@@ -450,7 +470,7 @@ struct SubscriptionView: View {
 
     /// Format price text as "X.XX per period"
     private func priceText(for package: Package) -> String {
-        let price = package.storeProduct.localizedPriceString
+        let price = cleanPrice(for: package)
         let period = package.storeProduct.subscriptionPeriod?.periodLabel ?? ""
         return String(localized: "\(price) per \(period)")
     }
@@ -489,7 +509,7 @@ struct SubscriptionView: View {
                         .font(.system(size: 18, weight: .bold))
                         .foregroundColor(isSelected ? AppColors.accent : AppColors.textPrimary)
                 } else {
-                    Text(package.storeProduct.localizedPriceString)
+                    Text(cleanPrice(for: package))
                         .font(.system(size: 18, weight: .bold))
                         .foregroundColor(isSelected ? AppColors.accent : AppColors.textPrimary)
                 }

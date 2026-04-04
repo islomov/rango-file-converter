@@ -335,14 +335,22 @@ struct SubscriptionView: View {
 
     // MARK: - Price formatting
 
-    /// Format a price amount using the store product's currency code with a clean symbol (e.g. "$" not "US$").
-    /// Falls back to localizedPriceString if formatting fails.
+    /// Format a price amount using the product's currency with a clean symbol (e.g. "$" not "US$", "£" not "UK£").
+    /// Uses the user's locale for number formatting but strips country-prefixed currency symbols.
     private func formatPrice(_ amount: Decimal, for product: StoreProduct) -> String {
         let formatter = NumberFormatter()
         formatter.numberStyle = .currency
+        formatter.locale = Locale.current
         formatter.currencyCode = product.currencyCode
-        // Use en_US to get clean currency symbols ($ instead of US$)
-        formatter.locale = Locale(identifier: "en_US")
+
+        // Look up the clean currency symbol (e.g. "$" for USD, "£" for GBP)
+        // by using the "en" locale which doesn't add country prefixes
+        let symbolLookup = NumberFormatter()
+        symbolLookup.numberStyle = .currency
+        symbolLookup.currencyCode = product.currencyCode
+        symbolLookup.locale = Locale(identifier: "en")
+        formatter.currencySymbol = symbolLookup.currencySymbol
+
         return formatter.string(from: amount as NSDecimalNumber) ?? product.localizedPriceString
     }
 

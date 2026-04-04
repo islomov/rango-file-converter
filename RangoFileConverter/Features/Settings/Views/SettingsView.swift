@@ -146,7 +146,7 @@ struct SettingsView: View {
             Spacer()
         }
         .padding(.horizontal, 16)
-        .padding(.top, 18)
+        .padding(.top, 24)
         .padding(.bottom, 16)
         .background(AppColors.background)
     }

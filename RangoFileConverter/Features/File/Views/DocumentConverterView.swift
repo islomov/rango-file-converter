@@ -30,6 +30,7 @@ private let documentTools: [DocumentTool] = [
     DocumentTool(id: "protect", title: "Protect PDF", icon: "icon_doc_protect", isAvailable: true),
     DocumentTool(id: "imageToPDF", title: "Image to PDF", icon: "doc.richtext", isAvailable: true, isSystemImage: true),
     DocumentTool(id: "pdfToImage", title: "PDF to Image", icon: "icon_doc_pdf_to_image", isAvailable: true),
+    DocumentTool(id: "viewPDF", title: "View PDF", icon: "doc.text.magnifyingglass", isAvailable: true, isSystemImage: true),
 ]
 
 struct DocumentConverterView: View {
@@ -46,6 +47,7 @@ struct DocumentConverterView: View {
     @State private var showProtectView = false
     @State private var showImageToPDFView = false
     @State private var showPDFToImageView = false
+    @State private var showPDFViewerView = false
     @State private var showSettings = false
     @State private var selectedRecord: ConversionRecord?
 
@@ -127,6 +129,10 @@ struct DocumentConverterView: View {
                     viewModel.convertPDFToImages(inputURL: url, fileName: name, targetFormat: format, pages: pages)
                 }
             }
+            // View PDF
+            .navigationDestination(isPresented: $showPDFViewerView) {
+                PDFViewerView()
+            }
             .onChange(of: viewModel.navigateToHistoryTrigger) { _ in
                 viewModel.showConversionDetail = false
                 showDocumentPicker = false
@@ -136,6 +142,7 @@ struct DocumentConverterView: View {
                 showProtectView = false
                 showImageToPDFView = false
                 showPDFToImageView = false
+                showPDFViewerView = false
                 selectedTab = .history
                 onNavigateToHistory?()
             }
@@ -228,6 +235,8 @@ struct DocumentConverterView: View {
             showImageToPDFView = true
         case "pdfToImage":
             showPDFToImageView = true
+        case "viewPDF":
+            showPDFViewerView = true
         default:
             break
         }

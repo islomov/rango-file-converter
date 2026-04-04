@@ -238,83 +238,103 @@ struct HistoryView: View {
                 .frame(maxWidth: .infinity)
                 Spacer()
             } else {
-                ScrollView {
-                    VStack(alignment: .leading, spacing: 12) {
-                        // Latest section
-                        if !latestRecords.isEmpty {
-                            Section {
-                                ForEach(latestRecords) { record in
-                                    Button {
-                                        selectedRecord = record
-                                    } label: {
-                                        HistoryRowView(record: record)
-                                    }
-                                    .buttonStyle(.plain)
+                List {
+                    // Latest section
+                    if !latestRecords.isEmpty {
+                        Section {
+                            ForEach(latestRecords) { record in
+                                Button {
+                                    selectedRecord = record
+                                } label: {
+                                    HistoryRowView(record: record)
                                 }
-                            } header: {
-                                HStack(spacing: 8) {
-                                    Text("Latest")
-                                        .font(.custom("Montserrat-SemiBold", size: 20))
-                                        .foregroundColor(AppColors.textPrimary)
-
-                                    Text("\(latestRecords.count)")
-                                        .font(.custom("Montserrat-SemiBold", size: 14))
-                                        .foregroundColor(AppColors.accent)
-                                        .padding(.horizontal, 8)
-                                        .padding(.vertical, 2)
-                                        .background(AppColors.accent.opacity(0.12))
-                                        .clipShape(Capsule())
-
-                                    Spacer()
-
-                                    Button {
-                                        showLatestInfo.toggle()
+                                .buttonStyle(.plain)
+                                .swipeActions(edge: .trailing, allowsFullSwipe: true) {
+                                    Button(role: .destructive) {
+                                        withAnimation {
+                                            historyStore.remove(record)
+                                        }
                                     } label: {
-                                        Image(systemName: "info.circle")
-                                            .font(.system(size: 16))
-                                            .foregroundColor(AppColors.textSecondary)
-                                    }
-                                    .popover(isPresented: $showLatestInfo) {
-                                        Text("Latest section shows conversions from the last 5 minutes, including any currently in progress.")
-                                            .font(.custom("Sora-Regular", size: 14))
-                                            .foregroundColor(AppColors.textPrimary)
-                                            .padding(16)
-                                            .frame(width: 260)
-                                            .presentationCompactAdaptation(.popover)
+                                        Label("Delete", systemImage: "trash")
                                     }
                                 }
-                                .frame(maxWidth: .infinity, alignment: .leading)
-                                .padding(.vertical, 8)
-                                .background(AppColors.background)
+                                .listRowInsets(EdgeInsets(top: 4, leading: 16, bottom: 4, trailing: 16))
+                                .listRowSeparator(.hidden)
+                                .listRowBackground(AppColors.background)
                             }
-                        }
-
-                        ForEach(Array(groupedRecords.enumerated()), id: \.element.category) { sectionIndex, group in
-                            Section {
-                                ForEach(group.records) { record in
-                                    Button {
-                                        selectedRecord = record
-                                    } label: {
-                                        HistoryRowView(record: record)
-                                    }
-                                    .buttonStyle(.plain)
-                                }
-                            } header: {
-                                Text(LocalizedStringKey(group.category.capitalized))
+                        } header: {
+                            HStack(spacing: 8) {
+                                Text("Latest")
                                     .font(.custom("Montserrat-SemiBold", size: 20))
                                     .foregroundColor(AppColors.textPrimary)
-                                    .frame(maxWidth: .infinity, alignment: .leading)
-                                    .padding(.vertical, 8)
-                                    .background(AppColors.background)
-                            }
-                        }
 
-                        // Small bottom padding for visual breathing room
-                        Color.clear
-                            .frame(height: 16)
+                                Text("\(latestRecords.count)")
+                                    .font(.custom("Montserrat-SemiBold", size: 14))
+                                    .foregroundColor(AppColors.accent)
+                                    .padding(.horizontal, 8)
+                                    .padding(.vertical, 2)
+                                    .background(AppColors.accent.opacity(0.12))
+                                    .clipShape(Capsule())
+
+                                Spacer()
+
+                                Button {
+                                    showLatestInfo.toggle()
+                                } label: {
+                                    Image(systemName: "info.circle")
+                                        .font(.system(size: 16))
+                                        .foregroundColor(AppColors.textSecondary)
+                                }
+                                .popover(isPresented: $showLatestInfo) {
+                                    Text("Latest section shows conversions from the last 5 minutes, including any currently in progress.")
+                                        .font(.custom("Sora-Regular", size: 14))
+                                        .foregroundColor(AppColors.textPrimary)
+                                        .padding(16)
+                                        .frame(width: 260)
+                                        .presentationCompactAdaptation(.popover)
+                                }
+                            }
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .padding(.vertical, 8)
+                            .listRowInsets(EdgeInsets(top: 0, leading: 16, bottom: 0, trailing: 16))
+                        }
                     }
-                    .padding(.horizontal, 16)
+
+                    ForEach(Array(groupedRecords.enumerated()), id: \.element.category) { sectionIndex, group in
+                        Section {
+                            ForEach(group.records) { record in
+                                Button {
+                                    selectedRecord = record
+                                } label: {
+                                    HistoryRowView(record: record)
+                                }
+                                .buttonStyle(.plain)
+                                .swipeActions(edge: .trailing, allowsFullSwipe: true) {
+                                    Button(role: .destructive) {
+                                        withAnimation {
+                                            historyStore.remove(record)
+                                        }
+                                    } label: {
+                                        Label("Delete", systemImage: "trash")
+                                    }
+                                }
+                                .listRowInsets(EdgeInsets(top: 4, leading: 16, bottom: 4, trailing: 16))
+                                .listRowSeparator(.hidden)
+                                .listRowBackground(AppColors.background)
+                            }
+                        } header: {
+                            Text(LocalizedStringKey(group.category.capitalized))
+                                .font(.custom("Montserrat-SemiBold", size: 20))
+                                .foregroundColor(AppColors.textPrimary)
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                                .padding(.vertical, 8)
+                                .listRowInsets(EdgeInsets(top: 0, leading: 16, bottom: 0, trailing: 16))
+                        }
+                    }
                 }
+                .listStyle(.plain)
+                .scrollContentBackground(.hidden)
+                .background(AppColors.background)
                 .simultaneousGesture(
                     DragGesture(minimumDistance: 10)
                         .onChanged { value in

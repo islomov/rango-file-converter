@@ -137,6 +137,21 @@ struct PDFReorderView: View {
                 .fill(AppColors.shadow.opacity(0.08))
                 .frame(height: 1)
 
+            // Drag & drop hint
+            HStack(spacing: 6) {
+                Image(systemName: "hand.draw")
+                    .font(.system(size: 13, weight: .medium))
+                    .foregroundColor(AppColors.textSecondary)
+
+                Text("Hold and drag pages to reorder them")
+                    .font(.system(size: 13, weight: .medium))
+                    .foregroundColor(AppColors.textSecondary)
+                    .tracking(-0.408)
+            }
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, 10)
+            .background(AppColors.textSecondary.opacity(0.06))
+
             // Page grid
             ScrollView {
                 let columns = [

@@ -157,6 +157,10 @@ final class ConversionRecord: Identifiable, Codable, ObservableObject {
 
     var outputURL: URL? {
         guard let outputPath else { return nil }
+        if outputPath.hasPrefix("internal/") {
+            let relativePath = String(outputPath.dropFirst("internal/".count))
+            return Self.appSupportDirectory.appendingPathComponent(relativePath)
+        }
         return Self.documentsDirectory.appendingPathComponent(outputPath)
     }
 
@@ -175,8 +179,17 @@ final class ConversionRecord: Identifiable, Codable, ObservableObject {
         FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
     }
 
+    static var appSupportDirectory: URL {
+        FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
+    }
+
+    /// Persists the converted file to the appropriate directory based on subscription status.
+    /// Pro users: saved to Documents (visible in Files app).
+    /// Free users: saved to Application Support (internal, not visible in Files app).
     static func persistOutput(from tempURL: URL) -> String? {
-        let dir = documentsDirectory.appendingPathComponent("rango_conversions", isDirectory: true)
+        let isProUser = SubscriptionManager.shared.isProUser
+        let baseDir = isProUser ? documentsDirectory : appSupportDirectory
+        let dir = baseDir.appendingPathComponent("rango_conversions", isDirectory: true)
         try? FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
 
         let fileName = tempURL.lastPathComponent
@@ -187,7 +200,11 @@ final class ConversionRecord: Identifiable, Codable, ObservableObject {
 
         do {
             try FileManager.default.copyItem(at: tempURL, to: destURL)
-            return "rango_conversions/\(fileName)"
+            if isProUser {
+                return "rango_conversions/\(fileName)"
+            } else {
+                return "internal/rango_conversions/\(fileName)"
+            }
         } catch {
             return nil
         }

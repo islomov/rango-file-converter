@@ -12,6 +12,7 @@ struct PDFMergeView: View {
 
     @State private var items: [MergePDFItem] = []
     @State private var showFilePicker = false
+    @State private var isLoadingPDF = false
     @Environment(\.dismiss) private var dismiss
 
     var body: some View {
@@ -24,6 +25,14 @@ struct PDFMergeView: View {
                 AppColors.background
                     .ignoresSafeArea()
                 fileListState
+            }
+
+            if isLoadingPDF {
+                Color.black.opacity(0.3)
+                    .ignoresSafeArea()
+                ProgressView()
+                    .scaleEffect(1.5)
+                    .tint(.white)
             }
         }
         .navigationBarHidden(true)
@@ -307,21 +316,36 @@ struct PDFMergeView: View {
 
     private func handleFileImport(_ result: Result<[URL], Error>) {
         guard case .success(let urls) = result else { return }
-        for sourceURL in urls {
-            guard sourceURL.startAccessingSecurityScopedResource() else { continue }
-            defer { sourceURL.stopAccessingSecurityScopedResource() }
 
-            let fileName = sourceURL.lastPathComponent
+        isLoadingPDF = true
+        // Capture security-scoped access before going to background
+        var accessedURLs: [(URL, String)] = []
+        for sourceURL in urls {
+            if sourceURL.startAccessingSecurityScopedResource() {
+                accessedURLs.append((sourceURL, sourceURL.lastPathComponent))
+            }
+        }
+
+        DispatchQueue.global(qos: .userInitiated).async {
             let tempDir = FileManager.default.temporaryDirectory
                 .appendingPathComponent("rango_pdf_merge", isDirectory: true)
             try? FileManager.default.createDirectory(at: tempDir, withIntermediateDirectories: true)
 
-            let shortID = UUID().uuidString.prefix(8)
-            let destURL = tempDir.appendingPathComponent("\(shortID)_\(fileName)")
-            try? FileManager.default.removeItem(at: destURL)
+            var newItems: [MergePDFItem] = []
+            for (sourceURL, fileName) in accessedURLs {
+                let shortID = UUID().uuidString.prefix(8)
+                let destURL = tempDir.appendingPathComponent("\(shortID)_\(fileName)")
+                try? FileManager.default.removeItem(at: destURL)
 
-            if let _ = try? FileManager.default.copyItem(at: sourceURL, to: destURL) {
-                items.append(MergePDFItem(fileName: fileName, url: destURL))
+                if let _ = try? FileManager.default.copyItem(at: sourceURL, to: destURL) {
+                    newItems.append(MergePDFItem(fileName: fileName, url: destURL))
+                }
+                sourceURL.stopAccessingSecurityScopedResource()
+            }
+
+            DispatchQueue.main.async {
+                items.append(contentsOf: newItems)
+                isLoadingPDF = false
             }
         }
     }

@@ -1,4 +1,5 @@
 import SwiftUI
+import AVFoundation
 
 private enum CompressResolution: String, CaseIterable {
     case original = "Original"
@@ -45,6 +46,13 @@ struct VideoCompressView: View {
     @State private var selectedPreset: CompressPreset = .medium
     @State private var selectedFormat: OutputFormat = .mp4
     @State private var originalSize: Int64 = 0
+    @State private var estimatedSize: Int64 = 0
+    @State private var estimationTask: Task<Void, Never>?
+
+    // Video metadata for estimation
+    @State private var videoDuration: Double = 0
+    @State private var videoBitrate: Double = 0
+    @State private var originalResolutionHeight: Double = 0
 
     var body: some View {
         VStack(spacing: 0) {
@@ -61,7 +69,13 @@ struct VideoCompressView: View {
         .background(AppColors.surface)
         .navigationBarHidden(true)
         .hidesFloatingTabBar()
-        .onAppear { loadOriginalSize() }
+        .onAppear {
+            loadOriginalSize()
+            loadVideoMetadata()
+        }
+        .onChange(of: quality) { _ in updateEstimatedSize() }
+        .onChange(of: selectedResolution) { _ in updateEstimatedSize() }
+        .onChange(of: selectedPreset) { _ in updateEstimatedSize() }
     }
 
     // MARK: - Header
@@ -120,10 +134,31 @@ struct VideoCompressView: View {
     }
 
     private var fileSizeInfo: some View {
-        Text(formatBytes(originalSize))
-            .font(.system(size: 12, weight: .semibold))
-            .foregroundColor(AppColors.textSecondary)
-            .tracking(-0.408)
+        HStack(spacing: 4) {
+            Text(formatBytes(originalSize))
+                .font(.system(size: 12, weight: .semibold))
+                .foregroundColor(AppColors.textPrimary)
+                .tracking(-0.408)
+
+            if estimatedSize > 0 {
+                Image(systemName: "arrow.forward")
+                    .font(.system(size: 10))
+                    .foregroundColor(AppColors.textPrimary)
+
+                Text("~\(formatBytes(estimatedSize))")
+                    .font(.system(size: 12, weight: .semibold))
+                    .foregroundColor(AppColors.accent)
+                    .tracking(-0.408)
+
+                if originalSize > 0 {
+                    let ratio = Double(estimatedSize) / Double(originalSize) * 100
+                    Text(String(format: "(~%.0f%%)", ratio))
+                        .font(.system(size: 12, weight: .semibold))
+                        .foregroundColor(AppColors.textSecondary)
+                        .tracking(-0.408)
+                }
+            }
+        }
     }
 
     // MARK: - Controls Section
@@ -265,6 +300,71 @@ struct VideoCompressView: View {
             .padding(.horizontal, 16)
         }
         .padding(.vertical, 24)
+    }
+
+    // MARK: - Video Metadata & Estimation
+
+    private func loadVideoMetadata() {
+        let asset = AVURLAsset(url: fileURL)
+        Task {
+            if let dur = try? await asset.load(.duration) {
+                let seconds = CMTimeGetSeconds(dur)
+                if seconds.isFinite && seconds > 0 {
+                    await MainActor.run { videoDuration = seconds }
+                }
+            }
+            if let tracks = try? await asset.loadTracks(withMediaType: .video),
+               let track = tracks.first {
+                let size = try? await track.load(.naturalSize)
+                let rate = try? await track.load(.estimatedDataRate)
+                await MainActor.run {
+                    if let size { originalResolutionHeight = Double(size.height) }
+                    if let rate { videoBitrate = Double(rate) }
+                    updateEstimatedSize()
+                }
+            }
+        }
+    }
+
+    private func updateEstimatedSize() {
+        estimationTask?.cancel()
+        estimationTask = Task {
+            try? await Task.sleep(for: .milliseconds(150))
+            guard !Task.isCancelled else { return }
+
+            let estimated = estimateCompressedSize()
+            await MainActor.run {
+                estimatedSize = estimated
+            }
+        }
+    }
+
+    private func estimateCompressedSize() -> Int64 {
+        guard videoDuration > 0, videoBitrate > 0 else { return 0 }
+
+        // Resolution scaling (quadratic since pixels scale by area)
+        let resolutionScale: Double
+        if let targetHeight = selectedResolution.height, originalResolutionHeight > 0 {
+            let ratio = Double(targetHeight) / originalResolutionHeight
+            resolutionScale = min(ratio * ratio, 1.0)
+        } else {
+            resolutionScale = 1.0
+        }
+
+        // Quality scaling: CRF-like model where each +6 halves bitrate.
+        // Assume original was encoded at ~quality 23 equivalent.
+        let qualityFactor = pow(2.0, (23.0 - quality) / 6.0)
+
+        // Estimated video bitrate in bits/sec
+        let estimatedVideoBitrate = videoBitrate * qualityFactor * resolutionScale
+
+        // Estimate audio track at ~128 kbps
+        let audioBitrate: Double = 128_000
+
+        let totalBits = (estimatedVideoBitrate + audioBitrate) * videoDuration
+        let estimatedBytes = totalBits / 8.0
+
+        return max(Int64(estimatedBytes), 1024)
     }
 
     // MARK: - Helpers

@@ -82,6 +82,15 @@ final class ConversionRecord: Identifiable, Codable, ObservableObject {
                     AnalyticsService.Param.targetFormat: targetFormatID
                 ])
                 AppReviewManager.shared.recordSuccess()
+
+                // Facebook: feature used
+                FacebookEventService.logFeatureUsed(toolID: toolType, mediaCategory: mediaCategory)
+
+                // Facebook: first conversion (one-time high-value signal)
+                if !UserDefaults.standard.bool(forKey: "hasCompletedFirstConversion") {
+                    UserDefaults.standard.set(true, forKey: "hasCompletedFirstConversion")
+                    FacebookEventService.logFirstConversion(mediaCategory: mediaCategory, toolType: toolType)
+                }
             } else if newStatus == .failed {
                 AnalyticsService.log(AnalyticsService.Event.conversionFailed, parameters: [
                     AnalyticsService.Param.toolType: toolType,

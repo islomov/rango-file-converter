@@ -48,6 +48,7 @@ struct ContentView: View {
                         AnalyticsService.log(AnalyticsService.Event.categorySelected, parameters: [
                             AnalyticsService.Param.category: "\(category)"
                         ])
+                        FacebookEventService.logContentView(contentType: "category", contentID: "\(category)")
                         withAnimation(.spring(response: 0.35, dampingFraction: 0.9)) {
                             selectedCategory = category
                         }
@@ -111,6 +112,10 @@ struct ContentView: View {
             }
         }
         .sheet(isPresented: $showWelcome, onDismiss: {
+            // Analytics: onboarding completed
+            AnalyticsService.log(AnalyticsService.Event.onboardingCompleted)
+            FacebookEventService.logCompleteRegistration()
+
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
                 guard let scene = UIApplication.shared.connectedScenes
                     .first(where: { $0.activationState == .foregroundActive }) as? UIWindowScene else { return }

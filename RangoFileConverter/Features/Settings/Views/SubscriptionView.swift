@@ -17,6 +17,9 @@ struct SubscriptionView: View {
     @State private var glowOpacity: Double = 0
     @State private var iconScale: CGFloat = 0.5
     @State private var iconOpacity: Double = 0
+    @State private var didPurchase = false
+
+    let source: String
 
     private let features: [(icon: String, title: LocalizedStringKey)] = [
         ("infinity", "Unlimited Conversions"),
@@ -83,6 +86,20 @@ struct SubscriptionView: View {
             // Phase 2: Glow pulse
             withAnimation(.easeInOut(duration: 0.5).delay(0.4)) {
                 glowOpacity = 1.0
+            }
+            // Analytics: paywall viewed
+            if !subscriptionManager.isProUser {
+                AnalyticsService.log(AnalyticsService.Event.paywallViewed, parameters: [
+                    AnalyticsService.Param.source: source
+                ])
+                FacebookEventService.logAddToCart()
+            }
+        }
+        .onDisappear {
+            if !subscriptionManager.isProUser && !didPurchase {
+                AnalyticsService.log(AnalyticsService.Event.paywallDismissed, parameters: [
+                    AnalyticsService.Param.source: source
+                ])
             }
         }
         .onChange(of: subscriptionManager.currentOffering?.identifier) { _ in
@@ -419,6 +436,7 @@ struct SubscriptionView: View {
                 withAnimation(.easeInOut(duration: 0.2)) {
                     selectedPackage = package
                 }
+                logPlanSelected(package)
             } label: {
                 VStack(spacing: 0) {
                     // Full-width "SAVE XX%" banner on top
@@ -504,6 +522,7 @@ struct SubscriptionView: View {
             withAnimation(.easeInOut(duration: 0.2)) {
                 selectedPackage = package
             }
+            logPlanSelected(package)
         } label: {
             HStack {
                 VStack(alignment: .leading, spacing: 3) {
@@ -557,22 +576,53 @@ struct SubscriptionView: View {
             ?? offering.availablePackages.first
     }
 
+    private func logPlanSelected(_ package: Package) {
+        let price = (package.storeProduct.price as NSDecimalNumber).doubleValue
+        let currency = package.storeProduct.currencyCode ?? "USD"
+        AnalyticsService.log(AnalyticsService.Event.paywallPlanSelected, parameters: [
+            AnalyticsService.Param.planID: package.storeProduct.productIdentifier,
+            AnalyticsService.Param.price: price,
+            AnalyticsService.Param.currency: currency
+        ])
+    }
+
     private func purchasePackage(_ package: Package) {
+        let price = (package.storeProduct.price as NSDecimalNumber).doubleValue
+        let currency = package.storeProduct.currencyCode ?? "USD"
+        let productID = package.storeProduct.productIdentifier
+
+        // Facebook: initiated checkout
+        FacebookEventService.logInitiatedCheckout(planID: productID, price: price, currency: currency)
+
         isPurchasing = true
         Task {
             do {
                 let completed = try await subscriptionManager.purchase(package)
                 isPurchasing = false
                 if completed {
-                    AnalyticsService.log("subscription_purchased", parameters: [
-                        "product_id": package.storeProduct.productIdentifier
+                    didPurchase = true
+
+                    // Firebase: subscription purchased
+                    AnalyticsService.log(AnalyticsService.Event.subscriptionPurchased, parameters: [
+                        AnalyticsService.Param.productID: productID,
+                        AnalyticsService.Param.price: price,
+                        AnalyticsService.Param.currency: currency
                     ])
+
+                    // Facebook: purchase with revenue for ROAS
+                    FacebookEventService.logPurchase(amount: price, currency: currency, productID: productID)
+
                     dismiss()
                 }
             } catch {
                 isPurchasing = false
                 errorMessage = error.localizedDescription
                 showError = true
+
+                // Firebase: subscription failed
+                AnalyticsService.log(AnalyticsService.Event.subscriptionFailed, parameters: [
+                    AnalyticsService.Param.errorMessage: error.localizedDescription
+                ])
             }
         }
     }
@@ -584,6 +634,11 @@ struct SubscriptionView: View {
                 try await subscriptionManager.restorePurchases()
                 isPurchasing = false
                 showRestoreSuccess = true
+
+                // Firebase: subscription restored
+                AnalyticsService.log(AnalyticsService.Event.subscriptionRestored, parameters: [
+                    AnalyticsService.Param.isPro: subscriptionManager.isProUser
+                ])
             } catch {
                 isPurchasing = false
                 errorMessage = error.localizedDescription

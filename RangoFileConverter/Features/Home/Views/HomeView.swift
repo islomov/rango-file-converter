@@ -168,7 +168,7 @@ struct HomeView: View {
             }
         }
         .sheet(isPresented: $showSubscription) {
-            SubscriptionView()
+            SubscriptionView(source: "home")
         }
     }
 }

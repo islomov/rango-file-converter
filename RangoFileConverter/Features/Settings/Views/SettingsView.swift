@@ -94,7 +94,7 @@ struct SettingsView: View {
                 .preferredColorScheme(themeManager.colorScheme)
         }
         .sheet(isPresented: $showSubscription) {
-            SubscriptionView()
+            SubscriptionView(source: "settings")
                 .environmentObject(themeManager)
                 .preferredColorScheme(themeManager.colorScheme)
         }

@@ -375,7 +375,7 @@ struct HistoryView: View {
         }
         .preference(key: TabBarVisibilityPreferenceKey.self, value: false)
         .sheet(isPresented: $showSubscription) {
-            SubscriptionView()
+            SubscriptionView(source: "history")
         }
     }
 }

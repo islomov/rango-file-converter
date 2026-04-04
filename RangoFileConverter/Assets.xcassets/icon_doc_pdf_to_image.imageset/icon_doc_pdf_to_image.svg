@@ -1,0 +1,20 @@
+<svg width="28" height="28" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g clip-path="url(#clip0)">
+<!-- Background rectangle (photo frame) -->
+<rect x="1.5" y="4.5" width="25" height="19" rx="2.5" stroke="url(#paint0)" stroke-width="2.2" fill="none"/>
+<!-- Mountain landscape inside -->
+<path d="M1.5 19.5L8.5 13L13 17L18 11.5L26.5 19.5V21.5C26.5 22.6046 25.6046 23.5 24.5 23.5H3.5C2.39543 23.5 1.5 22.6046 1.5 21.5V19.5Z" fill="url(#paint0)"/>
+<!-- Sun circle -->
+<circle cx="21" cy="10.5" r="2.8" fill="url(#paint0)"/>
+</g>
+<defs>
+<linearGradient id="paint0" x1="27.125" y1="0.875" x2="-2.062" y2="4.698" gradientUnits="userSpaceOnUse">
+<stop stop-color="#FFAD5B"/>
+<stop offset="0.5" stop-color="#F4800D"/>
+<stop offset="1" stop-color="#FFAD5B"/>
+</linearGradient>
+<clipPath id="clip0">
+<rect width="28" height="28" fill="white"/>
+</clipPath>
+</defs>
+</svg>

@@ -397,6 +397,60 @@ final class DocumentConverterViewModel: ObservableObject {
         taskManager.register(id: batchID, task: task)
     }
 
+    // MARK: - Compress to ZIP
+
+    func compressToZIP(fileURLs: [URL], fileNames: [String]) {
+        let nameList: String
+        if fileNames.count <= 3 {
+            nameList = fileNames.joined(separator: ", ")
+        } else {
+            nameList = "\(fileNames[0]) + \(fileNames.count - 1) files"
+        }
+
+        let record = ConversionRecord(
+            sourceFileName: nameList,
+            sourceFormat: "FILES",
+            targetFormatID: "zip",
+            thumbnailData: nil,
+            status: .converting,
+            toolType: ToolType.compressToZIP.rawValue,
+            mediaCategory: "document"
+        )
+
+        let task = Task.detached { [weak self] in
+            guard let self else { return }
+            defer { self.taskManager.remove(id: record.id) }
+
+            await AdTrackingManager.shared.ensureTrackingRequested()
+            await MainActor.run {
+                self.store.add(record)
+                self.navigateToHistoryTrigger += 1
+            }
+
+            do {
+                let outputURL = try ZIPService.compress(
+                    fileURLs: fileURLs,
+                    archiveName: "compressed"
+                )
+                let outputPath = ConversionRecord.persistOutput(from: outputURL)
+                await MainActor.run {
+                    record.progress = 1.0
+                    record.status = .converted
+                    record.outputPath = outputPath
+                    self.store.save()
+                }
+            } catch {
+                await MainActor.run {
+                    record.status = .failed
+                    record.errorMessage = error.localizedDescription
+                    self.store.save()
+                }
+            }
+        }
+
+        taskManager.register(id: record.id, task: task)
+    }
+
     // MARK: - Private
 
     private func failRecord(_ record: ConversionRecord, error: String) {

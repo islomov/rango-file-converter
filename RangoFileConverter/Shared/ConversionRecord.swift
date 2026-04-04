@@ -29,6 +29,7 @@ enum ToolType: String, Codable, CaseIterable {
     case imageToPDF = "Image to PDF"
     case pdfToImage = "PDF to Image"
     case draw = "Draw"
+    case compressToZIP = "Compress to ZIP"
 
     var filterID: Int {
         switch self {
@@ -51,6 +52,7 @@ enum ToolType: String, Codable, CaseIterable {
         case .imageToPDF:   return 116
         case .pdfToImage:   return 118
         case .draw:         return 117
+        case .compressToZIP: return 119
         }
     }
 

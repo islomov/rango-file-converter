@@ -14,14 +14,19 @@ struct SubscriptionView: View {
     @State private var showRestoreSuccess = false
     @State private var showPrivacyPolicy = false
     @State private var showTermsOfUse = false
-    @State private var glowRotation: Double = 0
-    @State private var glowScale: CGFloat = 1.0
+    @State private var glowOpacity: Double = 0
+    @State private var iconScale: CGFloat = 0.5
+    @State private var iconOpacity: Double = 0
 
     private let features: [(icon: String, title: LocalizedStringKey)] = [
         ("infinity", "Unlimited Conversions"),
         ("bolt.fill", "Priority Processing"),
         ("eye.slash.fill", "Ad-Free Experience"),
         ("star.fill", "All 74+ Formats"),
+        ("slider.horizontal.3", "Custom Compression"),
+        ("square.and.arrow.up", "Share & Export Files"),
+        ("doc.viewfinder", "Built-in File Viewer"),
+        ("rectangle.stack.badge.plus", "Merge & Stitch Files"),
         ("clock.arrow.circlepath", "Conversion History"),
         ("person.crop.circle.badge.checkmark", "Premium Support")
     ]
@@ -55,12 +60,6 @@ struct SubscriptionView: View {
 
                         if subscriptionManager.isProUser {
                             activeSubscriptionBadge
-                        } else {
-                            Button { dismiss() } label: {
-                                Text("Continue with limited version")
-                                    .font(.system(size: 13, weight: .medium))
-                                    .foregroundColor(AppColors.textSecondary)
-                            }
                         }
                     }
                     .padding(.horizontal, 16)
@@ -76,11 +75,14 @@ struct SubscriptionView: View {
         .onAppear {
             subscriptionManager.fetchOfferings()
             selectYearlyIfNeeded()
-            withAnimation(.linear(duration: 3).repeatForever(autoreverses: false)) {
-                glowRotation = 360
+            // Phase 1: Scale up + fade in with spring
+            withAnimation(.spring(response: 0.6, dampingFraction: 0.7, blendDuration: 0)) {
+                iconScale = 1.0
+                iconOpacity = 1.0
             }
-            withAnimation(.easeInOut(duration: 2).repeatForever(autoreverses: true)) {
-                glowScale = 1.15
+            // Phase 2: Glow pulse
+            withAnimation(.easeInOut(duration: 0.5).delay(0.4)) {
+                glowOpacity = 1.0
             }
         }
         .onChange(of: subscriptionManager.currentOffering?.identifier) { _ in
@@ -125,48 +127,42 @@ struct SubscriptionView: View {
     // MARK: - Header with animated glow
 
     private var headerSection: some View {
-        VStack(spacing: 12) {
+        VStack(spacing: 8) {
             ZStack {
-                // Soft ambient glow behind icon
-                RoundedRectangle(cornerRadius: 24)
-                    .fill(AppColors.accent.opacity(0.15))
-                    .frame(width: 100, height: 100)
-                    .blur(radius: 20)
-                    .scaleEffect(glowScale)
-
-                // Subtle rotating border
-                RoundedRectangle(cornerRadius: 20)
-                    .stroke(
-                        AngularGradient(
+                // Radial orange glow behind icon
+                Circle()
+                    .fill(
+                        RadialGradient(
                             gradient: Gradient(colors: [
-                                AppColors.buttonGradientStart.opacity(0.6),
-                                AppColors.buttonGradientEnd.opacity(0.2),
-                                AppColors.accentLight.opacity(0.6),
-                                AppColors.buttonGradientStart.opacity(0.2),
-                                AppColors.buttonGradientStart.opacity(0.6)
+                                Color.orange.opacity(0.3),
+                                Color.orange.opacity(0)
                             ]),
                             center: .center,
-                            angle: .degrees(glowRotation)
-                        ),
-                        lineWidth: 2.5
+                            startRadius: 5,
+                            endRadius: 60
+                        )
                     )
-                    .frame(width: 90, height: 90)
+                    .frame(width: 120, height: 120)
+                    .opacity(glowOpacity)
 
                 // App icon
                 Image("app_icon")
                     .resizable()
                     .aspectRatio(contentMode: .fit)
-                    .frame(width: 76, height: 76)
-                    .clipShape(RoundedRectangle(cornerRadius: 17))
+                    .frame(width: 56, height: 56)
+                    .clipShape(RoundedRectangle(cornerRadius: 13, style: .continuous))
+                    .shadow(color: .orange.opacity(0.25), radius: 12, y: 4)
             }
+            .scaleEffect(iconScale)
+            .opacity(iconOpacity)
 
-            HStack(spacing: 6) {
+            HStack(spacing: 5) {
                 Text("Media Converter")
-                    .font(.system(size: 28, weight: .bold))
+                    .font(.system(size: 22, weight: .bold))
                     .foregroundColor(AppColors.textPrimary)
 
                 Text("Pro")
-                    .font(.system(size: 28, weight: .bold))
+                    .font(.system(size: 22, weight: .bold))
                     .foregroundStyle(
                         LinearGradient(
                             colors: [AppColors.buttonGradientStart, AppColors.buttonGradientEnd],
@@ -176,8 +172,8 @@ struct SubscriptionView: View {
                     )
             }
         }
-        .padding(.top, 8)
-        .padding(.bottom, 27)
+        .padding(.top, -8)
+        .padding(.bottom, 20)
     }
 
     // MARK: - Feature List (icons, no cards)
@@ -258,13 +254,16 @@ struct SubscriptionView: View {
                 }
             }
 
-            // Auto-renewal disclosure
-            Text("Subscription automatically renews unless cancelled at least 24 hours before the end of the current period. Manage in Settings > Apple ID > Subscriptions.")
-                .font(.system(size: 11, weight: .regular))
-                .foregroundColor(AppColors.textSecondary)
-                .multilineTextAlignment(.center)
-                .padding(.horizontal, 8)
-                .padding(.top, 7)
+            // Secured by App Store badge
+            HStack(spacing: 4) {
+                Image(systemName: "lock.shield.fill")
+                    .font(.system(size: 11))
+                    .foregroundColor(AppColors.textSecondary)
+                Text("Secured by App Store")
+                    .font(.system(size: 11, weight: .regular))
+                    .foregroundColor(AppColors.textSecondary)
+            }
+            .padding(.top, 7)
 
             // Continue button
             Button {
@@ -288,6 +287,7 @@ struct SubscriptionView: View {
             }
             .disabled(isPurchasing || selectedPackage == nil)
             .opacity(isPurchasing ? 0.7 : 1)
+            .padding(.bottom, 6)
 
             // Footer links
             HStack(spacing: 16) {
@@ -404,14 +404,25 @@ struct SubscriptionView: View {
         let isSelected = selectedPackage?.identifier == package.identifier
         let savings = savingsPercentage(for: package, allPackages: allPackages)
 
-        return Button {
-            withAnimation(.easeInOut(duration: 0.2)) {
-                selectedPackage = package
+        return VStack(spacing: 10) {
+            // "Cancel Anytime" label above yearly card
+            HStack(spacing: 5) {
+                Image(systemName: "checkmark")
+                    .font(.system(size: 15, weight: .semibold))
+                    .foregroundColor(AppColors.textSecondary)
+                Text("Cancel Anytime")
+                    .font(.system(size: 17, weight: .medium))
+                    .foregroundColor(AppColors.textSecondary)
             }
-        } label: {
-            VStack(spacing: 0) {
-                // Full-width "SAVE XX%" banner on top
-                if let savings = savings {
+
+            Button {
+                withAnimation(.easeInOut(duration: 0.2)) {
+                    selectedPackage = package
+                }
+            } label: {
+                VStack(spacing: 0) {
+                    // Full-width "SAVE XX%" banner on top
+                    if let savings = savings {
                     Text("SAVE \(savings)%")
                         .font(.system(size: 13, weight: .bold))
                         .foregroundColor(.white)
@@ -472,8 +483,9 @@ struct SubscriptionView: View {
                 RoundedRectangle(cornerRadius: 14)
                     .stroke(isSelected ? AppColors.accent : AppColors.border, lineWidth: isSelected ? 2 : 1)
             )
+            }
+            .buttonStyle(.plain)
         }
-        .buttonStyle(.plain)
     }
 
     // MARK: - Package Row (non-yearly)

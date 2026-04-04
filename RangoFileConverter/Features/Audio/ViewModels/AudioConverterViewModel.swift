@@ -540,8 +540,10 @@ final class AudioConverterViewModel: ObservableObject {
     // MARK: - Crop Audio
 
     func cropAudio(inputURL: URL, fileName: String, startTime: Double, endTime: Double) {
-        let sourceExt = fileName.components(separatedBy: ".").last?.uppercased() ?? "UNKNOWN"
-        let ext = fileName.components(separatedBy: ".").last?.lowercased() ?? "mp3"
+        let rawExt = fileName.components(separatedBy: ".").last?.lowercased() ?? "mp3"
+        let isVideoSource = Self.videoExtensions.contains(rawExt)
+        let ext = isVideoSource ? "m4a" : rawExt
+        let sourceExt = ext.uppercased()
 
         let record = ConversionRecord(
             sourceFileName: fileName,
@@ -576,14 +578,20 @@ final class AudioConverterViewModel: ObservableObject {
                 let shortID = UUID().uuidString.prefix(8)
                 let outputURL = tempDir.appendingPathComponent("crop_\(shortID).\(ext)")
 
+                var ffmpegArgs = [
+                    "-ss", String(format: "%.3f", startTime),
+                    "-to", String(format: "%.3f", endTime)
+                ]
+                if isVideoSource {
+                    ffmpegArgs += ["-vn", "-acodec", "copy"]
+                } else {
+                    ffmpegArgs += ["-c", "copy"]
+                }
+
                 try await FFmpegWrapper.shared.convert(
                     input: inputURL,
                     output: outputURL,
-                    extraArgs: [
-                        "-ss", String(format: "%.3f", startTime),
-                        "-to", String(format: "%.3f", endTime),
-                        "-c", "copy"
-                    ]
+                    extraArgs: ffmpegArgs
                 )
 
                 let outputPath = ConversionRecord.persistOutput(from: outputURL)

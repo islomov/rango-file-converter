@@ -131,6 +131,7 @@ struct HistoryRowView: View {
         case .imageToPDF: return "Image to PDF:"
         case .pdfToImage: return "PDF to Image:"
         case .draw: return "Draw:"
+        case .compressToZIP: return "ZIP:"
         }
     }
 
@@ -185,6 +186,8 @@ struct HistoryRowView: View {
             Color(hex: "E67E22")
         case .draw:
             Color(hex: "FF6B9D")
+        case .compressToZIP:
+            Color(hex: "7F8C8D")
         }
     }
 

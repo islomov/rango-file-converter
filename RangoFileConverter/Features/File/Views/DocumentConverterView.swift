@@ -31,6 +31,7 @@ private let documentTools: [DocumentTool] = [
     DocumentTool(id: "imageToPDF", title: "Image to PDF", icon: "doc.richtext", isAvailable: true, isSystemImage: true),
     DocumentTool(id: "pdfToImage", title: "PDF to Image", icon: "icon_doc_pdf_to_image", isAvailable: true),
     DocumentTool(id: "viewPDF", title: "View PDF", icon: "doc.text.magnifyingglass", isAvailable: true, isSystemImage: true),
+    DocumentTool(id: "compressZIP", title: "Compress to ZIP", icon: "doc.zipper", isAvailable: true, isSystemImage: true),
 ]
 
 struct DocumentConverterView: View {
@@ -48,6 +49,7 @@ struct DocumentConverterView: View {
     @State private var showImageToPDFView = false
     @State private var showPDFToImageView = false
     @State private var showPDFViewerView = false
+    @State private var showCompressToZIPView = false
     @State private var showSettings = false
     @State private var selectedRecord: ConversionRecord?
 
@@ -133,6 +135,12 @@ struct DocumentConverterView: View {
             .navigationDestination(isPresented: $showPDFViewerView) {
                 PDFViewerView()
             }
+            // Compress to ZIP
+            .navigationDestination(isPresented: $showCompressToZIPView) {
+                CompressToZIPView { urls, names in
+                    viewModel.compressToZIP(fileURLs: urls, fileNames: names)
+                }
+            }
             .onChange(of: viewModel.navigateToHistoryTrigger) { _ in
                 viewModel.showConversionDetail = false
                 showDocumentPicker = false
@@ -143,6 +151,7 @@ struct DocumentConverterView: View {
                 showImageToPDFView = false
                 showPDFToImageView = false
                 showPDFViewerView = false
+                showCompressToZIPView = false
                 selectedTab = .history
                 onNavigateToHistory?()
             }
@@ -237,6 +246,8 @@ struct DocumentConverterView: View {
             showPDFToImageView = true
         case "viewPDF":
             showPDFViewerView = true
+        case "compressZIP":
+            showCompressToZIPView = true
         default:
             break
         }

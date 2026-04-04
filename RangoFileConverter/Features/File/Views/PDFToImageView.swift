@@ -16,6 +16,7 @@ struct PDFToImageView: View {
     @State private var pageThumbnails: [Int: UIImage] = [:]
     @State private var targetFormat: FormatDefinition = supportedFormats[0]
     @State private var showFilePicker = false
+    @State private var isLoadingPDF = false
     @Environment(\.dismiss) private var dismiss
 
     private var selectedCount: Int {
@@ -42,6 +43,14 @@ struct PDFToImageView: View {
                 emptyState
             } else {
                 detailState
+            }
+
+            if isLoadingPDF {
+                Color.black.opacity(0.3)
+                    .ignoresSafeArea()
+                ProgressView()
+                    .scaleEffect(1.5)
+                    .tint(.white)
             }
         }
         .navigationBarHidden(true)
@@ -390,34 +399,13 @@ struct PDFToImageView: View {
         .padding(.horizontal, 8)
     }
 
-    // MARK: - Thumbnail Generation
-
-    private func generateThumbnails(for url: URL) {
-        guard let document = PDFDocument(url: url) else { return }
-        let thumbnailSize = CGSize(width: 200, height: 280)
-
-        DispatchQueue.global(qos: .userInitiated).async {
-            var thumbnails: [Int: UIImage] = [:]
-
-            for i in 0..<document.pageCount {
-                guard let page = document.page(at: i) else { continue }
-                let image = page.thumbnail(of: thumbnailSize, for: .mediaBox)
-                thumbnails[i] = image
-            }
-
-            DispatchQueue.main.async {
-                pageThumbnails = thumbnails
-            }
-        }
-    }
-
     // MARK: - File Import
 
     private func handleFileImport(_ result: Result<[URL], Error>) {
         guard case .success(let urls) = result, let sourceURL = urls.first else { return }
         guard sourceURL.startAccessingSecurityScopedResource() else { return }
-        defer { sourceURL.stopAccessingSecurityScopedResource() }
 
+        isLoadingPDF = true
         let name = sourceURL.lastPathComponent
         let tempDir = FileManager.default.temporaryDirectory
             .appendingPathComponent("rango_pdf_to_image", isDirectory: true)
@@ -426,18 +414,34 @@ struct PDFToImageView: View {
         let destURL = tempDir.appendingPathComponent(name)
         try? FileManager.default.removeItem(at: destURL)
 
-        do {
-            try FileManager.default.copyItem(at: sourceURL, to: destURL)
-            fileURL = destURL
-            fileName = name
-            if let doc = PDFDocument(url: destURL) {
-                pageCount = doc.pageCount
+        DispatchQueue.global(qos: .userInitiated).async {
+            var copiedURL: URL?
+            if let _ = try? FileManager.default.copyItem(at: sourceURL, to: destURL) {
+                copiedURL = destURL
             }
-            selectedPages = [:]
-            pageThumbnails = [:]
-            generateThumbnails(for: destURL)
-        } catch {
-            // Copy failed
+            sourceURL.stopAccessingSecurityScopedResource()
+
+            guard let url = copiedURL, let doc = PDFDocument(url: url) else {
+                DispatchQueue.main.async { isLoadingPDF = false }
+                return
+            }
+
+            let count = doc.pageCount
+            let thumbnailSize = CGSize(width: 200, height: 280)
+            var thumbnails: [Int: UIImage] = [:]
+            for i in 0..<count {
+                guard let page = doc.page(at: i) else { continue }
+                thumbnails[i] = page.thumbnail(of: thumbnailSize, for: .mediaBox)
+            }
+
+            DispatchQueue.main.async {
+                fileURL = url
+                fileName = name
+                pageCount = count
+                selectedPages = [:]
+                pageThumbnails = thumbnails
+                isLoadingPDF = false
+            }
         }
     }
 

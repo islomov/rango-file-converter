@@ -9,6 +9,7 @@ struct PDFProtectView: View {
     @State private var password: String = ""
     @State private var confirmPassword: String = ""
     @State private var showFilePicker = false
+    @State private var isLoadingPDF = false
     @State private var errorMessage: String?
     @Environment(\.dismiss) private var dismiss
 
@@ -21,6 +22,14 @@ struct PDFProtectView: View {
                 emptyState
             } else {
                 detailState
+            }
+
+            if isLoadingPDF {
+                Color.black.opacity(0.3)
+                    .ignoresSafeArea()
+                ProgressView()
+                    .scaleEffect(1.5)
+                    .tint(.white)
             }
         }
         .navigationBarHidden(true)
@@ -262,8 +271,8 @@ struct PDFProtectView: View {
     private func handleFileImport(_ result: Result<[URL], Error>) {
         guard case .success(let urls) = result, let sourceURL = urls.first else { return }
         guard sourceURL.startAccessingSecurityScopedResource() else { return }
-        defer { sourceURL.stopAccessingSecurityScopedResource() }
 
+        isLoadingPDF = true
         let name = sourceURL.lastPathComponent
         let tempDir = FileManager.default.temporaryDirectory
             .appendingPathComponent("rango_pdf_protect", isDirectory: true)
@@ -272,15 +281,23 @@ struct PDFProtectView: View {
         let destURL = tempDir.appendingPathComponent(name)
         try? FileManager.default.removeItem(at: destURL)
 
-        do {
-            try FileManager.default.copyItem(at: sourceURL, to: destURL)
-            fileURL = destURL
-            fileName = name
-            errorMessage = nil
-            password = ""
-            confirmPassword = ""
-        } catch {
-            // Copy failed
+        DispatchQueue.global(qos: .userInitiated).async {
+            var copiedURL: URL?
+            if let _ = try? FileManager.default.copyItem(at: sourceURL, to: destURL) {
+                copiedURL = destURL
+            }
+            sourceURL.stopAccessingSecurityScopedResource()
+
+            DispatchQueue.main.async {
+                if let url = copiedURL {
+                    fileURL = url
+                    fileName = name
+                    errorMessage = nil
+                    password = ""
+                    confirmPassword = ""
+                }
+                isLoadingPDF = false
+            }
         }
     }
 

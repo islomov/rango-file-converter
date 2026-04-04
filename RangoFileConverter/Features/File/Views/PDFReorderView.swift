@@ -11,6 +11,7 @@ struct PDFReorderView: View {
     @State private var showFilePicker = false
     @State private var draggingItem: PageItem?
     @State private var hasReordered: Bool = false
+    @State private var isLoadingPDF = false
     @Environment(\.dismiss) private var dismiss
 
     struct PageItem: Identifiable, Equatable {
@@ -33,6 +34,14 @@ struct PDFReorderView: View {
                 emptyState
             } else {
                 detailState
+            }
+
+            if isLoadingPDF {
+                Color.black.opacity(0.3)
+                    .ignoresSafeArea()
+                ProgressView()
+                    .scaleEffect(1.5)
+                    .tint(.white)
             }
         }
         .navigationBarHidden(true)
@@ -323,8 +332,8 @@ struct PDFReorderView: View {
     private func handleFileImport(_ result: Result<[URL], Error>) {
         guard case .success(let urls) = result, let sourceURL = urls.first else { return }
         guard sourceURL.startAccessingSecurityScopedResource() else { return }
-        defer { sourceURL.stopAccessingSecurityScopedResource() }
 
+        isLoadingPDF = true
         let name = sourceURL.lastPathComponent
         let tempDir = FileManager.default.temporaryDirectory
             .appendingPathComponent("rango_pdf_reorder", isDirectory: true)
@@ -333,27 +342,32 @@ struct PDFReorderView: View {
         let destURL = tempDir.appendingPathComponent(name)
         try? FileManager.default.removeItem(at: destURL)
 
-        do {
-            try FileManager.default.copyItem(at: sourceURL, to: destURL)
-            fileURL = destURL
-            fileName = name
-            loadPages(from: destURL)
-        } catch {
-            // Copy failed
+        DispatchQueue.global(qos: .userInitiated).async {
+            var copiedURL: URL?
+            if let _ = try? FileManager.default.copyItem(at: sourceURL, to: destURL) {
+                copiedURL = destURL
+            }
+            sourceURL.stopAccessingSecurityScopedResource()
+
+            guard let url = copiedURL, let doc = PDFDocument(url: url) else {
+                DispatchQueue.main.async { isLoadingPDF = false }
+                return
+            }
+
+            let thumbSize = CGSize(width: 200, height: 280)
+            var items: [PageItem] = []
+            for i in 0..<doc.pageCount {
+                let thumb = doc.page(at: i)?.thumbnail(of: thumbSize, for: .mediaBox)
+                items.append(PageItem(originalIndex: i, thumbnail: thumb))
+            }
+
+            DispatchQueue.main.async {
+                fileURL = url
+                fileName = name
+                pageItems = items
+                isLoadingPDF = false
+            }
         }
-    }
-
-    private func loadPages(from url: URL) {
-        guard let doc = PDFDocument(url: url) else { return }
-        let thumbSize = CGSize(width: 200, height: 280)
-        var items: [PageItem] = []
-
-        for i in 0..<doc.pageCount {
-            let thumb = doc.page(at: i)?.thumbnail(of: thumbSize, for: .mediaBox)
-            items.append(PageItem(originalIndex: i, thumbnail: thumb))
-        }
-
-        pageItems = items
     }
 }
 

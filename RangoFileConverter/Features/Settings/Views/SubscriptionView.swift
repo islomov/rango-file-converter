@@ -352,6 +352,38 @@ struct SubscriptionView: View {
         return Int(NSDecimalNumber(decimal: savings).doubleValue.rounded())
     }
 
+    /// Short currency symbol lookup — maps currency codes to their native short symbols.
+    private static let shortSymbols: [String: String] = {
+        var map: [String: String] = [:]
+        for id in Locale.availableIdentifiers {
+            let locale = Locale(identifier: id)
+            if let code = locale.currencyCode, map[code] == nil,
+               let symbol = locale.currencySymbol {
+                map[code] = symbol
+            }
+        }
+        return map
+    }()
+
+    /// Create a currency formatter that uses the short symbol (e.g. "$" not "US$").
+    private func currencyFormatter(for product: RevenueCat.StoreProduct) -> NumberFormatter {
+        let formatter = NumberFormatter()
+        formatter.numberStyle = .currency
+        formatter.currencyCode = product.currencyCode
+        formatter.locale = product.priceFormatter?.locale ?? .current
+        if let code = product.currencyCode,
+           let short = Self.shortSymbols[code] {
+            formatter.currencySymbol = short
+        }
+        return formatter
+    }
+
+    /// Format price using the short currency symbol (e.g. "$49.99" not "US$49.99").
+    private func formattedPrice(for product: RevenueCat.StoreProduct) -> String {
+        currencyFormatter(for: product).string(from: product.price as NSDecimalNumber)
+            ?? product.localizedPriceString
+    }
+
     /// Calculate per-day price for yearly plan
     private func perDayPrice(for package: Package) -> String? {
         guard package.packageType == .annual else { return nil }
@@ -359,9 +391,7 @@ struct SubscriptionView: View {
         let yearlyPrice = (package.storeProduct.price as NSDecimalNumber).doubleValue
         let perDay = yearlyPrice / 365.0
 
-        let formatter = NumberFormatter()
-        formatter.numberStyle = .currency
-        formatter.locale = package.storeProduct.priceFormatter?.locale ?? .current
+        let formatter = currencyFormatter(for: package.storeProduct)
         formatter.maximumFractionDigits = 2
         formatter.minimumFractionDigits = 2
 
@@ -405,11 +435,11 @@ struct SubscriptionView: View {
 
                         if let intro = package.storeProduct.introductoryDiscount,
                            intro.paymentMode == .freeTrial {
-                            Text("then \(package.storeProduct.localizedPriceString) per \(package.storeProduct.subscriptionPeriod?.periodLabel ?? "")")
+                            Text("then \(formattedPrice(for: package.storeProduct)) per \(package.storeProduct.subscriptionPeriod?.periodLabel ?? "")")
                                 .font(.system(size: 14, weight: .regular))
                                 .foregroundColor(AppColors.textSecondary)
                         } else {
-                            Text("Only \(package.storeProduct.localizedPriceString) per year")
+                            Text("Only \(formattedPrice(for: package.storeProduct)) per year")
                                 .font(.system(size: 14, weight: .regular))
                                 .foregroundColor(AppColors.textSecondary)
                         }
@@ -450,7 +480,7 @@ struct SubscriptionView: View {
 
     /// Format price text as "X.XX per period"
     private func priceText(for package: Package) -> String {
-        let price = package.storeProduct.localizedPriceString
+        let price = formattedPrice(for: package.storeProduct)
         let period = package.storeProduct.subscriptionPeriod?.periodLabel ?? ""
         return String(localized: "\(price) per \(period)")
     }
@@ -489,7 +519,7 @@ struct SubscriptionView: View {
                         .font(.system(size: 18, weight: .bold))
                         .foregroundColor(isSelected ? AppColors.accent : AppColors.textPrimary)
                 } else {
-                    Text(package.storeProduct.localizedPriceString)
+                    Text(formattedPrice(for: package.storeProduct))
                         .font(.system(size: 18, weight: .bold))
                         .foregroundColor(isSelected ? AppColors.accent : AppColors.textPrimary)
                 }

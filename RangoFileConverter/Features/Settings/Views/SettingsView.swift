@@ -171,7 +171,7 @@ struct SettingsView: View {
                     )
 
                 VStack(alignment: .leading, spacing: 2) {
-                    Text("Rango Pro")
+                    Text("Media Converter Pro")
                         .font(.system(size: 15, weight: .bold))
                         .foregroundColor(AppColors.textPrimary)
 
@@ -188,10 +188,12 @@ struct SettingsView: View {
             }
             .padding(.horizontal, 16)
             .padding(.vertical, 14)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .background(AppColors.surface)
+            .cornerRadius(16)
+            .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
-        .background(AppColors.surface)
-        .cornerRadius(16)
     }
 
     // MARK: - General Section

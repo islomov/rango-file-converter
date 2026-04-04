@@ -658,18 +658,16 @@ final class AudioConverterViewModel: ObservableObject {
                 let finalURL: URL
 
                 if outputExtension.lowercased() == "mp3" {
-                    // MP3: merge to WAV first, then encode to MP3 via LAME
-                    let mergedWAV = try await mergeEngine.mergeAudio(
-                        inputs: inputs,
-                        outputExtension: "wav",
-                        progressFilePath: progressFile.path
-                    )
-                    defer { try? FileManager.default.removeItem(at: mergedWAV) }
+                    // MP3: merge audio natively via AVMutableComposition → M4A,
+                    // then encode to MP3 via LAME.
+                    // Using Apple APIs ensures AVAudioFile can read the result.
+                    let mergedM4A = try await self.mergeAudioNatively(inputs: inputs)
+                    defer { try? FileManager.default.removeItem(at: mergedM4A) }
 
                     guard let mp3Format = FormatRegistry.format(forExtension: "mp3") else {
                         throw ConversionError.unsupportedFormat("MP3")
                     }
-                    let job = ConversionJob(inputURL: mergedWAV, outputFormat: mp3Format)
+                    let job = ConversionJob(inputURL: mergedM4A, outputFormat: mp3Format)
                     let result = try await self.coordinator.convert(job: job)
                     finalURL = result.outputURL
                 } else {
@@ -707,6 +705,56 @@ final class AudioConverterViewModel: ObservableObject {
         record.status = .failed
         record.errorMessage = error
         store.save()
+    }
+
+    // MARK: - Native Audio Merge
+
+    /// Merges audio files using AVMutableComposition, producing a proper M4A
+    /// that AVAudioFile can reliably read for subsequent LAME encoding.
+    private func mergeAudioNatively(inputs: [URL]) async throws -> URL {
+        let composition = AVMutableComposition()
+        guard let compositionTrack = composition.addMutableTrack(
+            withMediaType: .audio,
+            preferredTrackID: kCMPersistentTrackID_Invalid
+        ) else {
+            throw NSError(domain: "AudioMerge", code: -1, userInfo: [NSLocalizedDescriptionKey: "Failed to create composition track"])
+        }
+
+        var insertTime = CMTime.zero
+        for url in inputs {
+            let asset = AVAsset(url: url)
+            let duration = try await asset.load(.duration)
+            guard let audioTrack = try await asset.loadTracks(withMediaType: .audio).first else {
+                continue
+            }
+            let timeRange = CMTimeRange(start: .zero, duration: duration)
+            try compositionTrack.insertTimeRange(timeRange, of: audioTrack, at: insertTime)
+            insertTime = CMTimeAdd(insertTime, duration)
+        }
+
+        guard let exportSession = AVAssetExportSession(
+            asset: composition,
+            presetName: AVAssetExportPresetAppleM4A
+        ) else {
+            throw NSError(domain: "AudioMerge", code: -1, userInfo: [NSLocalizedDescriptionKey: "Failed to create export session"])
+        }
+
+        let tempDir = FileManager.default.temporaryDirectory
+            .appendingPathComponent("rango_conversions", isDirectory: true)
+        try? FileManager.default.createDirectory(at: tempDir, withIntermediateDirectories: true)
+        let outputURL = tempDir.appendingPathComponent("merged_\(UUID().uuidString.prefix(8)).m4a")
+        try? FileManager.default.removeItem(at: outputURL)
+
+        exportSession.outputURL = outputURL
+        exportSession.outputFileType = .m4a
+
+        await exportSession.export()
+
+        guard exportSession.status == .completed else {
+            throw exportSession.error ?? NSError(domain: "AudioMerge", code: -1, userInfo: [NSLocalizedDescriptionKey: "Audio merge export failed"])
+        }
+
+        return outputURL
     }
 
     // MARK: - Progress Helpers

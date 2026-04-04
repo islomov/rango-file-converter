@@ -61,6 +61,13 @@ struct AudioCompressView: View {
     @State private var selectedSampleRate: AudioSampleRate = .hz44100
     @State private var selectedFormat: CompressOutputFormat = .mp3
     @State private var originalSize: Int64 = 0
+    @State private var estimatedSize: Int64 = 0
+    @State private var estimationTask: Task<Void, Never>?
+
+    // Audio metadata for estimation
+    @State private var audioDuration: Double = 0
+    @State private var audioChannels: Int = 2
+    @State private var originalSampleRate: Int = 44100
 
     // Playback state
     @State private var audioPlayer: AVPlayer?
@@ -86,7 +93,13 @@ struct AudioCompressView: View {
         .background(AppColors.surface)
         .navigationBarHidden(true)
         .hidesFloatingTabBar()
-        .onAppear { loadOriginalSize() }
+        .onAppear {
+            loadOriginalSize()
+            loadAudioMetadata()
+        }
+        .onChange(of: selectedFormat) { _ in updateEstimatedSize() }
+        .onChange(of: selectedBitrate) { _ in updateEstimatedSize() }
+        .onChange(of: selectedSampleRate) { _ in updateEstimatedSize() }
         .onReceive(NotificationCenter.default.publisher(for: .AVPlayerItemDidPlayToEndTime)) { notification in
             guard let item = notification.object as? AVPlayerItem,
                   item === audioPlayer?.currentItem else { return }
@@ -155,10 +168,7 @@ struct AudioCompressView: View {
             }
             .padding(.horizontal, 16)
 
-            Text(formatBytes(originalSize))
-                .font(.system(size: 12, weight: .semibold))
-                .foregroundColor(AppColors.textSecondary)
-                .tracking(-0.408)
+            fileSizeInfo
                 .padding(.top, 12)
                 .padding(.bottom, 12)
         }
@@ -432,6 +442,110 @@ struct AudioCompressView: View {
         audioPlayer = nil
         isPlaying = false
         try? AVAudioSession.sharedInstance().setActive(false, options: .notifyOthersOnDeactivation)
+    }
+
+    // MARK: - File Size Info
+
+    private var fileSizeInfo: some View {
+        HStack(spacing: 4) {
+            Text(formatBytes(originalSize))
+                .font(.system(size: 12, weight: .semibold))
+                .foregroundColor(AppColors.textPrimary)
+                .tracking(-0.408)
+
+            if estimatedSize > 0 {
+                Image(systemName: "arrow.forward")
+                    .font(.system(size: 10))
+                    .foregroundColor(AppColors.textPrimary)
+
+                Text(formatBytes(estimatedSize))
+                    .font(.system(size: 12, weight: .semibold))
+                    .foregroundColor(AppColors.accent)
+                    .tracking(-0.408)
+
+                if originalSize > 0 {
+                    let ratio = Double(estimatedSize) / Double(originalSize) * 100
+                    Text(String(format: "(%.0f%%)", ratio))
+                        .font(.system(size: 12, weight: .semibold))
+                        .foregroundColor(AppColors.textSecondary)
+                        .tracking(-0.408)
+                }
+            }
+        }
+    }
+
+    // MARK: - Audio Metadata & Estimation
+
+    private func loadAudioMetadata() {
+        let asset = AVURLAsset(url: fileURL)
+        Task {
+            if let dur = try? await asset.load(.duration) {
+                let seconds = CMTimeGetSeconds(dur)
+                if seconds.isFinite && seconds > 0 {
+                    await MainActor.run {
+                        audioDuration = seconds
+                        duration = seconds
+                        updateEstimatedSize()
+                    }
+                }
+            }
+            if let tracks = try? await asset.loadTracks(withMediaType: .audio),
+               let track = tracks.first {
+                let descriptions = try? await track.load(.formatDescriptions)
+                if let desc = descriptions?.first {
+                    let basicDesc = CMAudioFormatDescriptionGetStreamBasicDescription(desc)
+                    await MainActor.run {
+                        if let basic = basicDesc?.pointee {
+                            audioChannels = max(Int(basic.mChannelsPerFrame), 1)
+                            if basic.mSampleRate > 0 {
+                                originalSampleRate = Int(basic.mSampleRate)
+                            }
+                        }
+                        updateEstimatedSize()
+                    }
+                }
+            }
+        }
+    }
+
+    private func updateEstimatedSize() {
+        estimationTask?.cancel()
+        estimationTask = Task {
+            try? await Task.sleep(for: .milliseconds(150))
+            guard !Task.isCancelled else { return }
+
+            let estimated = estimateCompressedSize()
+            await MainActor.run {
+                estimatedSize = estimated
+            }
+        }
+    }
+
+    private func estimateCompressedSize() -> Int64 {
+        guard audioDuration > 0 else { return 0 }
+
+        let sampleRate = Double(selectedSampleRate.value ?? originalSampleRate)
+
+        if selectedFormat.isLossless {
+            let bytesPerSample: Double = 2 // 16-bit PCM
+            let channels = Double(audioChannels)
+            let rawSize = sampleRate * bytesPerSample * channels * audioDuration
+
+            switch selectedFormat {
+            case .wav:
+                return Int64(rawSize) + 44 // WAV header overhead
+            case .flac:
+                return Int64(rawSize * 0.6) // FLAC typically ~60% of raw
+            default:
+                return Int64(rawSize)
+            }
+        } else {
+            // CBR estimation: bitrate (kbps) → bytes/sec = bitrate * 1000 / 8
+            let bitrateBytes = Double(selectedBitrate.rawValue) * 1000.0 / 8.0
+            let estimated = bitrateBytes * audioDuration
+            // Add ~5% for container/header overhead
+            return Int64(estimated * 1.05)
+        }
     }
 
     // MARK: - Helpers

@@ -29,7 +29,7 @@ private let documentTools: [DocumentTool] = [
     DocumentTool(id: "reorder", title: "Reorder pages", icon: "icon_doc_reorder", isAvailable: true),
     DocumentTool(id: "protect", title: "Protect PDF", icon: "icon_doc_protect", isAvailable: true),
     DocumentTool(id: "imageToPDF", title: "Image to PDF", icon: "doc.richtext", isAvailable: true, isSystemImage: true),
-    DocumentTool(id: "pdfToImage", title: "PDF to Image", icon: "photo.on.rectangle", isAvailable: true, isSystemImage: true),
+    DocumentTool(id: "pdfToImage", title: "PDF to Image", icon: "icon_doc_pdf_to_image", isAvailable: true),
 ]
 
 struct DocumentConverterView: View {

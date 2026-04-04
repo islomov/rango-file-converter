@@ -412,8 +412,8 @@ struct SettingsView: View {
                 showFAQ = true
             }
 
-            linkRow(icon: "lightbulb.fill", title: "Feature request", isFirst: false, isLast: true) {
-                if let url = URL(string: "mailto:support@viralapps.studio?subject=Feature%20Request") {
+            linkRow(icon: "envelope.fill", title: "Write to Support", isFirst: false, isLast: true) {
+                if let url = URL(string: "mailto:support@viralapps.studio?subject=Support%20Request") {
                     UIApplication.shared.open(url)
                 }
             }

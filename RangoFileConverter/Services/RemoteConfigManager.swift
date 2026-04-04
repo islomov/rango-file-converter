@@ -7,6 +7,7 @@
 
 import Foundation
 import Combine
+import os.log
 import FirebaseRemoteConfig
 
 final class RemoteConfigManager: ObservableObject {
@@ -51,10 +52,9 @@ final class RemoteConfigManager: ObservableObject {
         remoteConfig.fetchAndActivate { [weak self] status, error in
             guard let self else { return }
             if let error {
-                print("[RemoteConfig] Fetch failed: \(error.localizedDescription)")
+                os_log("[RemoteConfig] Fetch failed: %{public}@", log: .default, type: .error, error.localizedDescription)
                 return
             }
-            print("[RemoteConfig] Fetch status: \(status.rawValue)")
             DispatchQueue.main.async {
                 self.applyValues()
             }
@@ -70,12 +70,13 @@ final class RemoteConfigManager: ObservableObject {
         let appStoreVersion = remoteConfig.configValue(forKey: "appstore_version").stringValue ?? ""
         requiresForceUpdate = Self.isVersion(appStoreVersion, greaterThan: Self.currentAppVersion)
 
-        print("[RemoteConfig] ──────────────────────────────")
-        print("[RemoteConfig] appstore_version : \(appStoreVersion.isEmpty ? "(empty)" : appStoreVersion)")
-        print("[RemoteConfig] local app version: \(Self.currentAppVersion)")
-        print("[RemoteConfig] force update     : \(requiresForceUpdate)")
-        print("[RemoteConfig] cloud_convert_key: \(cloudConvertAPIKey.isEmpty ? "(empty)" : String(cloudConvertAPIKey.prefix(8)) + "...")")
-        print("[RemoteConfig] ──────────────────────────────")
+        #if DEBUG
+        os_log("[RemoteConfig] appstore_version: %{public}@, local: %{public}@, force_update: %{public}@",
+               log: .default, type: .debug,
+               appStoreVersion.isEmpty ? "(empty)" : appStoreVersion,
+               Self.currentAppVersion,
+               String(describing: requiresForceUpdate))
+        #endif
     }
 
     // MARK: - Version comparison

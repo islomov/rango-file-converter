@@ -1,5 +1,6 @@
 import Foundation
 import Combine
+import os.log
 
 /// Replaces SwiftData ModelContainer/ModelContext with simple JSON persistence.
 /// Shared singleton accessible from views and view models.
@@ -166,7 +167,7 @@ final class HistoryStore: ObservableObject {
                 let data = try encoder.encode(snapshot)
                 try data.write(to: url, options: .atomic)
             } catch {
-                print("[HistoryStore] Save failed: \(error)")
+                os_log("[HistoryStore] Save failed: %{public}@", log: .default, type: .error, error.localizedDescription)
             }
         }
     }
@@ -180,9 +181,8 @@ final class HistoryStore: ObservableObject {
         do {
             let data = try Data(contentsOf: fileURL)
             records = try decoder.decode([ConversionRecord].self, from: data)
-            print("[HistoryStore] Loaded \(records.count) records")
         } catch {
-            print("[HistoryStore] Load failed: \(error)")
+            os_log("[HistoryStore] Load failed: %{public}@", log: .default, type: .error, error.localizedDescription)
             records = []
         }
     }

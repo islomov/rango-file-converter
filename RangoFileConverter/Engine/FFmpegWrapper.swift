@@ -1,4 +1,5 @@
 import Foundation
+import os.log
 import FFmpegSupport
 
 /// Low-level wrapper around FFmpeg's CLI-style execution.
@@ -43,7 +44,7 @@ actor FFmpegWrapper {
     @discardableResult
     func execute(_ arguments: [String]) throws -> Int {
         let commandStr = arguments.joined(separator: " ")
-        print("[FFmpeg] Executing: \(commandStr)")
+        os_log("[FFmpeg] Executing: %{public}@", log: .default, type: .debug, commandStr)
 
         // Redirect stderr to a temp file to capture FFmpeg's error output
         let stderrFile = FileManager.default.temporaryDirectory
@@ -68,9 +69,9 @@ actor FFmpegWrapper {
         let stderrOutput = (try? String(contentsOfFile: stderrPath, encoding: .utf8)) ?? ""
         try? FileManager.default.removeItem(atPath: stderrPath)
 
-        print("[FFmpeg] Exit code: \(code)")
+        os_log("[FFmpeg] Exit code: %d", log: .default, type: .debug, code)
         if !stderrOutput.isEmpty {
-            print("[FFmpeg] stderr: \(stderrOutput.suffix(1000))")
+            os_log("[FFmpeg] stderr: %{public}@", log: .default, type: .debug, String(stderrOutput.suffix(1000)))
         }
 
         guard code == 0 else {

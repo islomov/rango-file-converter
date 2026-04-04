@@ -6,6 +6,7 @@
 //
 
 import UIKit
+import os.log
 import StoreKit
 import AppTrackingTransparency
 import FacebookCore
@@ -57,13 +58,13 @@ final class AdNetworkManager {
         if #available(iOS 16.1, *) {
             SKAdNetwork.updatePostbackConversionValue(0, coarseValue: .low, lockWindow: false) { error in
                 if let error {
-                    print("[AdNetworkManager] SKAdNetwork postback error: \(error.localizedDescription)")
+                    os_log("[AdNetworkManager] SKAdNetwork postback error: %{public}@", log: .default, type: .error, error.localizedDescription)
                 }
             }
         } else {
             SKAdNetwork.updatePostbackConversionValue(0) { error in
                 if let error {
-                    print("[AdNetworkManager] SKAdNetwork postback error: \(error.localizedDescription)")
+                    os_log("[AdNetworkManager] SKAdNetwork postback error: %{public}@", log: .default, type: .error, error.localizedDescription)
                 }
             }
         }

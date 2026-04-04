@@ -440,6 +440,12 @@ struct SettingsView: View {
                 showTermsOfUse = true
             }
 
+            linkRow(title: "Manage subscription", isFirst: false, isLast: false) {
+                if let url = URL(string: "https://apps.apple.com/account/subscriptions") {
+                    UIApplication.shared.open(url)
+                }
+            }
+
             restorePurchasesRow
 
             versionRow

@@ -258,16 +258,13 @@ struct SubscriptionView: View {
                 }
             }
 
-            // Secured by App Store
-            HStack(spacing: 4) {
-                Image(systemName: "lock.fill")
-                    .font(.system(size: 11))
-                    .foregroundColor(AppColors.textSecondary)
-                Text("Secured by App Store")
-                    .font(.system(size: 12, weight: .medium))
-                    .foregroundColor(AppColors.textSecondary)
-            }
-            .padding(.top, 7)
+            // Auto-renewal disclosure
+            Text("Subscription automatically renews unless cancelled at least 24 hours before the end of the current period. Manage in Settings > Apple ID > Subscriptions.")
+                .font(.system(size: 11, weight: .regular))
+                .foregroundColor(AppColors.textSecondary)
+                .multilineTextAlignment(.center)
+                .padding(.horizontal, 8)
+                .padding(.top, 7)
 
             // Continue button
             Button {

@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		1504EE3E2F8245940081BC43 /* StoreKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1504EE3D2F8245940081BC43 /* StoreKit.framework */; };
 		153FAF5C2F5DA8FB0079F7FA /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 153FAF5B2F5DA8FB0079F7FA /* GoogleService-Info.plist */; };
 		157079BC2F4ADBFB00B64C40 /* FFmpeg-iOS in Frameworks */ = {isa = PBXBuildFile; productRef = 157079BB2F4ADBFB00B64C40 /* FFmpeg-iOS */; };
 		157079C32F4AEC5C00B64C40 /* webp in Frameworks */ = {isa = PBXBuildFile; productRef = 157079C22F4AEC5C00B64C40 /* webp */; };
@@ -19,6 +20,7 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		1504EE3D2F8245940081BC43 /* StoreKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = StoreKit.framework; path = System/Library/Frameworks/StoreKit.framework; sourceTree = SDKROOT; };
 		153FAF5B2F5DA8FB0079F7FA /* GoogleService-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
 		157079572F4881F500B64C40 /* RangoFileConverter.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = RangoFileConverter.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
@@ -36,6 +38,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				1504EE3E2F8245940081BC43 /* StoreKit.framework in Frameworks */,
 				157079C32F4AEC5C00B64C40 /* webp in Frameworks */,
 				157079BC2F4ADBFB00B64C40 /* FFmpeg-iOS in Frameworks */,
 				15707A032F5B000100B64C40 /* FirebaseRemoteConfig in Frameworks */,
@@ -50,12 +53,21 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		1504EE3C2F8245940081BC43 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				1504EE3D2F8245940081BC43 /* StoreKit.framework */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
 		1570794E2F4881F500B64C40 = {
 			isa = PBXGroup;
 			children = (
 				157079592F4881F500B64C40 /* RangoFileConverter */,
 				157079582F4881F500B64C40 /* Products */,
 				153FAF5B2F5DA8FB0079F7FA /* GoogleService-Info.plist */,
+				1504EE3C2F8245940081BC43 /* Frameworks */,
 			);
 			sourceTree = "<group>";
 		};

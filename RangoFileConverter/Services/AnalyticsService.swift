@@ -21,6 +21,21 @@ enum AnalyticsService {
         static let languageChanged      = "language_changed"
         static let rateAppTapped        = "rate_app_tapped"
         static let storageCleared       = "storage_cleared"
+
+        // Paywall funnel
+        static let paywallViewed        = "paywall_viewed"
+        static let paywallDismissed     = "paywall_dismissed"
+        static let paywallPlanSelected  = "paywall_plan_selected"
+
+        // Subscription lifecycle
+        static let subscriptionPurchased = "subscription_purchased"
+        static let subscriptionFailed    = "subscription_failed"
+        static let subscriptionRestored  = "subscription_restored"
+
+        // Onboarding & engagement
+        static let onboardingCompleted  = "onboarding_completed"
+        static let fileImported         = "file_imported"
+        static let shareTapped          = "share_tapped"
     }
 
     // MARK: - Parameter Keys
@@ -36,6 +51,12 @@ enum AnalyticsService {
         static let language      = "language"
         static let appVersion    = "app_version"
         static let errorMessage  = "error_message"
+        static let planID        = "plan_id"
+        static let price         = "price"
+        static let currency      = "currency"
+        static let source        = "source"
+        static let productID     = "product_id"
+        static let isPro         = "is_pro"
     }
 
     // MARK: - Log

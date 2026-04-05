@@ -82,7 +82,7 @@ struct HistoryResultSheet: View {
             Text("Enter a new name for this file.")
         }
         .sheet(isPresented: $showSubscription) {
-            SubscriptionView()
+            SubscriptionView(source: "history_result")
         }
     }
 
@@ -463,6 +463,12 @@ struct HistoryResultSheet: View {
                             backgroundColor: AppColors.textPrimary.opacity(0.08)
                         )
                     }
+                    .simultaneousGesture(TapGesture().onEnded {
+                        AnalyticsService.log(AnalyticsService.Event.shareTapped, parameters: [
+                            AnalyticsService.Param.mediaCategory: record.mediaCategory,
+                            AnalyticsService.Param.targetFormat: record.targetFormatID
+                        ])
+                    })
                 } else {
                     Button {
                         showSubscription = true

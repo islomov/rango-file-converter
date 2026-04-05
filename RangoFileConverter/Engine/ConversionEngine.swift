@@ -8,7 +8,7 @@ enum RatioFitMode: String, CaseIterable {
 /// Describes a conversion job with all parameters.
 struct ConversionJob: Identifiable {
     let id = UUID()
-    let inputURL: URL
+    var inputURL: URL
     let outputFormat: FormatDefinition
 
     // Optional transformations
